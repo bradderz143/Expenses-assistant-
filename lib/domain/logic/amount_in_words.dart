@@ -380,8 +380,10 @@ class AmountInWords {
 
   static bool _isCurrency(String text) {
     if (_currencies.contains(text)) return true;
-    if (text.length < 5 || _words.containsKey(text)) return false;
+    if (text.length < 4 || _words.containsKey(text)) return false;
     for (final c in _currencies) {
+      // A four-letter misread only of a longer word: "pess" for "pesos".
+      if (text.length == 4 && c.length < 5) continue;
       if ((c.length - text.length).abs() <= 1 && _distance(text, c, 1) <= 1) {
         return true;
       }

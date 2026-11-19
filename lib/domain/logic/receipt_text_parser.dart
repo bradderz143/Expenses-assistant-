@@ -260,7 +260,45 @@ class ReceiptTextParser {
     for (final brand in _brands) {
       if (brand.$1.hasMatch(text)) return brand;
     }
+    // A long brand name read with a letter or two wrong ("starbLICks",
+    // "stabckS"). Short names are left out: too easy to match by chance.
+    final words = [
+      for (final m in RegExp('[A-Za-z]{6,}').allMatches(text))
+        m[0]!.toLowerCase(),
+    ];
+    for (final (word, name) in _fuzzyBrands) {
+      for (final w in words) {
+        if ((w.length - word.length).abs() <= 2 && _editDistance(w, word) <= 2) {
+          return (RegExp(RegExp.escape(name), caseSensitive: false), name);
+        }
+      }
+    }
     return null;
+  }
+
+  static const List<(String, String)> _fuzzyBrands = [
+    ('starbucks', 'Starbucks'),
+    ('sanborns', 'Sanborns'),
+    ('marriott', 'Marriott'),
+    ('europcar', 'Europcar'),
+    ('aeromexico', 'Aeroméxico'),
+    ('mcdonalds', "McDonald's"),
+  ];
+
+  static int _editDistance(String a, String b) {
+    var previous = List<int>.generate(b.length + 1, (i) => i);
+    for (var i = 1; i <= a.length; i++) {
+      final current = List<int>.filled(b.length + 1, i);
+      for (var j = 1; j <= b.length; j++) {
+        final cost = a.codeUnitAt(i - 1) == b.codeUnitAt(j - 1) ? 0 : 1;
+        var v = previous[j - 1] + cost;
+        if (previous[j] + 1 < v) v = previous[j] + 1;
+        if (current[j - 1] + 1 < v) v = current[j - 1] + 1;
+        current[j] = v;
+      }
+      previous = current;
+    }
+    return previous[b.length];
   }
 
   /// "Thanks for riding, / Juan": a greeting whose name runs onto the
@@ -474,6 +512,16 @@ class ReceiptTextParser {
 
   /// Puts back digits that OCR read as look-alike letters, but only inside
   /// something already shaped like a date and mostly made of digits.
+  /// "16-1 1-2026": a space OCR put inside the month.
+  static final RegExp _spaceInDate =
+      RegExp(r'(?<=\b\d{1,2}[-/.]\d)\s(?=\d[-/.]\d{2,4}\b)');
+
+  /// "Nov16'26", "NOV 16 '26": month, day and a two-digit year after an
+  /// apostrophe, as some tills print it.
+  static final RegExp _monthDayShortYear = RegExp(
+    r"(?<![A-Za-z])([A-Za-z]{3,9})\.?\s?(\d{1,2})\s?['’`´]\s?(\d{2})(?!\d)",
+  );
+
   static String _repairDates(String row) => row.replaceAllMapped(_noisyDate, (m) {
         final groups = [m[1]!, m[3]!, m[4]!];
         if (groups.any((g) => !RegExp(r'\d').hasMatch(g))) return m[0]!;
@@ -503,7 +551,7 @@ class ReceiptTextParser {
     // (first number, year) of dates whose middle was unreadable.
     final partials = <(int, int)>[];
     for (final raw in rows) {
-      final row = _repairDates(raw);
+      final row = _repairDates(raw.replaceAll(_spaceInDate, ''));
       // "FECHA: 12/11/2026  VENCE: 12/12/2026": what comes after the word for
       // another kind of date is that date; what comes before is the
       // purchase.
@@ -619,6 +667,11 @@ class ReceiptTextParser {
       final month = _monthFromName(m[2]!);
       if (month == null) continue;
       _addDate(found, _fullYear(int.parse(m[3]!)), month, int.parse(m[1]!));
+    }
+    for (final m in _monthDayShortYear.allMatches(row)) {
+      final month = _monthFromName(m[1]!);
+      if (month == null) continue;
+      _addDate(found, _fullYear(int.parse(m[3]!)), month, int.parse(m[2]!));
     }
     for (final m in _monthNameDay.allMatches(row)) {
       final month = _monthFromName(m[1]!);
@@ -1088,6 +1141,17 @@ class ReceiptTextParser {
         for (final amount in later) {
           if (_near(amount, pick.amount + tips)) return (amount, false);
         }
+      }
+    }
+
+    // A card payment that the items add up to ("VISA CREDITO 211.00" for
+    // 114.00 + 97.00) is the bill, whatever a damaged total row says.
+    for (final p in paidNet) {
+      if (p > 0 &&
+          p != pick?.amount &&
+          !contradicted(p) &&
+          backedByItems(p, rows.length)) {
+        return (p, false);
       }
     }
 

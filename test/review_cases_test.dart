@@ -524,6 +524,32 @@ void main() {
     expect(parsed.date, DateTime(2026, 9, 14));
     expect(parsed.merchant, isNull);
   });
+
+  test('coffee shop read badly: card line, items, words and dates still agree',
+      () {
+    final parsed = ReceiptTextParser(
+      defaultCurrency: 'MXN',
+      clock: () => DateTime(2026, 11, 18, 22),
+    ).parseRows(_coffeeText.split('\n'));
+    // "Pagado Total S1.00 11.00" is a damaged row; the card payment, the two
+    // items (114.00 + 97.00) and the amount in words all say 211.00.
+    expect(parsed.amountMinor, 21100);
+    expect(parsed.amountDoubtful, isFalse);
+    expect(parsed.date, DateTime(2026, 11, 16)); // "Nov16'26", "16-1 1-2026"
+    expect(parsed.dateDoubtful, isFalse);
+    expect(parsed.merchant, 'Starbucks'); // from "stabckS"
+  });
+
+  test("month, day and a two-digit year after an apostrophe", () {
+    final later = ReceiptTextParser(
+      defaultCurrency: 'MXN',
+      clock: () => DateTime(2026, 11, 18),
+    );
+    expect(later.parseRows(['CAFE', "Nov16'26 03:12PM", 'TOTAL 10.00']).date,
+        DateTime(2026, 11, 16));
+    expect(later.parseRows(['CAFE', "NOV 3 '26", 'TOTAL 10.00']).date,
+        DateTime(2026, 11, 3));
+  });
 }
 
 const _cafeText = '''GRUPO EJEMPLO ALIMENTOS, SA DE CV
@@ -612,3 +638,39 @@ Bs.S4.138,45
 Total Bs.S52.144,42
 RECH
 etux''';
+
+const _coffeeText = '''tatCKs Coffee En Son
+Expedido en:
+Hoeo N S00 LOcal PB
+CP 110hpultepec Ejemplo  Col.
+Del. Ejemplo
+Ciudad de MexiCo
+1000 CAJA
+Chk 1000  200000001  Gst
+Nov16'26 03:12PM
+Oby
+1 VT Berry Pear1s Le  114.00
+VT PaT-COMP Nitro
+1  GD CaraTel F  97.00
+GO L Entera F
+reTa Bat icda
+GO POT-COMP Plano
+alU FR/Base Cafe  GD
+3361
+VISA CREDITO  211.00
+Pagado  Total  S1.00  11.00
+1000 Check CloSed-
+-NOV16'26 03: 14PM-
+DosCientos OnCe pess,(0/100 M.
+N
+I.V.A INCLUIDO
+PUedes SoliCitar tu factua
+Datos pra Factuar=
+Ticket : 200000001
+Tiena  10000
+Fecha  16-1 1-2026
+REGIMEN FISCAL:  N/A
+Cafe Ejemplo, S.A. de C.V.
+Centro de AtenCion a Clientes
+tuopinion@stabckS.COn -mK
+DONA AQUI''';
