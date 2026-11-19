@@ -1,0 +1,209 @@
+name: Build apps
+
+# Saves Actions minutes:
+# - every push runs only the quick checks (analyze + tests, ~2-3 min);
+# - the APK is built only when asked: a commit message containing [apk],
+#   or "Run workflow" on the Actions tab;
+# - the iOS build only with [ios] in the message (or the Run workflow box);
+# - a newer push cancels any build still running for an older one.
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      apk:
+        description: Build the APK
+        type: boolean
+        default: true
+      ios:
+        description: Build the unsigned iOS app (IPA)
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Get packages
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze 2>&1 | tee analyze.log
+        continue-on-error: true
+
+      - name: Test
+        run: |
+          set -o pipefail
+          flutter test --exclude-tags screenshots 2>&1 | tee test.log
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: check-logs
+          path: |
+            analyze.log
+            test.log
+
+  apk:
+    if: (github.event_name == 'workflow_dispatch' && inputs.apk) || contains(github.event.head_commit.message, '[apk]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate Android wrapper
+        run: flutter create --org io.github.bradderz143 --project-name expense_assistant --platforms android .
+
+      - name: Set minSdk 24
+        run: |
+          for f in android/app/build.gradle.kts android/app/build.gradle; do
+            if [ -f "$f" ]; then
+              sed -i -E 's/minSdk(Version)? *(=)? *[^\r\n]*/minSdk = 24/' "$f"
+              grep -n "minSdk" "$f" || true
+            fi
+          done
+
+      # ML Kit finds its components by reflection; R8 renaming breaks it
+      # (NullPointerException inside ML Kit). Turn code shrinking off.
+      - name: Disable code shrinking
+        run: |
+          python3 - <<'PY'
+          import re
+          for f in ['android/app/build.gradle.kts', 'android/app/build.gradle']:
+              try:
+                  s = open(f).read()
+              except FileNotFoundError:
+                  continue
+              if f.endswith('.kts'):
+                  add = ('            isMinifyEnabled = false\n'
+                         '            isShrinkResources = false\n'
+                         '            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")\n')
+              else:
+                  add = ('            minifyEnabled false\n'
+                         '            shrinkResources false\n'
+                         "            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'\n")
+              s, n = re.subn(r'(\n\s*release\s*\{\n)', lambda m: m.group(1) + add, s, count=1)
+              print(f, 'patched' if n else 'NO release block found')
+              open(f, 'w').write(s)
+              print(s)
+          PY
+
+      # MainActivity uses androidx FileProvider for "Save to OneDrive".
+      - name: Add androidx.core
+        run: |
+          f=android/app/build.gradle.kts
+          if [ -f "$f" ]; then
+            printf '\ndependencies {\n    implementation("androidx.core:core:1.13.1")\n}\n' >> "$f"
+          else
+            printf "\ndependencies {\n    implementation 'androidx.core:core:1.13.1'\n}\n" >> android/app/build.gradle
+          fi
+          ls android/app/src/main/kotlin -R
+
+      - name: Get packages
+        run: flutter pub get
+
+      # Gradle downloads most of what the APK build needs; keep it between runs.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('pubspec.yaml', '.github/workflows/build-apk.yml') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Build release APK
+        run: |
+          set -o pipefail
+          flutter build apk --release --no-shrink 2>&1 | tee build.log
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: expense-assistant-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-log
+          path: build.log
+
+  # Unsigned iOS build for the work phones. Your IT team signs it (or you do,
+  # with an Apple certificate) and deploys it through their device management.
+  ios:
+    if: (github.event_name == 'workflow_dispatch' && inputs.ios) || contains(github.event.head_commit.message, '[ios]')
+    runs-on: macos-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate iOS wrapper
+        run: flutter create --org io.github.bradderz143 --project-name expense_assistant --platforms ios .
+
+      # The camera and photo library need a stated reason or iOS refuses
+      # access. ML Kit needs iOS 15.5 or later.
+      - name: Configure iOS
+        run: |
+          PLIST=ios/Runner/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'Expense Assistant uses the camera to photograph receipts.'" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :NSPhotoLibraryUsageDescription string 'Expense Assistant can import receipt photos you choose.'" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName 'Expense Assistant'" "$PLIST" || true
+          sed -i '' "s/^# *platform :ios.*/platform :ios, '15.5'/" ios/Podfile
+          sed -i '' -E 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]+;/IPHONEOS_DEPLOYMENT_TARGET = 15.5;/' ios/Runner.xcodeproj/project.pbxproj
+          grep -n "platform :ios" ios/Podfile
+
+      - name: Get packages
+        run: flutter pub get
+
+      - name: Build iOS (no code signing)
+        run: |
+          set -o pipefail
+          flutter build ios --release --no-codesign 2>&1 | tee build.log
+
+      - name: Package unsigned IPA
+        run: |
+          mkdir -p Payload
+          cp -R build/ios/iphoneos/Runner.app Payload/
+          zip -qry expense-assistant-unsigned.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: expense-assistant-ios-unsigned
+          path: expense-assistant-unsigned.ipa
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-build-log
+          path: build.log

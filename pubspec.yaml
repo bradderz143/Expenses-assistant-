@@ -1,0 +1,63 @@
+name: expense_assistant
+description: >-
+  Capture receipts at the point of purchase and build claim-ready evidence
+  packs (original, cropped items, English translation, metadata, claim
+  summary) for expense and travel package claims.
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  # google_mlkit_* 0.17/0.15 need Dart 3.12; share_plus 13 needs Dart 3.10.
+  sdk: ^3.12.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^3.0.0
+
+  # Persistence
+  sqflite: ^2.4.2
+  path: ^1.9.0
+  path_provider: ^2.1.5
+
+  # Capture, crop, OCR, translation (all on-device)
+  image_picker: ^1.1.2
+  image_cropper: ^13.0.0
+  google_mlkit_text_recognition: ^0.17.0
+  google_mlkit_translation: ^0.15.0
+  google_mlkit_language_id: ^0.15.0
+
+  # Output
+  pdf: ^3.11.0
+  archive: ^4.0.0
+  image: ^4.5.0
+  share_plus: ^13.0.0
+
+  # Utilities
+  intl: ^0.20.2
+  uuid: ^4.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  sqflite_common_ffi: ^2.3.6
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/fonts/
+  fonts:
+    # IBM Plex Sans (OFL), static cuts of the variable font.
+    - family: PlexSans
+      fonts:
+        - asset: assets/fonts/ui/IBMPlexSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/ui/IBMPlexSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/ui/IBMPlexSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/ui/IBMPlexSans-Bold.ttf
+          weight: 700

@@ -1,0 +1,3 @@
+tags:
+  screenshots:
+    description: Renders screens to PNG for design review (run with --update-goldens).
