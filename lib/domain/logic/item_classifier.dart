@@ -45,6 +45,12 @@ class ItemWording {
   ItemWording._();
 
   static final Map<RegExp, String> _spanishAbbreviations = {
+    // Card-slip terms the model gets wrong ("Handber card", "Box 1").
+    RegExp(r'\btarjeta\s*habiente\b', caseSensitive: false):
+        'titular de la tarjeta',
+    RegExp(r'\bcaja\b(?=\s*:?\s*\d)', caseSensitive: false): 'caja registradora',
+    RegExp(r'\btransacci\s?[oó]?\s?n\s?(?=electr)', caseSensitive: false):
+        'transacción ',
     RegExp(r'\bbot\b', caseSensitive: false): 'botella',
     RegExp(r'\bens\b', caseSensitive: false): 'ensalada',
     RegExp(r'\bcerv\b', caseSensitive: false): 'cerveza',
@@ -62,3 +68,45 @@ class ItemWording {
     return out;
   }
 }
+
+/// Standard wording printed on card slips, with a fixed translation: the
+/// on-device model mangles legal text ("For this promise I force myself").
+class KnownPhrases {
+  KnownPhrases._();
+
+  static final List<(RegExp, String)> _spanish = [
+    (
+      RegExp(r'^por\s+este\s+pagar[eé]\b', caseSensitive: false),
+      'By this promissory note I unconditionally promise to pay to the order '
+          'of the issuing bank the amount of this document. This note arises '
+          'from the credit agreement between the issuing bank and the '
+          'cardholder.',
+    ),
+    (
+      RegExp(r'^autorizado\s+con\s+pin', caseSensitive: false),
+      'Authorised with PIN',
+    ),
+    (
+      RegExp(r'^autorizado\s+sin\s+firma', caseSensitive: false),
+      'Authorised without signature',
+    ),
+    (
+      RegExp(r'^por\s+favor\s+conserve\s+este\s+ticket', caseSensitive: false),
+      'Please keep this receipt',
+    ),
+    (
+      RegExp(r'^(operaci[oó]n\s+)?contactless\b', caseSensitive: false),
+      'Contactless payment',
+    ),
+  ];
+
+  /// The fixed English for [text], or null.
+  static String? translate(String text, String language) {
+    if (language != 'es') return null;
+    for (final (pattern, english) in _spanish) {
+      if (pattern.hasMatch(text.trim())) return english;
+    }
+    return null;
+  }
+}
+

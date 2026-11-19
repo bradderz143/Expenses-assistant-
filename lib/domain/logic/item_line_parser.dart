@@ -130,8 +130,17 @@ class ItemLineParser {
     r'\b\d{1,2}:\d{2}(?::\d{2})?(?:\s?[AaPp]\.?[Mm]\.?)?',
   );
 
-  static String _withoutDates(String row) =>
-      TextNormaliser.collapseSpaces(row.replaceAll(_dateOrTime, ' '));
+  /// "Bs.S5.445,32", "Bs S10. 164,60", "MX$90.00": a currency written in
+  /// front of a price, and a number OCR split at its separator.
+  static final RegExp _currencyPrefix = RegExp(
+    r'(?<![A-Za-z])(?:Bs\.?\s?S?\.?|MX\$|US\$|S/\.?|Q\.?)\s?(?=[0-9IlO])',
+  );
+  static final RegExp _splitNumber = RegExp(r'(\d)([.,])\s(\d{3}[.,]\d{2})\b');
+
+  static String _withoutDates(String row) => TextNormaliser.collapseSpaces(row
+      .replaceAll(_dateOrTime, ' ')
+      .replaceAll(_currencyPrefix, '')
+      .replaceAllMapped(_splitNumber, (m) => '${m[1]}${m[2]}${m[3]}'));
 
   static List<ReceiptItem> extract(List<String> rows) {
     final items = <ReceiptItem>[];
@@ -165,13 +174,13 @@ class ItemLineParser {
         continue;
       }
 
-      if (tail.isEmpty && _looksLikeName(head)) {
-        final numbers = <String>[];
+      if (!tail.any(_amountToken.hasMatch) && _looksLikeName(head)) {
+        final numbers = <String>[...tail];
         var j = i + 1;
         var last = i;
         var seen = 0;
         while (j < rows.length && seen < 2) {
-          final next = TextNormaliser.collapseSpaces(rows[j]);
+          final next = _withoutDates(rows[j]);
           if (next.isEmpty) {
             j++;
             continue;
@@ -187,7 +196,8 @@ class ItemLineParser {
           started = true;
           items.add(ReceiptItem(
             description: name,
-            quantity: _quantityOf(numbers),
+            // A unit price read on the name row is not a quantity.
+            quantity: tail.isEmpty ? _quantityOf(numbers) : null,
             amountText: _lastAmount(numbers),
             firstRow: i,
             lastRow: last,

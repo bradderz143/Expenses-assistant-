@@ -179,7 +179,7 @@ class ReceiptTextParser {
   // ---------------------------------------------------------------- merchant
 
   static final RegExp _merchantNoise = RegExp(
-    r'^(de\s+\w|sub\s*-?\s*t|venta\b|inbursa|banorte|bbva|bancomer|'
+    r'^(de\s+\w|sub\s*-?\s*t|precio|prech?\b|venta\b|inbursa|banorte|bbva|bancomer|'
     r'santander|hsbc|banamex|citibanamex|scotiabank|banregio|afirme|'
     r'azteca|getnet|clip\b|mercado\s*pago|zettle|sumup|netpay|openpay|'
     r'evertec|credomatic|prosa\b|apertura|silla|pers\b|personas|nombre|'

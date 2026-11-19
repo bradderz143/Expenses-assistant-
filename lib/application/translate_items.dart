@@ -188,7 +188,14 @@ class TranslateItemsUseCase {
     final keys = [
       for (final item in items) TextNormaliser.glossaryKey(item.description),
     ];
-    final glossary = await translations.glossaryLookup(language, keys.toSet());
+    final glossary = {
+      ...await translations.glossaryLookup(language, keys.toSet()),
+    };
+    // Standard card-slip wording gets its fixed translation.
+    for (var i = 0; i < items.length; i++) {
+      final fixed = KnownPhrases.translate(items[i].description, language);
+      if (fixed != null) glossary.putIfAbsent(keys[i], () => fixed);
+    }
 
     final machine = <int, String>{};
     final copied = <int, String>{};
