@@ -63,6 +63,12 @@ jobs:
     timeout-minutes: 40
     permissions:
       contents: read
+    env:
+      # Set once in Settings > Secrets and variables > Actions. With them,
+      # every APK is signed with the same key, so it installs over the last
+      # one and keeps the receipts on the phone. Without them the build falls
+      # back to a throwaway key (and each APK needs an uninstall first).
+      HAS_SIGNING_KEY: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -124,6 +130,38 @@ jobs:
           fi
           ls android/app/src/main/kotlin -R
 
+      # Sign release builds with the permanent key from the repo's secrets.
+      # The key and its passwords only ever live in the runner's memory and
+      # a temporary file; nothing is printed or committed.
+      - name: Use the permanent signing key
+        if: env.HAS_SIGNING_KEY == 'true'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload-keystore.jks"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/upload-keystore.jks" >> "$GITHUB_ENV"
+          python3 - <<'PY'
+          f = 'android/app/build.gradle.kts'
+          s = open(f).read()
+          block = '''    signingConfigs {
+                  create("release") {
+                      storeFile = file(System.getenv("ANDROID_KEYSTORE_PATH"))
+                      storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                      keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                      keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+                  }
+              }
+
+              buildTypes {'''
+          assert s.count('    buildTypes {') == 1, 'buildTypes block not found'
+          s = s.replace('    buildTypes {', block, 1)
+          old = 'signingConfig = signingConfigs.getByName("debug")'
+          assert old in s, 'debug signing line not found'
+          s = s.replace(old, 'signingConfig = signingConfigs.getByName("release")')
+          open(f, 'w').write(s)
+          print('Release builds now signed with the permanent key.')
+          PY
+
       - name: Get packages
         run: flutter pub get
 
@@ -137,6 +175,10 @@ jobs:
           restore-keys: gradle-${{ runner.os }}-
 
       - name: Build release APK
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           set -o pipefail
           flutter build apk --release --no-shrink 2>&1 | tee build.log
