@@ -61,3 +61,9 @@ flutter:
           weight: 600
         - asset: assets/fonts/ui/IBMPlexSans-Bold.ttf
           weight: 700
+
+dependency_overrides:
+  # jni 1.2.0 (Nov 2026) breaks path_provider_android on Android: looking
+  # up android.content.Context throws ClassNotFoundException at start-up.
+  # Stay on 1.1.2 until a fixed jni is released and tested on a phone.
+  jni: 1.1.2
