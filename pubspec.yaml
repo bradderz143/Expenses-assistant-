@@ -63,7 +63,9 @@ flutter:
           weight: 700
 
 dependency_overrides:
-  # jni 1.2.0 (Nov 2026) breaks path_provider_android on Android: looking
-  # up android.content.Context throws ClassNotFoundException at start-up.
-  # Stay on 1.1.2 until a fixed jni is released and tested on a phone.
-  jni: 1.1.2
+  # path_provider_android 2.3.x talks to Android through package:jni. With
+  # jni 1.2.0 (Nov 2026) a fresh install crashes at start-up: looking up
+  # android.content.Context throws ClassNotFoundException. 2.2.23 is the
+  # last release without jni and works. Remove once a fixed version has
+  # been tried on a phone.
+  path_provider_android: 2.2.23
