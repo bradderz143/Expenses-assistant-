@@ -1,4 +1,5 @@
 import '../entities/enums.dart';
+import 'amount_in_words.dart';
 import 'text_normaliser.dart';
 
 /// Decides whether a purchased item is a drink or food, from either the
@@ -51,11 +52,51 @@ class ItemWording {
     RegExp(r'\bcaja\b(?=\s*:?\s*\d)', caseSensitive: false): 'caja registradora',
     RegExp(r'\btransacci\s?[oó]?\s?n\s?(?=electr)', caseSensitive: false):
         'transacción ',
+    // "COLA" alone is the drink, not a queue; "PAPAS" at a fast-food till
+    // are fries, not popes; "LLEVAR" on its own is a takeaway order.
+    RegExp(r'(?<!(?:coca|refresco|de)[\s-]?)\bcola\b', caseSensitive: false):
+        'refresco de cola',
+    RegExp(r'\bpapas\s+fam\w*', caseSensitive: false): 'papas fritas familiares',
+    RegExp(r'\bpapas\b(?=\s+(?:chicas?|medianas?|grandes?|gajo)\b|\s*$)',
+        caseSensitive: false): 'papas fritas',
+    RegExp(r'(?<!para\s)\bllevar\b', caseSensitive: false): 'para llevar',
     RegExp(r'\bbot\b', caseSensitive: false): 'botella',
     RegExp(r'\bens\b', caseSensitive: false): 'ensalada',
     RegExp(r'\bcerv\b', caseSensitive: false): 'cerveza',
     RegExp(r'\bhamb\b', caseSensitive: false): 'hamburguesa',
   };
+
+  /// Words that a thermal printer's gaps make OCR split in two.
+  static const Set<String> _splitWords = {
+    'refresco', 'tarjeta', 'terminal', 'cerveza', 'hamburguesa', 'ensalada',
+    'botella', 'propina', 'importe', 'servicio', 'consumo', 'factura',
+    'electronica', 'aprobado', 'autorizacion', 'efectivo', 'americano',
+    'capuchino', 'chocolate', 'malteada', 'limonada', 'naranjada', 'postre',
+    'desayuno', 'comida', 'cena', 'bebida', 'orden', 'combo', 'helado',
+  };
+
+  /// "REFRE SCO 887 ML" -> "REFRESCO 887 ML", "TARJE TA" -> "TARJETA": two
+  /// pieces of a known word read apart are joined again.
+  static String rejoin(String text) {
+    final words = text.split(' ');
+    final out = <String>[];
+    for (var i = 0; i < words.length; i++) {
+      if (i + 1 < words.length) {
+        final joined = words[i] + words[i + 1];
+        final key = TextNormaliser.glossaryKey(joined);
+        if (words[i].length >= 2 &&
+            words[i + 1].length >= 2 &&
+            RegExp(r'^[A-Za-zÀ-ÿ]+$').hasMatch(joined) &&
+            _splitWords.contains(key)) {
+          out.add(joined);
+          i++;
+          continue;
+        }
+      }
+      out.add(words[i]);
+    }
+    return out.join(' ');
+  }
 
   /// "COCA ZERO BOT" -> "COCA ZERO botella": receipt abbreviations the
   /// on-device model cannot guess. Only Spanish is handled for now.
@@ -106,7 +147,72 @@ class KnownPhrases {
     for (final (pattern, english) in _spanish) {
       if (pattern.hasMatch(text.trim())) return english;
     }
-    return null;
+    return _amountInWords(text);
+  }
+
+  /// "Trescientos Pesos 00/100 M.N." -> "Three hundred pesos 00/100 M.N."
+  /// (the model reads a misprinted "Trasoientos Pesos" as "Surroundings
+  /// weights"). Only for a line that is the amount and nothing else.
+  static String? _amountInWords(String text) {
+    if (!RegExp(r'^\W*[A-Za-zÀ-ÿ]').hasMatch(text)) return null;
+    final found = AmountInWords.find([text]);
+    if (found.length != 1 || !found.single.formal) return null;
+    final amount = found.single;
+    if (amount.whole <= 0) return null;
+    final lower = TextNormaliser.stripDiacritics(text).toLowerCase();
+    final currency = lower.contains('dol')
+        ? ' dollars'
+        : lower.contains('bol')
+            ? ' bolívares'
+            : lower.contains('real') || lower.contains('reais')
+                ? ' reais'
+                : lower.contains('euro')
+                    ? ' euros'
+                    : lower.contains('pes') || lower.contains('m.n')
+                        ? ' pesos'
+                        : '';
+    final cents = amount.cents == null
+        ? ''
+        : ' ${amount.cents.toString().padLeft(2, '0')}/100';
+    final national = RegExp(r'm\.?\s?n\b').hasMatch(lower)
+        ? ' (national currency)'
+        : '';
+    final words = numberInEnglish(amount.whole);
+    return '${words[0].toUpperCase()}${words.substring(1)}'
+        '$currency$cents$national';
+  }
+
+  static const List<String> _units = [
+    'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
+    'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen',
+    'sixteen', 'seventeen', 'eighteen', 'nineteen',
+  ];
+  static const List<String> _tens = [
+    '', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy',
+    'eighty', 'ninety',
+  ];
+
+  /// 3760 -> "three thousand seven hundred sixty".
+  static String numberInEnglish(int n) {
+    if (n < 20) return _units[n];
+    if (n < 100) {
+      return n % 10 == 0
+          ? _tens[n ~/ 10]
+          : '${_tens[n ~/ 10]}-${_units[n % 10]}';
+    }
+    for (final (size, name) in const [
+      (1000000000, 'billion'),
+      (1000000, 'million'),
+      (1000, 'thousand'),
+      (100, 'hundred'),
+    ]) {
+      if (n >= size) {
+        final rest = n % size;
+        return '${numberInEnglish(n ~/ size)} $name'
+            '${rest == 0 ? '' : ' ${numberInEnglish(rest)}'}';
+      }
+    }
+    return '$n';
   }
 }
 

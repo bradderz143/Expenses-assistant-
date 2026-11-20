@@ -126,8 +126,11 @@ class ItemLineParser {
   /// A date or a time that OCR joined onto an item row from beside it
   /// ("15 NOV 2026  13:44:23  1 VACUNA").
   static final RegExp _dateOrTime = RegExp(
-    r'\b\d{1,2}[\s/.\-]+(?:[A-Za-z]{3,10}\.?|\d{1,2})[\s/.\-]+\d{2,4}\b|'
+    // A month name, not any word: "1 COLA 887 ML" is not a date.
+    r'\b\d{1,2}[\s/.\-]+(?:(?:ene|feb|mar|abr|apr|may|jun|jul|ago|aug|sep|set|'
+    r'oct|out|nov|dic|dec|dez|jan|fev)[A-Za-z]{0,7}\.?|\d{1,2})[\s/.\-]+\d{2,4}\b|'
     r'\b\d{1,2}:\d{2}(?::\d{2})?(?:\s?[AaPp]\.?[Mm]\.?)?',
+    caseSensitive: false,
   );
 
   /// "Bs.S5.445,32", "Bs S10. 164,60", "MX$90.00": a currency written in
@@ -137,17 +140,34 @@ class ItemLineParser {
   );
   static final RegExp _splitNumber = RegExp(r'(\d)([.,])\s(\d{3}[.,]\d{2})\b');
 
-  static String _withoutDates(String row) => TextNormaliser.collapseSpaces(row
-      .replaceAll(_dateOrTime, ' ')
-      .replaceAll(_currencyPrefix, '')
-      .replaceAllMapped(_splitNumber, (m) => '${m[1]}${m[2]}${m[3]}'));
+  /// "2 PAPAS FAM 190.0": some tills print prices with one decimal.
+  static final RegExp _oneDecimalEnd = RegExp(r'(\s[$£€]?\d{1,6}[.,]\d)\s*$');
+
+  static String _withoutDates(String row, {bool oneDecimal = false}) {
+    var text = row
+        .replaceAll(_dateOrTime, ' ')
+        .replaceAll(_currencyPrefix, '')
+        .replaceAllMapped(_splitNumber, (m) => '${m[1]}${m[2]}${m[3]}');
+    if (oneDecimal) {
+      text = text.replaceFirstMapped(_oneDecimalEnd, (m) => '${m[1]}0');
+    }
+    return TextNormaliser.collapseSpaces(text);
+  }
+
+  /// Whether this receipt prints its prices with one decimal ("110.0"):
+  /// at least two rows end that way, so it is the till's style and not a
+  /// size ("AGUA 1.5") on one line.
+  static bool _usesOneDecimal(List<String> rows) =>
+      rows.where((r) => _oneDecimalEnd.hasMatch(r.trimRight())).length >= 2;
 
   static List<ReceiptItem> extract(List<String> rows) {
+    final oneDecimal = _usesOneDecimal(rows);
+    String clean(String row) => _withoutDates(row, oneDecimal: oneDecimal);
     final items = <ReceiptItem>[];
     var started = false;
     var i = 0;
     while (i < rows.length) {
-      final text = _withoutDates(rows[i]);
+      final text = clean(rows[i]);
       if (text.isEmpty) {
         i++;
         continue;
@@ -180,7 +200,7 @@ class ItemLineParser {
         var last = i;
         var seen = 0;
         while (j < rows.length && seen < 2) {
-          final next = _withoutDates(rows[j]);
+          final next = clean(rows[j]);
           if (next.isEmpty) {
             j++;
             continue;

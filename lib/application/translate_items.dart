@@ -183,6 +183,17 @@ class TranslateItemsUseCase {
           ReceiptItem(description: text),
       ];
     }
+    // "REFRE SCO" -> "REFRESCO": a word the printer's gap split in two.
+    items = [
+      for (final item in items)
+        ReceiptItem(
+          description: ItemWording.rejoin(item.description),
+          quantity: item.quantity,
+          amountText: item.amountText,
+          firstRow: item.firstRow,
+          lastRow: item.lastRow,
+        ),
+    ];
 
     final language = await _languageOf(items, receipt);
     final keys = [
@@ -198,11 +209,17 @@ class TranslateItemsUseCase {
     }
 
     final machine = <int, String>{};
-    final copied = <int, String>{};
+    final copied = <int, String>{
+      // Addresses and company names stay as printed.
+      if (wholeText)
+        for (final i in ReceiptTextLines.asPrinted(
+            [for (final item in items) item.description]))
+          i: items[i].description,
+    };
     String? warning;
     final pending = <int>[
       for (var i = 0; i < items.length; i++)
-        if (!glossary.containsKey(keys[i])) i,
+        if (!glossary.containsKey(keys[i]) && !copied.containsKey(i)) i,
     ];
 
     if (language != 'en') {

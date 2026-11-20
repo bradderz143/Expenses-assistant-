@@ -238,6 +238,12 @@ class ReceiptTextParser {
     (RegExp(r'\bsanborns\b', caseSensitive: false), 'Sanborns'),
     (RegExp(r"\bmcdonald'?s\b", caseSensitive: false), "McDonald's"),
     (RegExp(r'\bburger\s*king\b', caseSensitive: false), 'Burger King'),
+    // "KEC": the F of a thermal-printed KFC is often read as an E.
+    (RegExp(r'\bk[fe]c\b', caseSensitive: false), 'KFC'),
+    (RegExp(r'\bpizza\s*hut\b', caseSensitive: false), 'Pizza Hut'),
+    (RegExp(r"\bdomino'?s\s*pizza\b", caseSensitive: false), "Domino's"),
+    (RegExp(r'\blittle\s*caesars\b', caseSensitive: false), 'Little Caesars'),
+    (RegExp(r"\bcarl'?s\s*jr\b", caseSensitive: false), "Carl's Jr."),
     (RegExp(r'\bmarriott\b', caseSensitive: false), 'Marriott'),
     (RegExp(r'\bhilton\b', caseSensitive: false), 'Hilton'),
     (RegExp(r'\bhyatt\b', caseSensitive: false), 'Hyatt'),

@@ -16,9 +16,49 @@ class ReceiptTextLines {
     r'^(afiliaci[oó]n|terminal(\s*id)?|autorizaci[oó]n|aut\.|id\s*pbx|'
     r'tr[.,]?\s*no|referencia|n[uú]mero\s*de\s*control|num\.?\s*tarjeta|'
     r'no\.?\s*tarjeta|aid\b|arqc|rrn\b|lote\b|oper\.?\s*\d|folio\s*fiscal|'
-    r'serie\b|certificado)',
+    r'serie\b|certificado|rfc\b|r\.f\.c|persona\s+(mor\w*|f[ií]sica)|'
+    r'r[eé]g\w{1,2}men\s+(general|fiscal|simplificado))',
     caseSensitive: false,
   );
+
+  /// A masked card number ("534985******4983", "TARJETA: ****4983").
+  static final RegExp _cardNumber = RegExp(r'\d{4}\s?\*{2,}|\*{3,}\s?\d{4}');
+
+  /// Lines of an address: kept as printed, since translating street and
+  /// district names gives nonsense ("Forests of the Lomas").
+  static final RegExp _address = RegExp(
+    r'\bc\.?\s?p\.?\s?:?\s?\d{5}\b|,\s*\d{5}\s*$|'
+    r'^(paseo|calle|av\.?|avenida|blvd\.?|boulevard|bulevar|calz\.?|calzada|'
+    r'carretera|carr\.|col\.?|colonia|prol\.?|prolongaci[oó]n|privada|'
+    r'circuito|perif[eé]rico|esq\.?|esquina|rua|travessa)\s|'
+    r'\b(ciudad\s+de\s+m[eé]?xico|cdmx|m[eé]xico,?\s*d\.?\s?f\.?)\s*$|'
+    r'\b(alc(ald[ií]a)?|del(egaci[oó]n)?|mpio|municipio)\.?\s',
+    caseSensitive: false,
+  );
+
+  /// A company's legal name ("… S DE RL DE CV", "… SA DE CV").
+  static final RegExp _legalName = RegExp(
+    r'\bde\s+c\.?\s?v\.?\s*$|\bs\.?\s?a\.?\s?p\.?\s?i\.?\b|'
+    r'\bs\.?\s?a\.?\s*$|\bs\.?\s?l\.?\s*$|\bltda\.?\s*$',
+    caseSensitive: false,
+  );
+
+  /// Indexes of [lines] to keep as printed, not translate: addresses
+  /// (including a district line between two address lines) and legal
+  /// company names.
+  static Set<int> asPrinted(List<String> lines) {
+    final address = [for (final l in lines) _address.hasMatch(l)];
+    final out = <int>{};
+    for (var i = 0; i < lines.length; i++) {
+      final between = i > 0 &&
+          i + 1 < lines.length &&
+          address[i - 1] &&
+          address[i + 1] &&
+          lines[i].contains(',');
+      if (address[i] || between || _legalName.hasMatch(lines[i])) out.add(i);
+    }
+    return out;
+  }
 
   static bool isMeaningful(String row) {
     final text = TextNormaliser.collapseSpaces(row);
@@ -31,6 +71,7 @@ class ReceiptTextLines {
     // A label with nothing after it ("BANCO EMISOR:") says nothing.
     if (text.endsWith(':')) return false;
     if (_reference.hasMatch(text)) return false;
+    if (_cardNumber.hasMatch(text)) return false;
     // Codes and references ("CAS020301462", "220000000000001") are single
     // tokens; real lines ("FECHA 2026-09-18 22:19") have words around them.
     final digits = RegExp(r'\d').allMatches(text).length;
