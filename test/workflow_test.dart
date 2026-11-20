@@ -768,7 +768,8 @@ void main() {
     ).prepareAutomatically(receipt: receipt);
     expect(draft, isNotNull);
     expect(draft!.lines.map((l) => l.originalText).toList(),
-        ['VT Berry Pearls Lem', 'GD Caramel F']);
+        // The options printed under each drink come with it.
+        ['VT Berry Pearls Lem', 'VT PQT-COMP Nitro', 'GD Caramel F', 'GD L Entera F']);
     expect(ocr.queue, hasLength(1)); // the crop was never read again
   });
 }

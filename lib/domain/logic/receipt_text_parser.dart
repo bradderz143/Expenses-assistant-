@@ -82,7 +82,7 @@ class ReceiptTextParser {
     final pieces = <List<(String, double)>>[];
     for (var i = 0; i < rawRows.length; i++) {
       final text = _repairAmounts(
-        _joinSplitNumbers(_foldStrayAccents(
+        _joinSplitNumbers(foldStrayAccents(
           TextNormaliser.collapseSpaces(rawRows[i]),
         )),
       );
@@ -95,7 +95,7 @@ class ReceiptTextParser {
         if (rowPieces != null && i < rowPieces.length)
           for (final (t, h) in rowPieces[i])
             if (t.trim().isNotEmpty)
-              (_foldStrayAccents(TextNormaliser.collapseSpaces(t)), h),
+              (foldStrayAccents(TextNormaliser.collapseSpaces(t)), h),
       ]);
     }
     final (currency, detected) = _detectCurrency(rows);
@@ -128,7 +128,9 @@ class ReceiptTextParser {
   };
   static final RegExp _combining = RegExp('[\u0300-\u036f]');
 
-  static String _foldStrayAccents(String text) {
+  /// "Grandę" -> "Grande": marks a crease or a tear adds that no language
+  /// on these receipts uses.
+  static String foldStrayAccents(String text) {
     if (!text.runes.any((r) => r > 0xFF)) return text;
     final buffer = StringBuffer();
     for (final rune in text.runes) {
@@ -195,7 +197,8 @@ class ReceiptTextParser {
     r'forma\s*de\s*pago|nrc\b|giro\b|seniat|corresponsal|'
     r'instituci[oó]n\s*de\s*banca|banca\s*m[uú]ltiple|banca\s*m[oó]vil|'
     r'getnet|transacci|aprobad|aceptad|compra\b|copia\b|zona\s*postal|'
-    r'raz[oó]n\s*social|gen[eé]rico|huesped|hu[eé]sped)',
+    r'raz[oó]n\s*social|gen[eé]rico|huesped|hu[eé]sped|suc\b|sucursal|'
+    r'recepci[oó]n)',
     caseSensitive: false,
   );
 
@@ -231,6 +234,14 @@ class ReceiptTextParser {
     (RegExp(r'\bunited\s*airlines\b', caseSensitive: false), 'United Airlines'),
     (RegExp(r'\bdelta\s*air\s*lines\b', caseSensitive: false), 'Delta Air Lines'),
     (RegExp(r'\bstarbucks\b', caseSensitive: false), 'Starbucks'),
+    (RegExp(r'\bcosta\s*coffee\b', caseSensitive: false), 'Costa Coffee'),
+    (RegExp(r'\btim\s*hortons\b', caseSensitive: false), 'Tim Hortons'),
+    (RegExp(r'\bcielito\s*querido\b', caseSensitive: false), 'Cielito Querido'),
+    (RegExp(r'\bpunta\s*del\s*cielo\b', caseSensitive: false), 'Punta del Cielo'),
+    (RegExp(r'\bjuan\s*valdez\b', caseSensitive: false), 'Juan Valdez'),
+    (RegExp(r'\bkrispy\s*kreme\b', caseSensitive: false), 'Krispy Kreme'),
+    (RegExp(r"\bdunkin'?\b", caseSensitive: false), "Dunkin'"),
+    (RegExp(r'\bpret\s*a\s*manger\b', caseSensitive: false), 'Pret A Manger'),
     (RegExp(r'\boxxo\b', caseSensitive: false), 'OXXO'),
     (RegExp(r'\b7[\s-]?eleven\b', caseSensitive: false), '7-Eleven'),
     (RegExp(r'\bwalmart\b', caseSensitive: false), 'Walmart'),
@@ -268,9 +279,20 @@ class ReceiptTextParser {
     }
     // A long brand name read with a letter or two wrong ("starbLICks",
     // "stabckS"). Short names are left out: too easy to match by chance.
+    // Single words, and two words together for two-word names
+    // ("COSTA COFEE" -> "costacofee").
+    final tokens = [
+      for (final line in text.split('\n'))
+        [for (final m in RegExp('[A-Za-z]+').allMatches(line)) m[0]!.toLowerCase()],
+    ];
     final words = [
-      for (final m in RegExp('[A-Za-z]{6,}').allMatches(text))
-        m[0]!.toLowerCase(),
+      for (final line in tokens) ...[
+        for (final t in line)
+          if (t.length >= 6) t,
+        for (var k = 0; k + 1 < line.length; k++)
+          if (line[k].length >= 3 && line[k + 1].length >= 3)
+            line[k] + line[k + 1],
+      ],
     ];
     for (final (word, name) in _fuzzyBrands) {
       for (final w in words) {
@@ -284,6 +306,7 @@ class ReceiptTextParser {
 
   static const List<(String, String)> _fuzzyBrands = [
     ('starbucks', 'Starbucks'),
+    ('costacoffee', 'Costa Coffee'),
     ('sanborns', 'Sanborns'),
     ('marriott', 'Marriott'),
     ('europcar', 'Europcar'),
@@ -396,8 +419,16 @@ class ReceiptTextParser {
       // Big print helps a little, but a heading ("PRECUENTA") is often the
       // biggest text; the name is mostly decided by being near the top.
       if (maxHeight > 0) score *= 0.7 + 0.3 * (height / maxHeight);
-      final legal = _legalSuffix.hasMatch(row);
+      // A company name split over two lines ("SANTA CLARA MERCANTIL DE" /
+      // "PACHUCA S. DE R.L DE C.V"): the first half is the legal name too.
+      final dangling =
+          RegExp(r'\s(de|del|y|e|&)$', caseSensitive: false).hasMatch(row);
+      final legal = _legalSuffix.hasMatch(row) ||
+          (dangling &&
+              i + 1 < rows.length &&
+              _legalSuffix.hasMatch(rows[i + 1].trim()));
       if (legal) score *= 0.9;
+      if (dangling && !legal) score *= 0.6;
       if (row.length > 40) score *= 0.6;
       if (legal) {
         if (score > bestScore) {

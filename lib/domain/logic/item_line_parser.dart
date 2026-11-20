@@ -225,6 +225,23 @@ class ItemLineParser {
           i = last + 1;
           continue;
         }
+        // A line with no price between items is a choice for the item
+        // above it ("Leche Deslactosada MD" under a coffee).
+        // It must sit right under an item and come before another item or
+        // the totals.
+        if (started &&
+            seen == 0 &&
+            tail.isEmpty &&
+            j < rows.length &&
+            items.isNotEmpty &&
+            items.last.lastRow == i - 1) {
+          final next = clean(rows[j]);
+          final (nextHead, nextTail) = _splitTail(next);
+          if (_skip.hasMatch(next) ||
+              (nextHead.isNotEmpty && nextTail.any(_amountToken.hasMatch))) {
+            items.add(ReceiptItem(description: name, firstRow: i, lastRow: i));
+          }
+        }
       }
       i++;
     }

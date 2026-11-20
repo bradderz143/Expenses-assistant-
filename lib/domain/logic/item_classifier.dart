@@ -17,6 +17,8 @@ class ItemClassifier {
     'whiskey', 'vodka', 'gin', 'rum', 'tequila', 'mezcal', 'brandy', 'cider',
     'coffee', 'espresso', 'latte', 'cappuccino', 'americano', 'macchiato',
     'mocha', 'tea', 'chai', 'infusion', 'horchata', 'tonic', 'liqueur',
+    'frappe', 'frappuccino', 'frapuccino', 'iced', 'cortado', 'matcha',
+    'babyccino', 'refresher', 'chocolate caliente',
     // Spanish / Portuguese
     'bebida', 'bebidas', 'agua', 'jugo', 'zumo', 'limonada', 'naranjada',
     'licuado', 'batido', 'malteada', 'refresco', 'gaseosa', 'cerveza',
@@ -74,6 +76,13 @@ class ItemWording {
     'capuchino', 'chocolate', 'malteada', 'limonada', 'naranjada', 'postre',
     'desayuno', 'comida', 'cena', 'bebida', 'orden', 'combo', 'helado',
   };
+
+  /// Read errors fixed before translating and showing: a capital I read as
+  /// a small L ("lced" -> "Iced", "lmporte" -> "Importe") and split words.
+  static String tidy(String text) => rejoin(text.replaceAllMapped(
+        RegExp(r'\bl(?=[cdfgkmnpqrsvwxz][a-z]{2})'),
+        (_) => 'I',
+      ));
 
   /// "REFRE SCO 887 ML" -> "REFRESCO 887 ML", "TARJE TA" -> "TARJETA": two
   /// pieces of a known word read apart are joined again.

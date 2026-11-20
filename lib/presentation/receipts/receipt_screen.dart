@@ -8,6 +8,7 @@ import '../../domain/entities/enums.dart';
 import '../../domain/entities/receipt.dart';
 import '../../domain/entities/trip.dart';
 import '../../domain/logic/package_naming.dart';
+import '../../domain/logic/receipt_notes.dart';
 import '../../domain/reference/countries.dart';
 import '../../domain/reference/currencies.dart';
 import '../../domain/value_objects/money.dart';
@@ -203,6 +204,107 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
     await _load();
   }
 
+  /// Useful things printed on the receipt (invoice deadline, tip, offers,
+  /// Wi-Fi). For the user only: not part of the export.
+  List<Widget> _goodToKnow(BuildContext context) {
+    final text = _receipt?.rawOcrText ?? '';
+    if (text.trim().isEmpty) return const [];
+    final notes = ReceiptNotes.find(text.split('\n'));
+    if (notes.isEmpty) return const [];
+    final theme = Theme.of(context);
+    return [
+      const SizedBox(height: 16),
+      Card(
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                child: Text('Good to know', style: theme.textTheme.titleSmall),
+              ),
+              for (final note in notes)
+                ListTile(
+                  leading: Icon(_noteIcon(note.kind)),
+                  title: Text(note.title),
+                  subtitle: note.detail == null ? null : Text(note.detail!),
+                  onTap: () => _showNote(note),
+                ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                child: Text(
+                  'Read from the receipt, for you only. Not in the export.',
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ];
+  }
+
+  static IconData _noteIcon(ReceiptNoteKind kind) => switch (kind) {
+        ReceiptNoteKind.invoice => Icons.receipt_long_outlined,
+        ReceiptNoteKind.tip => Icons.payments_outlined,
+        ReceiptNoteKind.offer => Icons.local_offer_outlined,
+        ReceiptNoteKind.wifi => Icons.wifi,
+        ReceiptNoteKind.toilet => Icons.wc,
+        ReceiptNoteKind.returns => Icons.assignment_return_outlined,
+      };
+
+  /// The note with the wording it came from, and a way to copy it.
+  Future<void> _showNote(ReceiptNote note) async {
+    final copyable = [
+      for (final line in (note.detail ?? '').split('\n'))
+        if (line.contains(': ')) line.substring(line.indexOf(': ') + 2),
+    ];
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(note.title),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (note.detail != null) SelectableText(note.detail!),
+              if (note.printed != null) ...[
+                const SizedBox(height: 12),
+                Text('On the receipt',
+                    style: Theme.of(context).textTheme.labelMedium),
+                const SizedBox(height: 4),
+                SelectableText(
+                  note.printed!,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          if (copyable.isNotEmpty)
+            TextButton(
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: copyable.join('\n')));
+                Navigator.pop(context);
+                ScaffoldMessenger.of(this.context).showSnackBar(
+                  const SnackBar(content: Text('Copied')),
+                );
+              },
+              child: const Text('Copy'),
+            ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// The raw text the scan read, for checking why a field came out wrong.
   Future<void> _showScannedText() async {
     final text = _receipt?.rawOcrText.trim() ?? '';
@@ -391,6 +493,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
               prefixIcon: Icon(Icons.storefront_outlined),
             ),
           ),
+          ..._goodToKnow(context),
           const SizedBox(height: 16),
           Text(
             'Saved in the export as\n$fileBase.jpg'

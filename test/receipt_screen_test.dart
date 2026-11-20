@@ -222,4 +222,20 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('TOTAL 31.42'), findsOneWidget);
   });
+
+  testWidgets('things worth knowing on the receipt are shown, not exported',
+      (tester) async {
+    await open(
+      tester,
+      scanned(const []).copyWith(
+        rawOcrText: 'TOTAL 204.00\nFACTURACION\nCUENTA CON 30 DIAS PARA '
+            'REALIZAR FACTURACION\nPara acceder al sanitario, teclea:\n1234#',
+      ),
+    );
+    await tester.scrollUntilVisible(find.text('Good to know'), 200,
+        scrollable: find.byType(Scrollable).first);
+    expect(find.text('Tax invoice (factura): request it within 30 days'),
+        findsOneWidget);
+    expect(find.text('Toilet code: 1234#'), findsOneWidget);
+  });
 }

@@ -10,6 +10,7 @@ import '../domain/logic/item_classifier.dart';
 import '../domain/logic/item_line_parser.dart';
 import '../domain/logic/ocr_row_assembler.dart';
 import '../domain/logic/receipt_text_lines.dart';
+import '../domain/logic/receipt_text_parser.dart';
 import '../domain/logic/text_normaliser.dart';
 import '../domain/reference/claim_taxonomy.dart';
 import '../domain/reference/countries.dart';
@@ -187,7 +188,9 @@ class TranslateItemsUseCase {
     items = [
       for (final item in items)
         ReceiptItem(
-          description: ItemWording.rejoin(item.description),
+          description: ItemWording.tidy(
+            ReceiptTextParser.foldStrayAccents(item.description),
+          ),
           quantity: item.quantity,
           amountText: item.amountText,
           firstRow: item.firstRow,
@@ -286,6 +289,19 @@ class TranslateItemsUseCase {
               'tightly around the items, or add lines by hand.';
     }
 
+    // A choice with no price ("Leche Deslactosada") goes with its item.
+    final categories = <ItemCategory>[];
+    for (var i = 0; i < items.length; i++) {
+      categories.add(wholeText
+          ? ItemCategory.general
+          : (items[i].amountText == null && i > 0
+              ? categories[i - 1]
+              : ItemClassifier.classify(
+                  items[i].description,
+                  glossary[keys[i]] ?? machine[i] ?? copied[i] ?? '',
+                )));
+    }
+
     final lines = <TranslationLine>[
       for (var i = 0; i < items.length; i++)
         TranslationLine(
@@ -295,12 +311,7 @@ class TranslateItemsUseCase {
           translatedText: glossary[keys[i]] ?? machine[i] ?? copied[i] ?? '',
           amountText: items[i].amountText,
           sourceLanguage: language,
-          category: wholeText
-              ? ItemCategory.general
-              : ItemClassifier.classify(
-                  items[i].description,
-                  glossary[keys[i]] ?? machine[i] ?? copied[i] ?? '',
-                ),
+          category: categories[i],
           engine: glossary.containsKey(keys[i])
               ? TranslationEngine.glossary
               : (machine.containsKey(i)
