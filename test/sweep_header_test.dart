@@ -869,6 +869,18 @@ void main() {
       }
     });
 
+    test('a company called "Operadora ..." is not a staff row', () {
+      expect(
+        parse(['OPERADORA EJEMPLO SA DE CV', 'RFC XXX010101AB1', ...body])
+            .merchant,
+        'Operadora Ejemplo',
+      );
+      expect(
+        parse(['OPERADOR: 12', 'RFC XXX010101AB1', ...body]).merchant,
+        isNull,
+      );
+    });
+
     test('a name printed at the top is kept over the address', () {
       expect(
         parse([

@@ -209,7 +209,8 @@ class ReceiptTextParser {
   /// COMERCIAL EJEMPLO", "AEROPUERTO INTERNACIONAL").
   static final RegExp _serviceRow = RegExp(
     r'^((le\s+)?atendi[oó]|atendido|vendedor|server\b|host\b|guests?\b|'
-    r'covers\b|turno\b|titular|operador|usuario|empleado|tarjeta|card\b|'
+    // "OPERADOR: 12" is staff; "OPERADORA EJEMPLO SA DE CV" is a company.
+    r'covers\b|turno\b|titular|operador\b|usuario|empleado|tarjeta|card\b|'
     r'efectivo|cash\b|contado|pedido|para\s+llevar|llevar\b|to\s+go\b|'
     r'take\s*(out|away)|dine\s+in|eat\s+in|comer\s+aqu[ií]|(casa\s+)?matriz|'
     r'vuelva|conserve|muchas\s+gracias|vat\b|tax\b|centro\s+comercial|'
@@ -1280,7 +1281,11 @@ class ReceiptTextParser {
             read[i - 1].isEmpty &&
             kindOf(rows[i - 1]) == 'other' &&
             (_danglingLabel.hasMatch(rows[i - 1]) ||
-                _continuedDate.hasMatch(row));
+                _continuedDate.hasMatch(row) ||
+                // "Fecha 2026-02-10 Vigencia 24 meses" under "Autorizacion
+                // numeracion de facturacion ...": the row itself goes on
+                // to say what its date is.
+                _otherDate.hasMatch(row.substring(found.last.$1)));
         // A label after its date ("23/11/2026 :FECHA") still labels it,
         // unless it belongs to another kind of date further on.
         final rest = row.substring(found.first.$1);
