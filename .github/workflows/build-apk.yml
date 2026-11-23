@@ -181,7 +181,19 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           set -o pipefail
-          flutter build apk --release --no-shrink 2>&1 | tee build.log
+          # Gradle's downloads are sometimes refused (Maven Central answers
+          # "429 Too Many Requests"). That is not a fault in the app: wait
+          # and try again, up to three times. Any other failure stops at once.
+          for attempt in 1 2 3; do
+            if flutter build apk --release --no-shrink 2>&1 | tee build.log; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ] || ! grep -qE "Too Many Requests|status code 429|Could not (download|get resource|HEAD|GET)|Connection (reset|timed out)|Read timed out" build.log; then
+              exit 1
+            fi
+            echo "A download was refused (attempt $attempt of 3); trying again in 90 seconds."
+            sleep 90
+          done
 
       - uses: actions/upload-artifact@v4
         with:
