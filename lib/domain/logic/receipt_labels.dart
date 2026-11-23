@@ -109,6 +109,7 @@ Opening = apertura
 Closing = cierre
 Invoicing = facturacion
 Total = total
+Totals = totales
 Subtotal = subtotal | subttl
 Total to pay = total a pagar | total por pagar | a pagar
 Total due = total a cobrar
@@ -116,6 +117,11 @@ Total paid = total pagado
 Net total = total neto
 Grand total = total general | gran total
 Total with tip = total con propina
+Total with VAT = total con iva | importe con iva
+Total without VAT = total sin iva | importe sin iva
+Subtotal without VAT = subtotal sin iva
+Price with VAT = precio con iva
+Price without VAT = precio sin iva
 Total without tip = total sin propina
 Total without service = total sin servicio
 Total in words = total en letras | total con letra
@@ -123,6 +129,7 @@ Amount in words = importe con letra | importe en letra | cantidad con letra | ca
 Amount = importe | monto
 Total amount = importe total | monto total
 Net amount = importe neto | monto neto
+Gross amount = importe bruto | monto bruto
 Amount to pay = importe a pagar | monto a pagar
 Amount paid = importe pagado | monto pagado | valor pagado
 Amount received = importe recibido | monto recibido
@@ -145,6 +152,7 @@ VAT withheld = iva retenido | retencion iva | retencion de iva
 VAT charged = iva trasladado
 Tax = impuesto | impto
 Taxes = impuestos | imptos
+Taxes charged = impuestos trasladados | impuesto trasladado
 IEPS (excise tax) = ieps
 ISR (income tax) = isr
 ISR withheld = isr retenido | retencion isr | retencion de isr
@@ -152,10 +160,13 @@ Lodging tax = ish | impuesto sobre hospedaje | impuesto hospedaje | impuesto de 
 IDP (fuel tax) = idp
 IGTF (tax on foreign-currency payments) = igtf
 Consumption tax = impoconsumo | impuesto al consumo
-Airport fee (TUA) = tua
+Airport fee (TUA) = tua | tarifa de uso de aeropuerto | tasa aeroportuaria
+Tourism tax = impuesto de turismo | impuesto turismo | impuesto al turismo | impuesto inguat | inguat
 Withholding = retencion | retenciones
 Discount = descuento | dcto | dscto | descto
 Discounts = descuentos
+Total discount = descuento total | total descuento | total descuentos
+Total saving = ahorro total | total ahorro | total ahorrado
 Saving = ahorro | su ahorro
 You saved = usted ahorro | ud ahorro | ahorraste
 Surcharge = recargo
@@ -194,7 +205,8 @@ Price per litre = precio por litro | precio litro | precio x litro | precio lt |
 Price per gallon = precio por galon | precio galon | precio x galon
 Price per night = precio por noche
 Cost = costo
-Rate = tarifa
+Rate|Fare = tarifa
+Rate = tasa
 Base fare = tarifa base
 Starting fare = banderazo
 Nightly rate = tarifa por noche | tarifa noche
@@ -216,7 +228,7 @@ Description = descripcion | concepto | detalle
 Unit = unidad
 Units = unidades
 Code = codigo | clave | cod
-Exchange rate = tipo de cambio | tipo cambio | t cambio | tasa de cambio | tasa cambio | tasa
+Exchange rate = tipo de cambio | tipo cambio | t cambio | tasa de cambio | tasa cambio
 Exchange rate of the day = tasa del dia
 BCV exchange rate = tasa bcv
 Currency = moneda | divisa
@@ -236,6 +248,8 @@ Odometer = odometro
 Mileage = kilometraje
 Lane = carril
 Class = clase
+Category = categoria
+Opening hours = horario | horario de atencion | horario de servicio
 Vehicle = vehiculo
 Vehicle class = clase de vehiculo | clase vehiculo | clase vehicular
 Crossing = cruce
@@ -423,6 +437,7 @@ vouchers = vales
 food vouchers = vales de despensa
 cash sale (paid in full) = contado | de contado | al contado
 sale = venta
+card sale = venta con tarjeta | venta tarjeta
 sales = ventas
 total sale = venta total
 purchase = compra
@@ -589,11 +604,25 @@ Sunday = domingo | dom
     'total': ('Total {x}', _Kind.label),
     'importe': ('{X} amount', _Kind.label),
     'monto': ('{X} amount', _Kind.label),
+    'precio': ('{X} price', _Kind.label),
+    'costo': ('{X} cost', _Kind.label),
     'nombre': ('{X} name', _Kind.name),
     'firma': ('{X} signature', _Kind.name),
     'copia': ('{X} copy', _Kind.value),
     'datos': ('{X} details', _Kind.label),
   };
+
+  /// Captions that head a column of a table and never describe the caption
+  /// before them: "CODIGO DESCRIPCION", "PRECIO IMPORTE" are two headings
+  /// each, not a "description code" or an "amount price".
+  static const Set<String> _columnOnly = {
+    'Description', 'Quantity', 'Qty', 'Amount', 'Price', 'Code', 'Cost', //
+    'Value',
+  };
+
+  /// Heads that go with a total ("PRECIO TOTAL", "IMPORTE TOTAL"); after the
+  /// others "TOTAL" is the next column ("FECHA TOTAL").
+  static const Set<String> _moneyHeads = {'precio', 'costo', 'importe', 'monto'};
 
   /// "No.", "NUM.", "N°" between a caption and its number: "FACTURA No. 12".
   static const Set<String> _numberWords = {'no', 'num', 'nro', 'numero', 'n'};
@@ -872,7 +901,7 @@ Sunday = domingo | dom
       case 'Entry':
         return hotel ? 'Check-in' : 'Entry';
       // A taxi, bus or flight has a fare; a car park or a hotel a rate.
-      case 'Rate':
+      case 'Rate|Fare':
         return seen.any(_travelWords.contains) ? 'Fare' : 'Rate';
       // "PLAZA: 104 TEPOTZOTLAN" on a toll ticket is the toll plaza; on a
       // bank slip or a shop's ticket "PLAZA" is the town or the shopping
@@ -885,7 +914,15 @@ Sunday = domingo | dom
 
   /// The dictionary phrase or the joined caption ("FECHA DE EMISION")
   /// starting at token [i], whichever is longer.
-  static _Hit? _match(List<_Token> tokens, int i, Set<String> seen) {
+  ///
+  /// [heading] says that a caption with no value comes right before, as in
+  /// a row of column headings.
+  static _Hit? _match(
+    List<_Token> tokens,
+    int i,
+    Set<String> seen, {
+    bool heading = false,
+  }) {
     final plain = _phrase(tokens, i);
     _Hit? joined;
     final buffer = StringBuffer();
@@ -917,14 +954,21 @@ Sunday = domingo | dom
         }
       }
       if (second == null || second.$1.kind == _Kind.printed) continue;
+      if (_columnOnly.contains(second.$1.english) ||
+          (const {'Total', 'Subtotal'}.contains(second.$1.english) &&
+              !_moneyHeads.contains(buffer.toString()))) {
+        continue;
+      }
       // "NO" is also "not" ("NO PAGADO"): only "de" or a caption after it
       // makes it a number.
       final counted = second.$1.kind == _Kind.value;
       if (buffer.toString() == 'no' && counted && !tied) continue;
       // Without "de" the two may be neighbours in a row of column headings
-      // ("FECHA CONCEPTO CARGOS ABONOS", "CODIGO DESCRIPCION PRECIO"): one
-      // caption only when its value, a colon or the end of the line follows
-      // ("FECHA EMISION: 14/09", "NUM. TICKET 4521", "TIPO PAGO EFECTIVO").
+      // ("FECHA CONCEPTO CARGOS ABONOS", "DESCRIPCION PRECIO UNIDAD"): one
+      // caption only when no heading comes before it and its value, a colon
+      // or the end of the line follows ("FECHA EMISION: 14/09", "NUM. TICKET
+      // 4521", "TIPO PAGO EFECTIVO").
+      if (!tied && heading) continue;
       if (!tied &&
           tokens[second.$2 - 1].ending.isEmpty &&
           second.$2 < tokens.length &&
@@ -972,6 +1016,16 @@ Sunday = domingo | dom
       return _Hit(parts.join('/'), kind, i + 1);
     }
     return null;
+  }
+
+  /// Whether [row] is one caption and nothing else: "TOTAL", "TOTAL A
+  /// PAGAR", "FECHA", "EFECTIVO".
+  static bool isCaption(String row) {
+    final tokens = _tokenise(row);
+    if (tokens.isEmpty || tokens.length > 4) return false;
+    if (tokens.any((t) => !t.isWord)) return false;
+    final hit = _match(tokens, 0, _wordsOf([row]));
+    return hit != null && hit.end == tokens.length && hit.kind != _Kind.printed;
   }
 
   /// The words of [lines] that the dictionary may need to choose a sense.
@@ -1070,7 +1124,7 @@ Sunday = domingo | dom
           continue;
         }
       }
-      final hit = _match(tokens, i, context);
+      final hit = _match(tokens, i, context, heading: captionBefore);
       if (hit == null) {
         // A lone letter is a code or a sign ("CLASE B", "2 X 45.00"), unless
         // it is a Spanish word ("IVA Y PROPINA", "PAGO A CREDITO"): a vowel

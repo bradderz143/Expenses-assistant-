@@ -1,3 +1,4 @@
+import 'receipt_labels.dart';
 import 'text_normaliser.dart';
 
 /// For receipts that are not meals (taxis, hotels, fees…): the lines worth
@@ -31,7 +32,7 @@ class ReceiptTextLines {
     r'(no|n[uú]m|n[uú]mero|nro|c[oó]d|c[oó]digo|clave)\.?\s*(de\s+)?'
     r'(autorizaci[oó]n|aprobaci[oó]n|afiliaci[oó]n|comercio|referencia|'
     r'serie|certificado|cuenta|operaci[oó]n|transacci[oó]n|rastreo|'
-    r'registro|resoluci[oó]n|generaci[oó]n|dte)\b|'
+    r'registro|resoluci[oó]n|generaci[oó]n|dte|acceso)\b|'
     r'folio\s*fiscal|serie\b|certificado|sello\b|cadena\s+original|'
     r'uuid\b|cufe\b|cude\b|resoluci[oó]n\b|rango\s+autorizado|prefijo\b|'
     r'numeraci[oó]n\s+(autorizada|habilitada)|permiso\b|licencia\b|'
@@ -250,6 +251,22 @@ class ReceiptTextLines {
         text.split(' ').length <= 4;
   }
 
+  /// Whether the lone caption [row] and the figure [value] under it belong
+  /// together: an amount under a money caption ("TOTAL" / "\$570.00",
+  /// "EFECTIVO" / "200.00"), a date under "FECHA", a time under "HORA".
+  static bool _awaits(String row, String value) {
+    if (_digit.hasMatch(row) || !ReceiptLabels.isCaption(row)) return false;
+    final caption = TextNormaliser.stripDiacritics(row).toLowerCase();
+    final date = RegExp(r'\d[/-]\d').hasMatch(value);
+    final time = RegExp(r'\d:\d\d').hasMatch(value);
+    if (RegExp(r'^fecha\b').hasMatch(caption)) return date;
+    if (RegExp(r'^hora\b').hasMatch(caption)) return time && !date;
+    return _money.hasMatch(caption) &&
+        _price.hasMatch(value) &&
+        !date &&
+        !time;
+  }
+
   /// A line that is part of running text: long, wordy, no label or price.
   static bool _prose(String text) => text.length >= 20 && _wordy(text);
 
@@ -261,8 +278,8 @@ class ReceiptTextLines {
 
   /// Meaningful rows in reading order, at most [limit] of them.
   ///
-  /// - A label whose value landed on the next row ("TOTAL:" / "\$570.00")
-  ///   takes it back.
+  /// - A label whose value landed on the next row ("TOTAL:" / "\$570.00",
+  ///   "IMPORTE" / "\$118.00") takes it back.
   /// - A paragraph the printer wrapped over several lines
   ///   ("…INCONDICIONAL-" / "MENTE A PAGAR…") is joined back into one line,
   ///   so it is translated as a sentence and not in broken pieces.
@@ -274,6 +291,7 @@ class ReceiptTextLines {
     final texts = <String>[];
     final follows = <bool>[]; // the line is the row right after the last one
     var adjacent = false;
+    var looseValue = false; // the row before was a figure with no label
     for (var i = 0; i < rows.length; i++) {
       var row = rows[i];
       var used = 1;
@@ -287,7 +305,22 @@ class ReceiptTextLines {
           !(i + 2 < rows.length && _isBareValue(rows[i + 2]))) {
         row = '$row ${rows[i + 1]}';
         used = 2;
+      } else if (i + 1 < rows.length &&
+          _isBareValue(rows[i + 1]) &&
+          _awaits(row, rows[i + 1]) &&
+          // Not when the figures are printed above their captions
+          // ("570.00" / "TOTAL" / "600.00" / "EFECTIVO"), nor in two blocks.
+          !looseValue &&
+          !(i > 0 &&
+              (_isBareLabel(rows[i - 1]) ||
+                  ReceiptLabels.isCaption(rows[i - 1]))) &&
+          !(i + 2 < rows.length && _isBareValue(rows[i + 2]))) {
+        // "IMPORTE" / "\$118.00": the same with no colon, for a caption the
+        // label dictionary knows and a figure of the kind it waits for.
+        row = '$row ${rows[i + 1]}';
+        used = 2;
       }
+      looseValue = used == 1 && _isBareValue(row);
       final text = _clean(row);
       i += used - 1;
       if (text == null) {

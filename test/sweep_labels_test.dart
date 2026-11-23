@@ -390,6 +390,17 @@ void main() {
         'P.U. \$23.99': 'Unit price \$23.99',
         'TIPO DE CAMBIO: 18.50': 'Exchange rate: 18.50',
         'PAGADO': 'Paid',
+        'TOTAL SIN IVA 491.38': 'Total without VAT 491.38',
+        'IMPUESTOS TRASLADADOS: 116.52': 'Taxes charged: 116.52',
+        'IVA 16.00% 116.52': 'VAT 16.00% 116.52',
+        // A tax rate in Mexico, the exchange rate in Venezuela: "Rate".
+        'TASA 16%': 'Rate 16%',
+        'TASA: 36,50': 'Rate: 36,50',
+        'AHORRO TOTAL: \$12.50': 'Total saving: \$12.50',
+        'IMPORTE DESCUENTO 15.00': 'Discount amount 15.00',
+        'TOTAL Q. 342.18': 'Total Q. 342.18',
+        'EFECTIVO Q. 400.00': 'Cash Q. 400.00',
+        'TOTALES: 342.18': 'Totals: 342.18',
       });
     });
 
@@ -443,6 +454,13 @@ void main() {
         'ODOMETRO: 45210': 'Odometer: 45210',
         'PLACAS: ABC-123-D': 'Number plate: ABC-123-D',
         'ESTACION DE SERVICIO 4521': 'Service station 4521',
+        'CANTIDAD: 35.214 LTS': 'Quantity: 35.214 litres',
+        'TIPO DE COMBUSTIBLE: MAGNA': 'Fuel type: Regular (Magna)',
+        'PRECIO/GALON: Q32.49': 'Price per gallon: Q32.49',
+        // Guatemalan pumps show a cash price and a card price.
+        'PRECIO EFECTIVO: Q 31.99': 'Cash price: Q 31.99',
+        'PRECIO CREDITO: Q 32.49': 'Credit price: Q 32.49',
+        'PRECIO DIESEL 24.50': 'Diesel price 24.50',
       });
     });
 
@@ -514,6 +532,10 @@ void main() {
         'TUA 548.00': 'Airport fee (TUA) 548.00',
         'TARIFA AEREA 2,150.00': 'Air fare 2,150.00',
         'CLAVE DE RESERVACION: ABC123': 'Booking reference: ABC123',
+        'PRECIO DEL BOLETO: \$385.00': 'Ticket price: \$385.00',
+        'TIPO PASAJERO: ADULTO': 'Passenger type: Adult',
+        'CATEGORIA: ADULTO': 'Category: Adult',
+        'TARIFA BASE \$13.10': 'Base fare \$13.10',
       });
     });
 
@@ -558,6 +580,12 @@ void main() {
         'CONFIRMACION: 84512': 'Confirmation: 84512',
         'RESERVACION: 84512': 'Booking: 84512',
         'FIRMA DEL HUESPED': 'Guest signature',
+        'FECHA DE LLEGADA: 14/09/2026': 'Arrival date: 14/09/2026',
+        'ADULTOS: 2 MENORES: 0': 'Adults: 2 Children: 0',
+        'I.S.H. 3% 55.50': 'Lodging tax 3% 55.50',
+        'IMPUESTO TURISMO 10% 45.00': 'Tourism tax 10% 45.00',
+        'INGUAT 10% 45.00': 'Tourism tax 10% 45.00',
+        'PAGO TARJETA VISA 2,201.50': 'Card payment VISA 2,201.50',
       });
     });
 
@@ -585,6 +613,9 @@ void main() {
         'COPIA CLIENTE': 'Customer copy',
         'COPIA COMERCIO': 'Merchant copy',
         'ORIGINAL CLIENTE': 'Customer original',
+        'APROBADA 123456': 'Approved 123456',
+        'FIRMA CLIENTE': 'Customer signature',
+        'VENTA CON TARJETA': 'Card sale',
       });
     });
 
@@ -626,6 +657,12 @@ void main() {
             'Total without service Bs.S48.005,97',
         'VALOR TOTAL: \$ 45.000': 'Total value: \$ 45.000',
         'IMPOCONSUMO 8%: 3.333': 'Consumption tax 8%: 3.333',
+        'NOMBRE RECEPTOR: CONSUMIDOR FINAL': 'Recipient name: Final consumer',
+        'DATOS DEL CLIENTE': 'Customer details',
+        'FORMA DE PAGO: 04 - TARJETA DE CREDITO':
+            'Payment method: 04 - credit card',
+        'EXPEDIDO EN: GUADALAJARA, JALISCO':
+            'Place of issue: GUADALAJARA, JALISCO',
       });
     });
 
@@ -650,6 +687,22 @@ void main() {
         'TRANSACCI NELECTRONICA DE VENTA': 'Electronic sale transaction',
         'Fecha 14.09.2026 Hora 00:17 Ticket10001':
             'Date 14.09.2026 Time 00:17 Ticket 10001',
+      });
+    });
+
+    test('a row of column headings is read heading by heading', () {
+      _expectAll({
+        'CANT DESCRIPCION PRECIO IMPORTE': 'Qty Description Price Amount',
+        'DESCRIPCION PRECIO UNIDAD': 'Description Price Unit',
+        'CODIGO DESCRIPCION': 'Code Description',
+        'PRECIO IMPORTE': 'Price Amount',
+        'FECHA TOTAL': 'Date Total',
+        'SUBTOTAL IVA TOTAL': 'Subtotal VAT Total',
+        'TICKET FECHA HORA CAJA': 'Ticket Date and time Till',
+        // With "de", a value or the end of the line it is one caption.
+        'PRECIO TOTAL 844.78': 'Total price 844.78',
+        'PRECIO DE VENTA 23.99': 'Sale price 23.99',
+        'COSTO DEL SERVICIO: 50.00': 'Service cost: 50.00',
       });
     });
 
@@ -701,6 +754,9 @@ void main() {
         'PAGO A CREDITO',
         'SALDO A FAVOR 12.00',
         'NO PAGADO',
+        'MONEDA: MXN - PESO MEXICANO',
+        'PRECIO UNITARIO CON IVA (Q)',
+        'TDA#1234 OP#00000123 TE#01 TR#01234',
         // A stray letter in front, a row of figures.
         'o Total Bs.S52.144,42',
         '14/09/2026 12:49:05 PM',
@@ -1123,10 +1179,54 @@ void main() {
           ['TOTAL: \$570.00']);
     });
 
+    test('so does a caption with no colon, for the figure it waits for', () {
+      expect(
+        ReceiptTextLines.meaningful([
+          'GRACIAS POR SU COMPRA',
+          'TOTAL',
+          '\$570.00',
+          'EFECTIVO',
+          '\$600.00',
+          'CAMBIO',
+          '\$30.00',
+        ]),
+        [
+          'GRACIAS POR SU COMPRA',
+          'TOTAL \$570.00',
+          'EFECTIVO \$600.00',
+          'CAMBIO \$30.00',
+        ],
+      );
+      expect(
+        ReceiptTextLines.meaningful(
+            ['FECHA', '14/09/2026 12:49', 'IMPORTE', '\$118.00']),
+        ['FECHA 14/09/2026 12:49', 'IMPORTE \$118.00'],
+      );
+      expect(
+        ReceiptTextLines.meaningful(
+            ['TOTAL A PAGAR', 'Q 20.00', 'HORA', '12:49']),
+        ['TOTAL A PAGAR Q 20.00', 'HORA 12:49'],
+      );
+      // A date is not a total, an amount is not a cashier, and a product's
+      // name is not a caption.
+      expect(ReceiptTextLines.meaningful(['TOTAL', '14/09/2026']), ['TOTAL']);
+      expect(ReceiptTextLines.meaningful(['CAJERO', '570.00']), ['CAJERO']);
+      expect(ReceiptTextLines.meaningful(['COCA COLA 600ML', '18.00']),
+          ['COCA COLA 600ML']);
+    });
+
     test('labels in one block and amounts in another are not paired', () {
-      final lines = ReceiptTextLines.meaningful(
-          ['SUBTOTAL:', 'IVA:', 'TOTAL:', '491.38', '78.62', '570.00']);
-      expect(lines.where((l) => RegExp(r'\d').hasMatch(l)), isEmpty);
+      for (final rows in [
+        ['SUBTOTAL:', 'IVA:', 'TOTAL:', '491.38', '78.62', '570.00'],
+        ['SUBTOTAL', 'IVA', 'TOTAL', '491.38', '78.62', '570.00'],
+        ['FECHA', 'TOTAL', '570.00'],
+        // The figures printed above their captions.
+        ['570.00', 'TOTAL', '600.00', 'EFECTIVO'],
+      ]) {
+        final lines = ReceiptTextLines.meaningful(rows);
+        expect(lines.where((l) => RegExp(r'\d').hasMatch(l)), isEmpty,
+            reason: '$rows');
+      }
     });
 
     test('of two columns on one row, the reference goes and the date stays',
@@ -1177,6 +1277,7 @@ void main() {
         'NRC: 123456-7',
         'RFC: XXX010101AB1',
         'REGIMEN FISCAL: 601',
+        'NUMERO DE ACCESO: 123456789',
       ]) {
         expect(ReceiptTextLines.meaningful([row]), isEmpty, reason: row);
       }
