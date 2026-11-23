@@ -609,6 +609,14 @@ void main() {
       );
       // Printed as a hint under the total, not added to anything.
       expect(shown(['TOTAL 450.00', 'PROPINA 10% 45.00']), isEmpty);
+      expect(
+        shown([
+          'TOTAL 450.00',
+          'PROPINA 10% 45.00',
+          'TOTAL CON PROPINA 495.00',
+        ]),
+        isEmpty,
+      );
     });
 
     test('a service charge added to the bill', () {
@@ -1027,6 +1035,21 @@ void main() {
           'facturacion.gasolinera-example.com.mx',
         ]),
         ['invoice: Tax invoice (factura): request it within 24 hours'],
+      );
+      // "Following" and "after" a limit are still the limit.
+      expect(
+        shown([
+          'PODRA FACTURAR DENTRO DE LOS 30 DIAS',
+          'POSTERIORES A SU COMPRA',
+        ]),
+        ['invoice: Tax invoice (factura): request it within 30 days'],
+      );
+      expect(
+        shown([
+          'SOLICITE SU FACTURA HASTA 72 HORAS',
+          'DESPUES DE SU COMPRA',
+        ]),
+        ['invoice: Tax invoice (factura): request it within 72 hours'],
       );
     });
 

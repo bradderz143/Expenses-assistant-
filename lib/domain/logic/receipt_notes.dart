@@ -267,9 +267,8 @@ class ReceiptNotes {
     r'(despues\s+de|pasad[ao]s|transcurrid[ao]s|a\s+partir\s+de|after)\s+'
     r'(l[ao]s\s+)?$',
   );
-  static final RegExp _waitAfter = _re(
-    r'^\s*(habiles\s+|naturales\s+)?(despues|posterior(es)?|after|later)',
-  );
+  static final RegExp _waitAfter =
+      _re(r'^\s*(habiles\s+|naturales\s+)?(despues|after|later)');
   static final RegExp _becomes = _re(r'disponible|available|podra');
 
   /// "SU FACTURA SE ENVIARA DENTRO DE LAS 24 HRS": when it comes, not a
@@ -284,7 +283,7 @@ class ReceiptNotes {
   static final RegExp _limitBefore = _re(
     r'(tiene[sn]?|cuenta[sn]?\s+con|dentro\s+de(\s+l[ao]s)?|plazo(\s+de)?|'
     r'maximo(\s+de)?|within|you\s+have|primer[ao]s|siguientes|'
-    r'durante(\s+l[ao]s)?)\s*$',
+    r'durante(\s+l[ao]s)?|hasta)\s*$',
   );
   static final RegExp _limitAfter = _re(
     r'^\s*(habiles\s+|naturales\s+)?(para\s+(solicit|factur|gener|realiz|'
@@ -304,17 +303,17 @@ class ReceiptNotes {
       final hours = m[2]!.toLowerCase().startsWith('h');
       final before = text.substring(0, m.start);
       final rest = text.substring(m.end);
-      final later = _waitBefore.hasMatch(before) ||
-          (_waitAfter.hasMatch(rest) && _becomes.hasMatch(text));
-      if (!later && _comes.hasMatch(before)) continue;
+      // "DENTRO DE LOS 30 DIAS POSTERIORES", "HASTA 72 HORAS DESPUES DE SU
+      // COMPRA" are limits whatever follows.
+      final limit = _limitBefore.hasMatch(before);
+      final later = !limit &&
+          (_waitBefore.hasMatch(before) ||
+              (_waitAfter.hasMatch(rest) && _becomes.hasMatch(text)));
       if (!later) {
+        if (_comes.hasMatch(before)) continue;
         // "LOS PRIMEROS 5 DIAS DEL MES SIGUIENTE" is a date, not a length.
         if (_ofTheMonth.hasMatch(rest)) continue;
-        if (hours &&
-            !_limitBefore.hasMatch(before) &&
-            !_limitAfter.hasMatch(rest)) {
-          continue;
-        }
+        if (hours && !limit && !_limitAfter.hasMatch(rest)) continue;
       }
       final unit = hours ? 'hour' : 'day';
       spans.add((n: n, unit: n == 1 ? unit : '${unit}s', later: later));
@@ -868,7 +867,9 @@ class ReceiptNotes {
   }
 
   /// Whether the [tip] on row [i] plus one or two amounts of the same block
-  /// (subtotal, tax) make the total printed under it.
+  /// (subtotal, tax) make the total printed under it. A tip printed under
+  /// a total ("TOTAL 450.00" / "PROPINA 10% 45.00" / "TOTAL CON PROPINA
+  /// 495.00") is what the bill would come to, not what was paid.
   static bool _wentIntoTotal(_Rows t, int i, int tip) {
     for (var j = i + 1; j < t.length; j++) {
       if (!_totalRow.hasMatch(t.text[j])) continue;
@@ -879,6 +880,9 @@ class ReceiptNotes {
       var from = i;
       while (from > 0 && i - from < 4 && !_subtotalRow.hasMatch(t.text[from])) {
         from--;
+      }
+      for (var k = from; k < i; k++) {
+        if (_totalRow.hasMatch(t.text[k])) return false;
       }
       final others = [
         for (var k = from; k < j; k++)
@@ -1128,27 +1132,26 @@ class ReceiptNotes {
     return _pointsNote(t);
   }
 
-  static const String _number = r'(\d[\d.,]*\d|\d)';
+  /// A label of loyalty points, in any of its [wordings], and its number.
+  static RegExp _pointsLine(List<String> wordings) => _re(
+        wordings.map((w) => '$w\\s*:?\\s*(\\d[\\d.,]*\\d|\\d)').join('|'),
+      );
+
   static final Map<String, RegExp> _pointsLines = {
-    'Accumulated': _re(
-      r'(?:puntos|pts)\s+acumulados(?:\s+(?:en|de|por)\s+(?:esta|tu|su)\s+'
-              r'compra)?\s*:?\s*' +
-          _number,
-    ),
-    'Earned': _re(
-      r'(?:puntos|pts)\s+(?:ganados|obtenidos|generados|(?:de\s+)?esta\s+'
-              r'compra)\s*:?\s*' +
-          _number +
-          r'|points\s+earned\s*:?\s*' +
-          _number,
-    ),
-    'Balance': _re(
-      r'(?:saldo|total|balance)\s+(?:de\s+|en\s+|actual\s+)?(?:puntos|points)'
-              r'\s*:?\s*' +
-          _number +
-          r'|(?:puntos|points)\s+(?:disponibles|totales|balance)\s*:?\s*' +
-          _number,
-    ),
+    'Accumulated': _pointsLine([
+      r'(?:puntos|pts)\s+acumulados'
+          r'(?:\s+(?:en|de|por)\s+(?:esta|tu|su)\s+compra)?',
+    ]),
+    'Earned': _pointsLine([
+      r'(?:puntos|pts)\s+(?:ganados|obtenidos|generados|'
+          r'(?:de\s+)?esta\s+compra)',
+      r'points\s+earned',
+    ]),
+    'Balance': _pointsLine([
+      r'(?:saldo|total|balance)\s+(?:de\s+|en\s+|actual\s+)?'
+          r'(?:puntos|points)',
+      r'(?:puntos|points)\s+(?:disponibles|totales|balance)',
+    ]),
   };
 
   /// "PUNTOS ACUMULADOS: 120", "SALDO DE PUNTOS: 1,540": loyalty points
@@ -1160,7 +1163,10 @@ class ReceiptNotes {
       for (var i = 0; i < t.length; i++) {
         final m = entry.value.firstMatch(t.text[i]);
         if (m == null) continue;
-        lines.add('${entry.key}: ${m[1] ?? m[2]}');
+        final number = [
+          for (var g = 1; g <= m.groupCount; g++) m[g],
+        ].whereType<String>().first;
+        lines.add('${entry.key}: $number');
         printed.add(t.raw[i]);
         break;
       }
