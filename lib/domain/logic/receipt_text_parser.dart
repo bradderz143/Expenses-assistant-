@@ -198,7 +198,8 @@ class ReceiptTextParser {
     r'instituci[oó]n\s*de\s*banca|banca\s*m[uú]ltiple|banca\s*m[oó]vil|'
     r'getnet|transacci|aprobad|aceptad|compra\b|copia\b|zona\s*postal|'
     r'raz[oó]n\s*social|gen[eé]rico|huesped|hu[eé]sped|suc\b|sucursal|'
-    r'recepci[oó]n)',
+    r'recepci[oó]n|por\s+favor|please|ay[uú]dan|encuesta|survey|escane|'
+    r'califica|eval[uú]a|opini[oó]n|siempre\s+le|lo\s+esperamos)',
     caseSensitive: false,
   );
 
@@ -235,6 +236,7 @@ class ReceiptTextParser {
     (RegExp(r'\bdelta\s*air\s*lines\b', caseSensitive: false), 'Delta Air Lines'),
     (RegExp(r'\bstarbucks\b', caseSensitive: false), 'Starbucks'),
     (RegExp(r'\bcosta\s*coffee\b', caseSensitive: false), 'Costa Coffee'),
+    (RegExp(r'\bmaison\s*kayser\b', caseSensitive: false), 'Maison Kayser'),
     (RegExp(r'\btim\s*hortons\b', caseSensitive: false), 'Tim Hortons'),
     (RegExp(r'\bcielito\s*querido\b', caseSensitive: false), 'Cielito Querido'),
     (RegExp(r'\bpunta\s*del\s*cielo\b', caseSensitive: false), 'Punta del Cielo'),
@@ -364,6 +366,13 @@ class ReceiptTextParser {
         '',
       );
 
+  /// The headings over the items ("CANT DESCRIPCION IMPORTE", "NOMBRE").
+  static final RegExp _itemsHeading = RegExp(
+    r'^\W*(nombre|cant\.?|cantidad|descripci[oó]n|producto|art[ií]culo|'
+    r'concepto|qty|quantity|item|description)\b',
+    caseSensitive: false,
+  );
+
   String? _layoutMerchant(
     List<String> rows,
     List<double> heights,
@@ -373,20 +382,28 @@ class ReceiptTextParser {
     var bestScore = 0.0;
     String? plain;
     var plainScore = 0.0;
-    final limit = rows.length < 8 ? rows.length : 8;
+    // The top eight rows with words in them: rules ("=====") and stray
+    // marks from a QR code do not use up the window.
+    // The name is never under the items' column headings.
+    final top = <int>[];
+    for (var i = 0; i < rows.length && i < 14 && top.length < 8; i++) {
+      if (_itemsHeading.hasMatch(rows[i])) break;
+      if (TextNormaliser.letterCount(rows[i]) >= 3) top.add(i);
+    }
     var maxHeight = 0.0;
-    for (var i = 0; i < limit; i++) {
+    for (final i in top) {
       if (heights[i] > maxHeight) maxHeight = heights[i];
     }
     // Each row, and each piece of a row that OCR joined from several lines.
-    final candidates = <(int, String, double)>[
-      for (var i = 0; i < limit; i++) ...[
-        (i, rows[i], heights[i]),
-        if (pieces[i].length > 1)
-          for (final (t, h) in pieces[i]) (i, t, h),
+    // (row index, place among the top rows, text, height)
+    final candidates = <(int, int, String, double)>[
+      for (var n = 0; n < top.length; n++) ...[
+        (top[n], n, rows[top[n]], heights[top[n]]),
+        if (pieces[top[n]].length > 1)
+          for (final (t, h) in pieces[top[n]]) (top[n], n, t, h),
       ],
     ];
-    for (final (i, text, height) in candidates) {
+    for (final (i, place, text, height) in candidates) {
       final row = _cleanCandidate(text);
       final letters = TextNormaliser.letterCount(row);
       if (letters < 3) continue;
@@ -415,7 +432,7 @@ class ReceiptTextParser {
       }
       if (_datesIn(row).isNotEmpty) continue;
 
-      var score = 1.0 - i * 0.08;
+      var score = 1.0 - place * 0.08;
       // Big print helps a little, but a heading ("PRECUENTA") is often the
       // biggest text; the name is mostly decided by being near the top.
       if (maxHeight > 0) score *= 0.7 + 0.3 * (height / maxHeight);
@@ -481,11 +498,11 @@ class ReceiptTextParser {
     r'(?<!\d)(\d{1,2})\s?([-/.])\s?(\d{1,2})\s?\2\s?'
     r'(\d{4}(?=\d{1,2}:\d{2})|\d{4}(?!\d)|\d{2}(?![\d/.\-]))',
   );
-  /// "28 JUL 2026", "4 de noviembre de 2026". The year must not be the
+  /// "28 JUL 2026", "4 de noviembre de 2026", "23 Nov'26". The year must not be the
   /// start of a time or a price ("26 MAR 14:42", "1 MARUCHAN 18.50").
   static final RegExp _dayMonthName = RegExp(
     r'\b(\d{1,2})[\s\-/.]*(?:de\s+)?([A-Za-zÁÉÍÓÚáéíóú]{3,10})\.?'
-    r'[\s\-/.,]*(?:del?\s+)?(\d{4}|\d{2})\b(?![:.,]\d)',
+    r"[\s\-/.,'’`´]*(?:del?\s+)?(\d{4}|\d{2})\b(?![:.,]\d)",
     caseSensitive: false,
   );
   static final RegExp _monthNameDay = RegExp(

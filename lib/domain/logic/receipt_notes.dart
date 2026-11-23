@@ -1,7 +1,7 @@
 import 'text_normaliser.dart';
 
 /// What a note is about; decides its icon.
-enum ReceiptNoteKind { invoice, tip, offer, wifi, toilet, returns }
+enum ReceiptNoteKind { invoice, tip, discount, offer, wifi, toilet, returns }
 
 /// Something printed on a receipt that is worth knowing about: how to get a
 /// tax invoice, whether the tip is included, an offer for next time, the
@@ -98,6 +98,7 @@ class ReceiptNotes {
 
     add(_invoiceNote(lines));
     add(_tipNote(lines));
+    add(_discountNote(lines));
     add(_offerNote(lines));
     add(_wifiNote(lines));
     add(_toiletNote(lines));
@@ -126,9 +127,19 @@ class ReceiptNotes {
   /// the survey when looking for the invoice site.
   static final RegExp _otherSite = _re(r'privacidad|privacy|aviso\s+legal');
 
+  /// "www.example. com. mx/": OCR puts spaces round the dots of an address.
+  static String _joinAddress(String line) => line
+      .replaceAllMapped(
+        _re(r'\s*\.\s*(?=(com|mx|net|org|cloud|app|gob|co|ve|sv|es|br|gt)\b)'),
+        (_) => '.',
+      )
+      .replaceAllMapped(_re(r'(www)\s*\.\s*(?=\w)'), (m) => '${m[1]}.')
+      .replaceAllMapped(_re(r'(https?)\s*:\s*/\s*/\s*'), (m) => '${m[1]}://');
+
   static String? _webIn(List<String> lines, {RegExp? notAbout}) {
     for (var i = 0; i < lines.length; i++) {
-      final m = _web.firstMatch(lines[i]);
+      final line = _joinAddress(lines[i]).replaceAll(_email, ' ');
+      final m = _web.firstMatch(line);
       if (m == null) continue;
       final context = '${i > 0 ? lines[i - 1] : ''} ${lines[i]}';
       if (_otherSite.hasMatch(context)) continue;
@@ -138,11 +149,40 @@ class ReceiptNotes {
     return null;
   }
 
-  /// "Folio para facturar: 0543104092632357": the reference the invoice
-  /// site asks for.
-  static final RegExp _folio = _re(
-    r'(?:folio|ticket|referencia)[^:]{0,20}factur\w*\s*:?\s*([A-Z0-9][A-Z0-9\- ]{3,30})',
+  /// "Folio para facturar: 0543104092632357", "Referencia de facturacion:"
+  /// with the number on the next line: the reference the invoice site asks
+  /// for.
+  static final RegExp _folioLabel = _re(
+    r'(?:folio|ticket|referencia|ref\.?|clave|c[oó]digo|id)\s+(?:de\s+|para\s+)?'
+    r'factur(?:aci[oó]n|ar|a)\b\s*:?\s*(.*)$',
   );
+  static final RegExp _folioValue = RegExp(r'^[A-Z0-9][A-Z0-9\- ]{3,40}$');
+
+  static String? _folioIn(List<String> lines) {
+    String? value(String text) {
+      final t = text.trim();
+      if (!_folioValue.hasMatch(t.toUpperCase())) return null;
+      // A reference is mostly digits; words after the label are not one.
+      final digits = RegExp(r'\d').allMatches(t).length;
+      if (digits < 4 || digits * 2 < t.replaceAll(' ', '').length) return null;
+      return t.replaceAll(' ', '');
+    }
+
+    for (var i = 0; i < lines.length; i++) {
+      final m = _folioLabel.firstMatch(lines[i]);
+      if (m == null) continue;
+      final same = value(m[1]!);
+      if (same != null) return same;
+      if (m[1]!.trim().isEmpty && i + 1 < lines.length) {
+        final next = value(lines[i + 1]);
+        if (next != null) return next;
+      }
+    }
+    return null;
+  }
+
+  static final RegExp _email =
+      RegExp(r'[A-Za-z0-9._%+\-]+@[A-Za-z0-9\-]+(?:\.[A-Za-z0-9\-]+)+');
 
   static int? _daysIn(Iterable<String> lines) {
     for (final l in lines) {
@@ -160,11 +200,12 @@ class ReceiptNotes {
     final window = lines.sublist(first > 0 ? first - 1 : 0, end);
     final days = _daysIn(window);
     final web = _webIn(window, notAbout: _survey);
-    String? folio;
+    final folio = _folioIn(window);
+    String? email;
     for (final l in window) {
-      final m = _folio.firstMatch(l);
+      final m = _email.firstMatch(_joinAddress(l));
       if (m != null) {
-        folio = m[1]!.replaceAll(' ', '');
+        email = m[0];
         break;
       }
     }
@@ -183,6 +224,7 @@ class ReceiptNotes {
       if (atPurchase && days != null) 'Ask at the till when paying, or',
       if (web != null) 'Online: $web',
       if (folio != null) 'Invoice reference (folio): $folio',
+      if (email != null) 'Invoice help: $email',
     ];
     return ReceiptNote(
       ReceiptNoteKind.invoice,
@@ -217,6 +259,56 @@ class ReceiptNotes {
         );
       }
     }
+    return _tipPaid(lines);
+  }
+
+  static final RegExp _money =
+      RegExp(r'(-?)\s?\$?\s?((?:\d{1,3}(?:[.,]\d{3})+|\d+)[.,]\d{2})(-?)\s*$');
+
+  /// "Propina Tarjeta \$18.65": a tip that was added, with its amount. A
+  /// blank or zero tip line and a table of suggested tips say nothing.
+  static final RegExp _tipLine =
+      _re(r'^\W*(propina|tip|gratuity|gratificaci[oó]n)\b(?!\s*(sugerid|suggest))');
+
+  static ReceiptNote? _tipPaid(List<String> lines) {
+    for (final l in lines) {
+      if (!_tipLine.hasMatch(l) || l.contains('%')) continue;
+      final m = _money.firstMatch(l);
+      if (m == null || m[1] == '-' || m[3] == '-') continue;
+      final digits = m[2]!.replaceAll(RegExp(r'[.,]'), '');
+      if (int.tryParse(digits) == 0) continue;
+      return ReceiptNote(
+        ReceiptNoteKind.tip,
+        'Tip on this receipt: ${m[2]}',
+        detail: 'Check whether your company wants tips claimed separately.',
+        printed: l,
+      );
+    }
+    return null;
+  }
+
+  /// "1 Desc. 10% AICM -41.50": a discount already taken off this bill.
+  static final RegExp _discountLine = _re(
+    r'^\W*(?:\d{1,2}\s+)?(desc\.?|descuento|dscto\.?|dto\.?|discount|promoci[oó]n|'
+    r'promo|cortes[ií]a|cup[oó]n|coupon)\b',
+  );
+
+  static ReceiptNote? _discountNote(List<String> lines) {
+    for (final l in lines) {
+      if (!_discountLine.hasMatch(l)) continue;
+      final m = _money.firstMatch(l);
+      if (m == null) continue;
+      final digits = m[2]!.replaceAll(RegExp(r'[.,]'), '');
+      if (int.tryParse(digits) == 0) continue;
+      final percent = RegExp(r'(\d{1,2})(?:[.,]\d+)?\s?%').firstMatch(l)?[1];
+      return ReceiptNote(
+        ReceiptNoteKind.discount,
+        'Discount already applied: ${percent == null ? '' : '$percent% '}'
+            '(-${m[2]})',
+        detail: 'The amount paid is after this discount.',
+        printed: l,
+      );
+    }
     return null;
   }
 
@@ -230,6 +322,10 @@ class ReceiptNotes {
       final survey = _survey.hasMatch(text);
       final free = _free.hasMatch(text);
       final next = _nextVisit.hasMatch(text);
+      // A survey with nothing in it for the customer is not worth a note.
+      if (survey && !free && !_discount.hasMatch(text) && !_points.hasMatch(text)) {
+        continue;
+      }
       final title = survey && free
           ? 'Answer the survey for something free${next ? ' next visit' : ''}'
           : survey

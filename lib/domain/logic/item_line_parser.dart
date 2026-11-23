@@ -28,12 +28,23 @@ class ItemLineParser {
   // a few are prefixes on purpose (autoriz-ación, aprobad-o).
   static final RegExp _skip = RegExp(
     r'^\W*(?:(?:sub\s*-?\s*total|total|iva|i\.v\.a|ieps|vat|tax|impuesto|'
-    r'propina|tip|gratuity|service\s*charge|cambio|change|efectivo|cash|'
+    r'propina|tip|gratuity|service\s*charge|efectivo|cash|'
     r'tarjeta|card|visa|master\s*card|mastercard|amex|american\s*express|'
     r'd[eé]bito|cr[eé]dito|redondeo|rounding|saldo|balance|folio|mesa|table|'
     r'mesero|waiter|comensales|personas|guests|fecha|date|hora|time|rfc|'
     r'r\.f\.c|ticket|gracias|thank|cuenta|importe|amount|pago|payment)\b|'
-    r'servicio\s*\d|autoriz|aprobad|approved|auth)',
+    r'servicio\s*\d|autoriz|aprobad|approved|auth|'
+    // The change given back ("CAMBIO \$0.00"), not a swap on an item
+    // ("CAMBIO L. LIGHT": change to light milk).
+    r'(?:su\s+)?(?:cambio|change)\s*:?\s*(?:mxn|usd|m\.?n\.?)?\s*(?:[$-]|\d|$))',
+    caseSensitive: false,
+  );
+
+  /// Section headings printed between items: not items, not choices.
+  static final RegExp _heading = RegExp(
+    r'^\W*(alimentos|bebidas|comidas?|postres|entradas|vitrina|barra|cocina|'
+    r'cafeter[ií]a|panader[ií]a|reposter[ií]a|food|drinks|beverages|desserts|'
+    r'otros|varios|para\s+llevar|to\s+go|comer\s+aqu[ií]|eat\s+in)\W*$',
     caseSensitive: false,
   );
 
@@ -127,8 +138,11 @@ class ItemLineParser {
   /// ("15 NOV 2026  13:44:23  1 VACUNA").
   static final RegExp _dateOrTime = RegExp(
     // A month name, not any word: "1 COLA 887 ML" is not a date.
-    r'\b\d{1,2}[\s/.\-]+(?:(?:ene|feb|mar|abr|apr|may|jun|jul|ago|aug|sep|set|'
-    r'oct|out|nov|dic|dec|dez|jan|fev)[A-Za-z]{0,7}\.?|\d{1,2})[\s/.\-]+\d{2,4}\b|'
+    r'\b\d{1,2}[\s/.\-]+(?:ene|feb|mar|abr|apr|may|jun|jul|ago|aug|sep|set|'
+    r"oct|out|nov|dic|dec|dez|jan|fev)[A-Za-z]{0,7}\.?[\s/.\-'’]+\d{2,4}\b|"
+    // In figures the same separator twice: "45.00 90.00" (a unit price and
+    // its line total) is not a date.
+    r'\b\d{1,2}\s?([/.\-])\s?\d{1,2}\s?\1\s?(?:\d{4}|\d{2})\b(?![.,]\d)|'
     r'\b\d{1,2}:\d{2}(?::\d{2})?(?:\s?[AaPp]\.?[Mm]\.?)?',
     caseSensitive: false,
   );
@@ -174,6 +188,10 @@ class ItemLineParser {
       }
       if (_skip.hasMatch(text)) {
         if (started) break;
+        i++;
+        continue;
+      }
+      if (_heading.hasMatch(text)) {
         i++;
         continue;
       }
@@ -225,21 +243,64 @@ class ItemLineParser {
           i = last + 1;
           continue;
         }
-        // A line with no price between items is a choice for the item
-        // above it ("Leche Deslactosada MD" under a coffee).
-        // It must sit right under an item and come before another item or
-        // the totals.
+        // Lines with no price under an item are choices for it ("VASO
+        // DESECHABLE", "CAMBIO L. LIGHT" under a milkshake). The run must
+        // sit right under an item and end at another item, the totals or
+        // the end of the rows.
         if (started &&
             seen == 0 &&
             tail.isEmpty &&
-            j < rows.length &&
             items.isNotEmpty &&
-            items.last.lastRow == i - 1) {
-          final next = clean(rows[j]);
-          final (nextHead, nextTail) = _splitTail(next);
-          if (_skip.hasMatch(next) ||
-              (nextHead.isNotEmpty && nextTail.any(_amountToken.hasMatch))) {
-            items.add(ReceiptItem(description: name, firstRow: i, lastRow: i));
+            items.last.lastRow == i - 1 &&
+            !_heading.hasMatch(text)) {
+          final choices = <(int, String)>[(i, name)];
+          var k = i + 1;
+          var accepted = false;
+          while (true) {
+            if (k >= rows.length) {
+              accepted = true;
+              break;
+            }
+            final next = clean(rows[k]);
+            // A rule ("-----") or blank between the items and the totals.
+            if (!RegExp(r'[A-Za-z0-9À-ÿ]').hasMatch(next)) {
+              k++;
+              continue;
+            }
+            if (_skip.hasMatch(next)) {
+              accepted = true;
+              break;
+            }
+            final (nextHead, nextTail) = _splitTail(next);
+            if (nextHead.isNotEmpty && nextTail.any(_amountToken.hasMatch)) {
+              accepted = true; // the next priced item
+              break;
+            }
+            if (nextTail.isNotEmpty || !_looksLikeName(nextHead)) break;
+            // A name whose price is on the row under it is the next item.
+            if (k + 1 < rows.length) {
+              final (afterHead, afterTail) = _splitTail(clean(rows[k + 1]));
+              if (afterHead.isEmpty && afterTail.any(_amountToken.hasMatch)) {
+                accepted = true;
+                break;
+              }
+            }
+            if (_heading.hasMatch(next)) {
+              k++;
+              continue;
+            }
+            if (choices.length >= 4) break;
+            choices.add((k, _tidy(nextHead)));
+            k++;
+          }
+          if (accepted) {
+            for (final (row, choice) in choices) {
+              items.add(
+                ReceiptItem(description: choice, firstRow: row, lastRow: row),
+              );
+            }
+            i = choices.last.$1 + 1;
+            continue;
           }
         }
       }

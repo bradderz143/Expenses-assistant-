@@ -116,9 +116,11 @@ void main() {
         'Tip or service already included');
   });
 
-  test('a discount taken off this bill is not an offer; nothing to say is '
-      'nothing said', () {
-    expect(ReceiptNotes.find(['DESCUENTO 10% -20.00', 'TOTAL 180.00']), isEmpty);
+  test('a discount taken off this bill is noted as applied, not as an offer; '
+      'nothing to say is nothing said', () {
+    final notes = ReceiptNotes.find(['DESCUENTO 10% -20.00', 'TOTAL 180.00']);
+    expect(notes.single.kind, ReceiptNoteKind.discount);
+    expect(notes.single.title, 'Discount already applied: 10% (-20.00)');
     expect(ReceiptNotes.find(['TACOS 3 90.00', 'TOTAL 90.00']), isEmpty);
   });
 }
