@@ -7,6 +7,7 @@ import '../domain/entities/receipt.dart';
 import '../domain/entities/translation_line.dart';
 import '../domain/logic/item_area_detector.dart';
 import '../domain/logic/item_classifier.dart';
+import '../domain/logic/item_lexicon.dart';
 import '../domain/logic/item_line_parser.dart';
 import '../domain/logic/ocr_row_assembler.dart';
 import '../domain/logic/receipt_text_lines.dart';
@@ -210,6 +211,20 @@ class TranslateItemsUseCase {
       final fixed = KnownPhrases.translate(items[i].description, language);
       if (fixed != null) glossary.putIfAbsent(keys[i], () => fixed);
     }
+    // Item names the built-in dictionary knows word for word get its
+    // English ("MALTEADA C CHOCOLATE CH" -> "Milkshake with chocolate,
+    // small") and never reach the model. The user's own wording, looked up
+    // above, still wins.
+    if (!wholeText) {
+      for (var i = 0; i < items.length; i++) {
+        final known = ItemLexicon.translate(
+          items[i].description,
+          language,
+          country: current.country,
+        );
+        if (known != null) glossary.putIfAbsent(keys[i], () => known);
+      }
+    }
 
     final machine = <int, String>{};
     final copied = <int, String>{
@@ -265,13 +280,20 @@ class TranslateItemsUseCase {
           try {
             final translated = await translator.translateAll(
               [
+                // Item names go in sentence case with abbreviations written
+                // out: the model mangles terse ALL-CAPS till wording.
                 for (final i in pending)
-                  ItemWording.expandAbbreviations(items[i].description, language),
+                  wholeText
+                      ? ItemWording.expandAbbreviations(
+                          items[i].description, language)
+                      : ItemWording.forModel(items[i].description, language),
               ],
               from: language,
             );
             for (var j = 0; j < pending.length; j++) {
-              machine[pending[j]] = translated[j];
+              machine[pending[j]] = wholeText
+                  ? translated[j]
+                  : ItemWording.capitalised(translated[j]);
             }
           } on Exception {
             warning = 'On-device translation failed. Please type the '
@@ -289,16 +311,20 @@ class TranslateItemsUseCase {
               'tightly around the items, or add lines by hand.';
     }
 
-    // A choice with no price ("Leche Deslactosada") goes with its item.
+    // A choice with no price ("Leche Deslactosada") goes with its item, and
+    // so does one that names neither food nor drink ("VASO DESECHABLE").
     final categories = <ItemCategory>[];
     for (var i = 0; i < items.length; i++) {
       categories.add(wholeText
           ? ItemCategory.general
-          : (items[i].amountText == null && i > 0
+          : ((items[i].amountText == null ||
+                      ItemClassifier.isChoice(items[i].description, language)) &&
+                  i > 0
               ? categories[i - 1]
               : ItemClassifier.classify(
                   items[i].description,
                   glossary[keys[i]] ?? machine[i] ?? copied[i] ?? '',
+                  language,
                 )));
     }
 
