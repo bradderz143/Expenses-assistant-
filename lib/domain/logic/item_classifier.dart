@@ -329,7 +329,7 @@ class KnownPhrases {
         String word(String? spanish) =>
             spanish == 'sello' ? 'a stamp' : 'a signature';
         const who = {
-          'cajero': " from the cashier", 'cajera': " from the cashier", //
+          'cajero': ' from the cashier', 'cajera': ' from the cashier', //
           'caja': ' from the till', 'empresa': ' from the company',
           'establecimiento': ' from the establishment',
         };
@@ -343,6 +343,13 @@ class KnownPhrases {
           '(?:presentado|presentarse|entregado|entregarse) '
           '(?:a|en) la salida',
       (_) => 'This ticket must be handed in at the exit',
+    ),
+    _notice('(?:boleto|pago|tarifa|compra) no reembolsable',
+        (_) => 'Non-refundable'),
+    _notice(
+      '(?:favor de pagar|pague)(?: su boleto)? antes de '
+          '(?:salir|retirar su (?:vehiculo|auto)|ir por su (?:vehiculo|auto))',
+      (_) => 'Please pay before leaving',
     ),
     _notice('no (?:requiere|se requiere) firma|firma no requerida',
         (_) => 'No signature required'),

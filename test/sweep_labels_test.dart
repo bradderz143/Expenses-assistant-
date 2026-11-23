@@ -765,6 +765,26 @@ void main() {
       }
     });
 
+    test('standard notices keep their own fixed English', () {
+      const notices = {
+        'GRACIAS POR SU COMPRA': 'Thank you for your purchase',
+        'ESTE BOLETO NO ES VALIDO COMO FACTURA': 'Not valid as an invoice',
+        'CONSERVE ESTE COMPROBANTE': 'Please keep your receipt',
+        'BOLETO NO REEMBOLSABLE': 'Non-refundable',
+        'PAGUE ANTES DE SALIR': 'Please pay before leaving',
+        'FAVOR DE PAGAR SU BOLETO ANTES DE RETIRAR SU VEHICULO':
+            'Please pay before leaving',
+        'BUEN VIAJE': 'Have a good trip',
+      };
+      notices.forEach((spanish, english) {
+        expect(KnownPhrases.translate(spanish, 'es'), english, reason: spanish);
+        expect(_label(spanish), isNull, reason: spanish);
+      });
+      // A label line is not a notice.
+      expect(KnownPhrases.translate('FORMA DE PAGO: EFECTIVO', 'es'), isNull);
+      expect(KnownPhrases.translate('TOTAL \$844.78', 'es'), isNull);
+    });
+
     test('only Spanish receipts are read with the Spanish dictionary', () {
       expect(ReceiptLabels.translate('TOTAL 570.00', 'pt'), isNull);
       expect(ReceiptLabels.translate('DATE: 14/09/2026', 'en'), isNull);
@@ -897,7 +917,6 @@ void main() {
           'IMPORTE: \$118.00',
           'IVA INCLUIDO',
           'CONSERVE ESTE COMPROBANTE',
-          'PARA FACTURAR INGRESE A',
           'BUEN VIAJE',
         ],
       );
@@ -1258,6 +1277,48 @@ void main() {
           ['MASTERCARD DEBITO']);
       expect(ReceiptTextLines.meaningful(['XX*** X*****']), isEmpty);
       expect(ReceiptTextLines.meaningful(['************1234']), isEmpty);
+    });
+
+    test('dot leaders and rules are layout, not text', () {
+      expect(ReceiptTextLines.meaningful(['TOTAL ............ 570.00']),
+          ['TOTAL 570.00']);
+      expect(ReceiptTextLines.meaningful(['IMPORTE . . . . . . \$118.00']),
+          ['IMPORTE \$118.00']);
+      expect(ReceiptTextLines.meaningful(['SUBTOTAL--------491.38']),
+          ['SUBTOTAL 491.38']);
+      expect(ReceiptTextLines.meaningful(['*** COPIA CLIENTE ***']),
+          ['COPIA CLIENTE']);
+      for (final rule in ['----------------', '================', '* * * * *']) {
+        expect(ReceiptTextLines.meaningful([rule]), isEmpty, reason: rule);
+      }
+      // A date, a route and a code keep their strokes.
+      for (final row in [
+        'FECHA 2026-09-18 22:19',
+        'TRAMO: MEXICO - QUERETARO',
+        'PLACAS: ABC-123-D',
+      ]) {
+        expect(ReceiptTextLines.meaningful([row]), [row]);
+      }
+    });
+
+    test('a row that only points at a web address goes with it', () {
+      expect(
+        ReceiptTextLines.meaningful([
+          'TOTAL \$118.00',
+          'PARA FACTURAR INGRESE A',
+          'www.ejemplo.gob.mx',
+          'CONSULTE NUESTRO AVISO DE PRIVACIDAD EN',
+          'www.ejemplo.mx/privacidad',
+          'BUEN VIAJE',
+        ]),
+        ['TOTAL \$118.00', 'BUEN VIAJE'],
+      );
+      // A full sentence before the address stays.
+      expect(
+        ReceiptTextLines.meaningful(
+            ['GRACIAS POR SU PREFERENCIA', 'www.ejemplo.mx']),
+        ['GRACIAS POR SU PREFERENCIA'],
+      );
     });
 
     test('separate notices stay separate lines', () {

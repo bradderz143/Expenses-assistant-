@@ -75,6 +75,10 @@ class ReceiptTextLines {
 
   static final RegExp _price = RegExp(r'\d[.,]\d{2}(?!\d)');
 
+  /// Three or more of the same mark in a row, with or without gaps: dot
+  /// leaders ("....", ". . . ."), rules ("----", "====", "____"), stars.
+  static final RegExp _leaders = RegExp(r'([.\-_=*~])(?:\s?\1){2,}');
+
   /// A figure a reader takes in at a glance: a date ("14/09/2026",
   /// "2026-09-14"), a time ("12:49:05"), a percentage ("16%") or an amount
   /// ("1,850.00").
@@ -187,6 +191,9 @@ class ReceiptTextLines {
           .where((t) => !RegExp(r'^[Xx]+$').hasMatch(t))
           .join(' ');
     }
+    // "TOTAL ......... 570.00", "*** COPIA ***", "FIRMA ________": dot
+    // leaders, rules and rows of stars are layout, not text.
+    text = TextNormaliser.collapseSpaces(text.replaceAll(_leaders, ' '));
     // "=====", "--*--": rules that OCR half-read as letters. The strokes
     // and dots of a date or an amount are not such symbols.
     final symbols = RegExp(r'[^\sA-Za-z0-9À-ÿ]')
@@ -285,6 +292,8 @@ class ReceiptTextLines {
   ///   so it is translated as a sentence and not in broken pieces.
   /// - A line repeated straight away, or a wordy line printed again further
   ///   down (the shop's name above the card slip), is given once.
+  /// - Dot leaders and rules are taken out ("TOTAL ........ 570.00"), and a
+  ///   row that only points at a web address goes with the address.
   /// - When there are more than [limit], totals, payment and priced lines
   ///   are the ones kept.
   static List<String> meaningful(List<String> rows, {int limit = 40}) {
@@ -324,6 +333,12 @@ class ReceiptTextLines {
       final text = _clean(row);
       i += used - 1;
       if (text == null) {
+        // "PARA FACTURAR INGRESE A" / "www.ejemplo.mx": the row that only
+        // points at a web address goes with it.
+        if (adjacent && _web.hasMatch(row) && _pointer.hasMatch(texts.last)) {
+          texts.removeLast();
+          follows.removeLast();
+        }
         adjacent = false;
         continue;
       }
@@ -348,6 +363,11 @@ class ReceiptTextLines {
     }
     return _mostImportant(out, limit);
   }
+
+  /// The end of a row that only leads up to what comes next: "… INGRESE A",
+  /// "… AVISO DE PRIVACIDAD EN", "VISITANOS EN:".
+  static final RegExp _pointer =
+      RegExp(r'\s(a|al|en|a\s+la\s+p[aá]gina)\s?:?$', caseSensitive: false);
 
   /// Words that tie one printed line to the next in running text.
   static const Set<String> _endJoiners = {
