@@ -246,7 +246,7 @@ void main() {
     expect(draft.lines.map((l) => l.translatedText).toList(), [
       'Pork tacos (al pastor)', // seeded glossary
       'Mineral water', // seeded glossary
-      'EN:PAN DE ELOTE', // on-device model
+      'EN:Pan de elote', // on-device model, given the name in sentence case
     ]);
     expect(draft.lines[2].engine, TranslationEngine.onDevice);
 

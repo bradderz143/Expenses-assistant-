@@ -1,5 +1,38 @@
+import 'dart:io';
+
+import 'package:expense_assistant/application/capture_receipt.dart';
+import 'package:expense_assistant/application/commands.dart';
+import 'package:expense_assistant/application/package_service.dart';
+import 'package:expense_assistant/application/translate_items.dart';
+import 'package:expense_assistant/data/db/app_database.dart';
+import 'package:expense_assistant/data/repositories/sqlite_repositories.dart';
+import 'package:expense_assistant/data/services/file_storage_service.dart';
+import 'package:expense_assistant/domain/entities/enums.dart';
+import 'package:expense_assistant/domain/entities/receipt.dart';
+import 'package:expense_assistant/domain/logic/item_classifier.dart';
 import 'package:expense_assistant/domain/logic/item_lexicon.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
+import 'domain_logic_test.dart' show elFogonRows;
+import 'workflow_test.dart' show FakeOcr, FakePdf, FakeTranslation;
+
+/// Remembers what was sent to the translation model.
+class RecordingTranslation extends FakeTranslation {
+  final List<String> sent = [];
+
+  @override
+  Future<List<String>> translateAll(
+    List<String> texts, {
+    required String from,
+    String to = 'en',
+  }) async {
+    sent.addAll(texts);
+    // The model answers in lower case, as it does for sentence-case input.
+    return [for (final t in texts) 'english of ${t.toLowerCase()}'];
+  }
+}
 
 /// Every till line of [lines] must come out as the English next to it.
 void expectEnglish(Map<String, String> lines) {
@@ -803,6 +836,248 @@ void main() {
     test('nothing to write out: the line is returned untouched', () {
       expect(ItemLexicon.expand('PARIS WARM BOWL', 'es'), 'PARIS WARM BOWL');
       expect(ItemLexicon.expand('Desc. 10% AICM', 'pt'), 'Desc. 10% AICM');
+    });
+  });
+
+  group('in the app', () {
+    late AppDatabase db;
+    late Directory temp;
+    late FileStorageService storage;
+    late FakeOcr ocr;
+    late SqliteReceiptRepository receipts;
+    late SqliteTranslationRepository translations;
+    late SqlitePackageRepository packages;
+    late SqliteSettingsRepository settings;
+    late PackageService packageService;
+    late RecordingTranslation model;
+    late TranslateItemsUseCase translate;
+    late Receipt receipt;
+    var ids = 0;
+    DateTime clock() => DateTime(2026, 11, 23, 9);
+
+    setUpAll(sqfliteFfiInit);
+
+    setUp(() async {
+      db = await AppDatabase.open(
+        path: inMemoryDatabasePath,
+        factory: databaseFactoryFfi,
+      );
+      temp = await Directory.systemTemp.createTemp('lexicon_test');
+      storage = FileStorageService(Directory(p.join(temp.path, 'Expenses')));
+      await storage.ensureStructure();
+      ocr = FakeOcr();
+      receipts = SqliteReceiptRepository(db.db);
+      final trips = SqliteTripRepository(db.db);
+      translations = SqliteTranslationRepository(db.db);
+      packages = SqlitePackageRepository(db.db);
+      settings = SqliteSettingsRepository(db.db);
+      packageService = PackageService(
+        receipts: receipts,
+        trips: trips,
+        translations: translations,
+        packages: packages,
+        storage: storage,
+        pdfRenderer: FakePdf(),
+        clock: clock,
+      );
+      model = RecordingTranslation();
+      translate = TranslateItemsUseCase(
+        receipts: receipts,
+        translations: translations,
+        packages: packages,
+        packageService: packageService,
+        settings: settings,
+        storage: storage,
+        ocr: ocr,
+        translator: model,
+        clock: clock,
+      );
+      // A meal receipt, so the crop is read as items.
+      ocr.enqueueRows(elFogonRows);
+      final photo = File(p.join(temp.path, 'IMG_0001.jpg'))
+        ..writeAsBytesSync([1, 2, 3]);
+      final captured = await CaptureReceiptUseCase(
+        receipts: receipts,
+        trips: trips,
+        settings: settings,
+        storage: storage,
+        ocr: ocr,
+        translation: FakeTranslation(),
+        packages: packageService,
+        idGenerator: () => 'id-${++ids}',
+        clock: clock,
+      )(photo.path);
+      receipt = await ReceiptCommands(
+        receipts: receipts,
+        packages: packages,
+        packageService: packageService,
+        storage: storage,
+        clock: clock,
+      ).saveDetails(captured.receipt.copyWith(
+        category: 'Meals Overseas',
+        description: 'Lunch whilst attending a workshop',
+      ));
+    });
+
+    tearDown(() async {
+      await db.close();
+      await temp.delete(recursive: true);
+    });
+
+    Future<TranslationDraft> read(List<String> rows) {
+      ocr.enqueueRows(rows);
+      final crop = File(p.join(temp.path, 'crop.jpg'))
+        ..writeAsBytesSync([1, 2, 3]);
+      return translate.prepare(receipt: receipt, croppedImagePath: crop.path);
+    }
+
+    test('known items get the dictionary\'s English as a fixed translation '
+        'and never reach the model', () async {
+      final draft = await read([
+        '1 MALTEADA C CHOCOLATE CH 79.00',
+        '1 NUTELLA LATTE FRAPPE GD 95.00',
+        '1 PAPAS FAM 62.00',
+        '1 COLA 887 ML 38.00',
+        'TOTAL 274.00',
+      ]);
+      expect(draft.lines.map((l) => l.translatedText).toList(), [
+        'Milkshake with chocolate, small',
+        'Nutella latte frappe, large',
+        'Fries, family size',
+        'Cola 887 ml',
+      ]);
+      // Shown as a fixed translation, not "Machine translation: check it".
+      expect(draft.lines.map((l) => l.engine).toSet(),
+          {TranslationEngine.glossary});
+      expect(draft.lines.map((l) => l.category).toList(), [
+        ItemCategory.drink,
+        ItemCategory.drink,
+        ItemCategory.food,
+        ItemCategory.drink,
+      ]);
+      expect(model.sent, isEmpty);
+      expect(draft.warning, isNull);
+    });
+
+    test('the user\'s saved wording wins over the dictionary', () async {
+      await translations.rememberGlossary(
+          'es', 'papas fam', 'Family fries to share');
+      final draft = await read([
+        '4 TACOS AL PASTOR 220.00',
+        '1 PAPAS FAM 62.00',
+        '1 LIMONADA 45.00',
+      ]);
+      expect(draft.lines.map((l) => l.translatedText).toList(), [
+        'Pork tacos (al pastor)', // seeded glossary
+        'Family fries to share', // saved by the user
+        'Lemonade', // dictionary
+      ]);
+      expect(model.sent, isEmpty);
+    });
+
+    test('a line with an unknown word goes to the model in sentence case '
+        'with abbreviations written out', () async {
+      final draft = await read([
+        '1 MALTEADA C CHOCOLATE CH DOÑA TOTA 79.00',
+        '1 HAMB. LA PATRONA C/QUESO GDE 145.00',
+        '1 LIMONADA 45.00',
+      ]);
+      expect(model.sent, [
+        'Malteada con chocolate chico doña tota',
+        'Hamburguesa la patrona con queso grande',
+      ]);
+      expect(draft.lines.map((l) => l.translatedText).toList(), [
+        'English of malteada con chocolate chico doña tota',
+        'English of hamburguesa la patrona con queso grande',
+        'Lemonade',
+      ]);
+      expect(draft.lines.map((l) => l.engine).toList(), [
+        TranslationEngine.onDevice,
+        TranslationEngine.onDevice,
+        TranslationEngine.glossary,
+      ]);
+      // What the till printed is still what the user sees as the original.
+      expect(draft.lines.first.originalText,
+          'MALTEADA C CHOCOLATE CH DOÑA TOTA');
+    });
+
+    test('a choice goes with the item above it, priced or not', () async {
+      final draft = await read([
+        '1 LIMONADA 45.00',
+        'MINERAL',
+        '1 VASO DESECHABLE 2.00',
+        '1 HAMBURGUESA C/QUESO 120.00',
+        '1 EXTRA QUESO 15.00',
+        '1 PARA LLEVAR 5.00',
+        '1 PASTEL DE CAFE 60.00',
+      ]);
+      expect({
+        for (final l in draft.lines) l.translatedText: l.category,
+      }, {
+        'Lemonade': ItemCategory.drink,
+        'Sparkling': ItemCategory.drink,
+        'Disposable cup': ItemCategory.drink,
+        'Burger with cheese': ItemCategory.food,
+        'Extra cheese': ItemCategory.food,
+        'To go': ItemCategory.food,
+        // A cake, though "cafe" is a drink word.
+        'Coffee cake': ItemCategory.food,
+      });
+    });
+  });
+
+  group('drink or food', () {
+    test('the dictionary decides when it knows the line', () {
+      expect(ItemClassifier.classify('PASTEL DE CAFE'), ItemCategory.food);
+      expect(ItemClassifier.classify('HELADO DE TE VERDE'), ItemCategory.food);
+      expect(ItemClassifier.classify('COLA 887 ML'), ItemCategory.drink);
+      expect(ItemClassifier.classify('L. ENTERA'), ItemCategory.drink);
+      expect(ItemClassifier.classify('CERV. VICTORIA'), ItemCategory.drink);
+      expect(ItemClassifier.classify('COLA DE RES'), ItemCategory.food);
+    });
+
+    test('otherwise the drink words do, as before', () {
+      expect(ItemClassifier.classify('PARIS WARM BOWL'), ItemCategory.food);
+      expect(ItemClassifier.classify('SUCO DE LARANJA', '', 'pt'),
+          ItemCategory.drink);
+      expect(ItemClassifier.classify('XYZ 500', 'House lager'),
+          ItemCategory.drink);
+    });
+
+    test('a choice names neither', () {
+      expect(ItemClassifier.isChoice('VASO DESECHABLE'), isTrue);
+      expect(ItemClassifier.isChoice('PARA LLEVAR'), isTrue);
+      expect(ItemClassifier.isChoice('EXTRA QUESO'), isFalse); // food
+      expect(ItemClassifier.isChoice('LIMONADA'), isFalse);
+      expect(ItemClassifier.isChoice('PARIS WARM BOWL'), isFalse);
+    });
+  });
+
+  group('wording for the translation model', () {
+    test('item lines: abbreviations in full, sentence case', () {
+      expect(ItemWording.forModel('MALTEADA C CHOCOLATE CH DOÑA TOTA', 'es'),
+          'Malteada con chocolate chico doña tota');
+      expect(ItemWording.forModel('COCA ZERO BOT XL PROMO VERANO', 'es'),
+          'Coca zero botella xl promo verano');
+      expect(ItemWording.forModel('PAN DE ELOTE', 'es'), 'Pan de elote');
+    });
+
+    test('capitals the till chose are kept', () {
+      expect(ItemWording.sentenceCase('Pay de Queso Doña Tota'),
+          'Pay de Queso Doña Tota');
+      expect(ItemWording.sentenceCase('McPollo CON QUESO'), 'McPollo con queso');
+    });
+
+    test('other text is not read as an item: a street stays a street', () {
+      expect(ItemWording.expandAbbreviations('C. REFORMA 222 S/N', 'es'),
+          'C. REFORMA 222 S/N');
+    });
+
+    test('the answer opens with a capital', () {
+      expect(ItemWording.capitalised('milkshake doña tota'),
+          'Milkshake doña tota');
+      expect(ItemWording.capitalised('2 beers'), '2 beers');
+      expect(ItemWording.capitalised(''), '');
     });
   });
 }

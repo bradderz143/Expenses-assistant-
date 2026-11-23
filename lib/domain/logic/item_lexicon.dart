@@ -1845,7 +1845,10 @@ class ItemLexicon {
     if (language != 'es') return text;
     final tokens = _repaired(text);
     if (!tokens.any((t) => t.changed)) return text;
-    return [for (final t in tokens) t.changed ? t.text : t.raw].join(' ');
+    return [
+      for (final t in tokens)
+        if (t.changed) t.text else if (t.raw.isNotEmpty) t.raw,
+    ].join(' ');
   }
 
   /// How many entries were written down (not counting plurals and other

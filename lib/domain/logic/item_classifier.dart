@@ -1,10 +1,12 @@
 import '../entities/enums.dart';
 import 'amount_in_words.dart';
+import 'item_lexicon.dart';
 import 'text_normaliser.dart';
 
-/// Decides whether a purchased item is a drink or food, from either the
-/// wording on the receipt or its English translation. Anything not clearly a
-/// drink is food. The user can change it on the translation screen.
+/// Decides whether a purchased item is a drink or food: from the built-in
+/// dictionary when it knows what the line names, otherwise from drink words
+/// in the wording on the receipt or its English translation. Anything not
+/// clearly a drink is food. The user can change it on the translation screen.
 class ItemClassifier {
   ItemClassifier._();
 
@@ -31,7 +33,22 @@ class ItemClassifier {
     'coca', 'pepsi', 'heineken',
   ];
 
-  static ItemCategory classify(String original, [String translated = '']) {
+  static ItemCategory classify(
+    String original, [
+    String translated = '',
+    String language = 'es',
+  ]) {
+    // The dictionary reads the thing the line names, not single words:
+    // "PASTEL DE CAFE" is a cake, "COLA 887 ML" a drink.
+    switch (ItemLexicon.kindOf(original, language)) {
+      case ItemKind.drink:
+        return ItemCategory.drink;
+      case ItemKind.food:
+        return ItemCategory.food;
+      case ItemKind.other:
+      case null:
+        break;
+    }
     for (final text in [translated, original]) {
       final key = TextNormaliser.glossaryKey(text);
       if (key.isEmpty) continue;
@@ -41,6 +58,12 @@ class ItemClassifier {
     }
     return ItemCategory.food;
   }
+
+  /// A line the dictionary knows word for word and that names neither food
+  /// nor drink ("VASO DESECHABLE", "PARA LLEVAR", "MINERAL", "EXTRA SHOT"):
+  /// a choice or an extra for the item printed above it, and listed with it.
+  static bool isChoice(String original, [String language = 'es']) =>
+      ItemLexicon.kindOf(original, language) == ItemKind.other;
 }
 
 /// Light clean-up of item wording before it goes to the translator.
@@ -109,13 +132,53 @@ class ItemWording {
 
   /// "COCA ZERO BOT" -> "COCA ZERO botella": receipt abbreviations the
   /// on-device model cannot guess. Only Spanish is handled for now.
-  static String expandAbbreviations(String text, String language) {
+  ///
+  /// For an [itemLine] the dictionary's abbreviations and repairs are
+  /// written out as well ("MALTEADA C CHOCOLATE CH DOÑA TOTA" -> "MALTEADA
+  /// con CHOCOLATE chico DOÑA TOTA"). Not for other text: in an address
+  /// "C. REFORMA" is a street, not "con Reforma".
+  static String expandAbbreviations(
+    String text,
+    String language, {
+    bool itemLine = false,
+  }) {
     if (language != 'es') return text;
-    var out = text;
+    var out = itemLine ? ItemLexicon.expand(text, language) : text;
     _spanishAbbreviations.forEach((pattern, full) {
       out = out.replaceAll(pattern, full);
     });
     return out;
+  }
+
+  /// What the translation model is given for an item line: abbreviations
+  /// written out and sentence case, "MALTEADA C CHOCOLATE CH DOÑA TOTA" ->
+  /// "Malteada con chocolate chico doña tota". The model treats ALL-CAPS
+  /// wording as names and mangles it ("Misted C Chocolate CH").
+  static String forModel(String text, String language) => sentenceCase(
+        expandAbbreviations(text, language, itemLine: true),
+      );
+
+  /// Words printed all in capitals in lower case, and a capital to open
+  /// the line: "PAN DE ELOTE" -> "Pan de elote". Words the till printed in
+  /// mixed case ("Doña Tota", "McPollo") keep their capitals.
+  static String sentenceCase(String text) {
+    final lowered = text.replaceAllMapped(
+      RegExp(r'[A-Za-zÀ-ÿ]+'),
+      (m) {
+        final word = m.group(0)!;
+        return word == word.toUpperCase() ? word.toLowerCase() : word;
+      },
+    );
+    return capitalised(lowered);
+  }
+
+  /// "malted milk with chocolate" -> "Malted milk with chocolate".
+  static String capitalised(String text) {
+    final at = text.indexOf(RegExp(r'\S'));
+    if (at < 0) return text;
+    return text.substring(0, at) +
+        text[at].toUpperCase() +
+        text.substring(at + 1);
   }
 }
 
