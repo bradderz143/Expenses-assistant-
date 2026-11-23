@@ -136,9 +136,19 @@ class ItemAreaDetector {
     var end = items.last.lastRow;
     var extra = 0;
     for (var i = end + 1; i < rows.length && extra < 4; i++) {
+      // A printed rule ("--------") between the items and the totals.
+      if (!RegExp(r'[A-Za-z0-9À-ÿ]').hasMatch(rows[i].text)) continue;
       if (!ItemLineParser.isSummaryRow(rows[i].text)) break;
+      // The thank-you under the totals starts the footer.
+      if (RegExp(r'gracias|thank', caseSensitive: false).hasMatch(rows[i].text)) {
+        break;
+      }
       end = i;
       extra++;
+    }
+    // With paired blocks the last item's row is not the lowest one.
+    for (final item in items) {
+      if (item.lastRow > end) end = item.lastRow;
     }
 
     var left = rows[first].left;
