@@ -98,9 +98,18 @@ class ReceiptTextParser {
               (foldStrayAccents(TextNormaliser.collapseSpaces(t)), h),
       ]);
     }
-    final (currency, detected) = _detectCurrency(rows);
+    // The amount and the currency are read from rows tidied for money; the
+    // name, date and time from the rows as they are.
+    final money = [for (final row in rows) _tidyMoneyRow(row)];
+    final ((currency, detected), otherCurrencies) = _detectCurrency(money);
     final exponent = Currencies.exponentOf(currency);
-    final (amount, doubtful) = _checkedTotal(rows, exponent);
+    final (amount, doubtful) = _checkedTotal(
+      _pairLabelBlocks(
+        _ownCurrencyRows(money, currency, otherCurrencies),
+        exponent,
+      ),
+      exponent,
+    );
     final (date, dateDoubtful) = _date(rows);
     return ParsedReceipt(
       merchant: _merchant(rows, heights, pieces),
@@ -178,6 +187,41 @@ class ReceiptTextParser {
         return buffer.toString();
       });
 
+  /// Dots, dashes or underscores leading from a label to its amount:
+  /// "TOTAL..........475.00", "TOTAL ____ 475.00".
+  static final RegExp _leaders = RegExp(r'(?:\s?\.){2,}\s?|[-_]{2,}');
+
+  /// "Q.125.00", "Bs.1.295,60", "B/.19.80", "L.350.00": the full stop ends
+  /// the abbreviation, it is not part of the number. Not after a lone O, I
+  /// or l, which are more often a misread 0 or 1 ("1O.50").
+  static final RegExp _abbreviationDot =
+      RegExp(r'(?<=[A-HJ-NP-Za-km-np-z/])\.(?=\d)');
+
+  /// "T O T A L": a word printed with a space between its letters.
+  static final RegExp _spacedWord =
+      RegExp(r'(?<![A-Za-z])(?:[A-Za-z] ){3,}[A-Za-z](?![A-Za-z])');
+
+  /// "$475 00": the decimal point read as a space, after a currency sign.
+  static final RegExp _spaceForPoint = RegExp(
+    r'([$£€]\s?\d[\d,]*) (\d{2})(?![\d.,:/%-])(?!\s+\d)',
+  );
+
+  /// A row made ready for reading money: leaders dropped, an abbreviation's
+  /// full stop parted from the figures, spaced-out words closed up.
+  static String _tidyMoneyRow(String row) {
+    var text = row.replaceAll(_leaders, ' ').replaceAll(_abbreviationDot, '. ');
+    text = text.replaceAllMapped(_spacedWord, (m) {
+      final word = m[0]!.replaceAll(' ', '');
+      // "T O T A L A P A G A R": the spaces between words are lost too.
+      return word.replaceFirstMapped(
+        RegExp(r'^(sub)?total(?=[a-z])', caseSensitive: false),
+        (t) => '${t[0]} ',
+      );
+    });
+    text = text.replaceAllMapped(_spaceForPoint, (m) => '${m[1]}.${m[2]}');
+    return TextNormaliser.collapseSpaces(text);
+  }
+
   // ---------------------------------------------------------------- merchant
 
   static final RegExp _merchantNoise = RegExp(
@@ -203,85 +247,385 @@ class ReceiptTextParser {
     caseSensitive: false,
   );
 
+  /// Staff, table, payment and service rows ("LE ATENDIO MARIA", "Server:
+  /// Mike", "TARJETA ************1234", "PARA LLEVAR", "CASA MATRIZ", "VAT
+  /// NO. 000"), and the place a shop is in rather than the shop ("CENTRO
+  /// COMERCIAL EJEMPLO", "AEROPUERTO INTERNACIONAL").
+  static final RegExp _serviceRow = RegExp(
+    r'^((le\s+)?atendi[oó]|atendido|vendedor|server\b|host\b|guests?\b|'
+    // "OPERADOR: 12" is staff; "OPERADORA EJEMPLO SA DE CV" is a company.
+    r'covers\b|turno\b|titular|operador\b|usuario|empleado|tarjeta|card\b|'
+    r'efectivo|cash\b|contado|pedido|para\s+llevar|llevar\b|to\s+go\b|'
+    r'take\s*(out|away)|dine\s+in|eat\s+in|comer\s+aqu[ií]|(casa\s+)?matriz|'
+    r'vuelva|conserve|muchas\s+gracias|vat\b|tax\b|centro\s+comercial|'
+    r'c\.\s?c\.|aeropuerto|airport)',
+    caseSensitive: false,
+  );
+
+  /// A branch or till number ("Restaurante #12345", "TIENDA 1234", "Store
+  /// 1234", "UNIDAD 1234 EJEMPLO").
+  static final RegExp _branchRow = RegExp(
+    r'^(tienda|store|shop|unidad|unit|restaurante?|complejo|site|local|'
+    r'estaci[oó]n|station)\s*(no\.?|n[uú]m\.?|n[°º]|:)?\s*(#\s*\d+|\d{2,})\b',
+    caseSensitive: false,
+  );
+
+  /// A field under its label ("Vendedor: 12 JUAN", "TURNO: MATUTINO", "VAT
+  /// NUMBER: GB 000 0000 00"): whatever follows the colon is not the name.
+  static final RegExp _fieldRow = RegExp(r"^[A-Za-zÀ-ÿ.#/º°' ]{2,24}:");
+
+  /// The one field that is the name: "COMERCIO: TACOS EJEMPLO", "NOMBRE
+  /// COMERCIAL: CAFE EJEMPLO", "Merchant: EXAMPLE CAFE".
+  static final RegExp _merchantLabel = RegExp(
+    r'^\W*(?:nombre\s+(?:comercial|del\s+(?:comercio|establecimiento))|'
+    r'comercio|establecimiento|negocio|merchant(?:\s+name)?)\s*:\s*'
+    r'(?:\d+\s+)?(\S.*)$',
+    caseSensitive: false,
+  );
+
+  /// Words for the paper itself, wherever they stand on the row ("DOCUMENTO
+  /// TRIBUTARIO ELECTRONICO", "SALES RECEIPT", "ESTE NO ES UN COMPROBANTE
+  /// FISCAL", "MERCHANT COPY", "CONSUMIDOR FINAL").
+  static final RegExp _documentWord = RegExp(
+    r'\b(documento|comprobante|factura|tiquete|boleta|boleto|recibo|receipt|'
+    r'invoice|voucher|ticket|pagar[eé]|reimpresi[oó]n|reimpreso|reprint|'
+    r'duplicado|duplicate|copia|guest\s+check|consumidor\s+final|'
+    r'p[uú]blico\s+en\s+general|no\s+fiscal|'
+    r'(customer|merchant|cardholder|client|store|bank)\s+copy)\b',
+    caseSensitive: false,
+  );
+
+  /// The seller's tax regime or status ("PERSONA MORAL REGIMEN GENERAL DE
+  /// LEY", "SUJETO A PAGOS TRIMESTRALES ISR", "RESPONSABLE DE IVA",
+  /// "PEQUENO CONTRIBUYENTE"), also when OCR hurt it ("REGTMEN").
+  static final RegExp _taxStatus = RegExp(
+    r'r[eé]g[it]men|contribuyente|retenci[oó]n|retenedor|\bisr\b|\biva\b|'
+    r'persona\s+(mora|f[ií]sica)|general\s+de\s+ley|incorporaci[oó]n\s+fiscal|'
+    r'actividad\s+(econ[oó]mica|empresarial)',
+    caseSensitive: false,
+  );
+
+  /// Requests printed where the logo was not read ("TU OPINION NOS
+  /// IMPORTA", "Tell us about your visit").
+  static final RegExp _request = RegExp(
+    r'opini[oó]n|encuesta|survey|feedback|tell\s+us|your\s+(visit|opinion)|'
+    r'how\s+did\s+we',
+    caseSensitive: false,
+  );
+
+  /// Banks and card processors that head a card slip above the shop ("BAC
+  /// CREDOMATIC", "BANCO INDUSTRIAL", "VISANET GUATEMALA", "AMERICAN
+  /// EXPRESS"). More of them are in [_merchantNoise].
+  static final RegExp _acquirer = RegExp(
+    r'^(visanet|visa\b|master\s?card|american\s+express|amex\b|bac\b|'
+    r'banrural|bancolombia|banesco|bancaribe|banplus|bancoppel|bantrab|'
+    r'(banco|bank)\s+(of\b|de\b|del\b|industrial|agr[ií]cola|azteca|'
+    r'promerica|cuscatl[aá]n|atl[aá]ntida|ficohsa|popular|nacional|mercantil|'
+    r'provincial|davivienda|bicentenario|exterior|activo|occidente|'
+    r'inmobiliario|internacional|g\s*&?\s*t|uni[oó]n|ahorro)|'
+    r'g\s*&\s*t\s+continental|promerica|davivienda|serfinsa|redeban|'
+    r'credibanco|first\s*data|fiserv|elavon|worldpay|global\s+payments|'
+    r'barclaycard|billpocket|izettle|stripe\b|paypal|e-?global|kushki|'
+    r'pagadito|transbank|multipagos|punto\s+de\s+venta)',
+    caseSensitive: false,
+  );
+
+  /// A row that ends in a price is an item or a sum ("1 CAFE AMERICANO
+  /// 45.00", "REFRESCO $18.00"), not a name. A dotted phone number
+  /// ("55.12.34.56") is not a price.
+  static final RegExp _pricedRow =
+      RegExp(r'(?<![\d.,])\d+(?:[.,]\d{3})*[.,]\d{2}\s*[A-Za-z]?\s*$');
+
+  /// A hidden card or account number ("************1234", "XXXX1234").
+  static final RegExp _maskedNumber =
+      RegExp(r'\*{3,}|x{4,}\d', caseSensitive: false);
+
+  /// "TOTAL 70.00": the name is never under the sums.
+  static final RegExp _totalRow =
+      RegExp(r'^\W*(sub\s*-?\s*)?total\b', caseSensitive: false);
+
   static final RegExp _legalSuffix = RegExp(
-    r'[,\s]+(S\.?\s?A\.?(\s?P\.?\s?I\.?)?(\s?DE\s?C\.?\s?V\.?)?|'
-    r'S\.?\s?DE\s?R\.?\s?L\.?(\s?DE\s?C\.?\s?V\.?)?|C\.\s?A\.?|LTDA?\.?|'
-    r'LIMITED|PLC|INC\.?|LLC|S\.?A\.?S\.?|S\.?\s?C\.?[\s.\-]?S\.?|GMBH)\s*$',
+    r'[,\s]+(S[.,]?\s?A[.,]?(\s?[PB][.,]?(\s?I[.,]?)?)?(\s?DE\s?C[.,]?\s?V\.?)?|'
+    r'S\.?\s?DE\s?R\.?\s?[LI1]\.?(\s?DE\s?C\.?\s?V\.?)?|'
+    r'SOCIEDAD\s+AN[OÓ]NIMA(\s+DE\s+CAPITAL\s+VARIABLE)?|'
+    r'COMPA[NÑ][IÍ]A\s+AN[OÓ]NIMA|S\.?\s?R\.?\s?L\.?|C\.\s?A\.?|LTDA?\.?|'
+    r'LIMITADA|LIMITED|PLC|INC\.?|LLC|CORP\.?|CORPORATION|S\.?A\.?S\.?|'
+    r'S\.?\s?C\.?[\s.\-]?S\.?|GMBH)\s*$',
     caseSensitive: false,
   );
 
   /// Well-known brands, checked before guessing from the layout. App
   /// receipts (Uber, DiDi…) put a greeting in the biggest text, not the name.
-  /// Ambiguous words (e.g. "Copa", "United", "Delta") need a qualifier.
-  static final List<(RegExp, String)> _brands = [
-    (RegExp(r'\buber\s*eats\b', caseSensitive: false), 'Uber Eats'),
-    (RegExp(r'\buber\b', caseSensitive: false), 'Uber'),
-    (RegExp(r'\bdidi\s*food\b', caseSensitive: false), 'DiDi Food'),
-    (RegExp(r'\bdidi\b', caseSensitive: false), 'DiDi'),
-    (RegExp(r'\bcabify\b', caseSensitive: false), 'Cabify'),
-    (RegExp(r'\brappi\b', caseSensitive: false), 'Rappi'),
-    (RegExp(r'\blyft\b', caseSensitive: false), 'Lyft'),
-    (RegExp(r'\bairbnb\b', caseSensitive: false), 'Airbnb'),
-    (RegExp(r'\bbooking\.com\b', caseSensitive: false), 'Booking.com'),
-    (RegExp(r'\bexpedia\b', caseSensitive: false), 'Expedia'),
-    (RegExp(r'\baerom[eé]xico\b', caseSensitive: false), 'Aeroméxico'),
-    (RegExp(r'\bvolaris\b', caseSensitive: false), 'Volaris'),
-    (RegExp(r'\bviva\s*aerobus\b', caseSensitive: false), 'Viva Aerobus'),
-    (RegExp(r'\bavianca\b', caseSensitive: false), 'Avianca'),
-    (RegExp(r'\bcopa\s*airlines\b', caseSensitive: false), 'Copa Airlines'),
-    (RegExp(r'\bbritish\s*airways\b', caseSensitive: false), 'British Airways'),
-    (RegExp(r'\biberia\b', caseSensitive: false), 'Iberia'),
-    (RegExp(r'\bamerican\s*airlines\b', caseSensitive: false), 'American Airlines'),
-    (RegExp(r'\bunited\s*airlines\b', caseSensitive: false), 'United Airlines'),
-    (RegExp(r'\bdelta\s*air\s*lines\b', caseSensitive: false), 'Delta Air Lines'),
-    (RegExp(r'\bstarbucks\b', caseSensitive: false), 'Starbucks'),
-    (RegExp(r'\bcosta\s*coffee\b', caseSensitive: false), 'Costa Coffee'),
-    (RegExp(r'\bmaison\s*kayser\b', caseSensitive: false), 'Maison Kayser'),
-    (RegExp(r'\btim\s*hortons\b', caseSensitive: false), 'Tim Hortons'),
-    (RegExp(r'\bcielito\s*querido\b', caseSensitive: false), 'Cielito Querido'),
-    (RegExp(r'\bpunta\s*del\s*cielo\b', caseSensitive: false), 'Punta del Cielo'),
-    (RegExp(r'\bjuan\s*valdez\b', caseSensitive: false), 'Juan Valdez'),
-    (RegExp(r'\bkrispy\s*kreme\b', caseSensitive: false), 'Krispy Kreme'),
-    (RegExp(r"\bdunkin'?\b", caseSensitive: false), "Dunkin'"),
-    (RegExp(r'\bpret\s*a\s*manger\b', caseSensitive: false), 'Pret A Manger'),
-    (RegExp(r'\boxxo\b', caseSensitive: false), 'OXXO'),
-    (RegExp(r'\b7[\s-]?eleven\b', caseSensitive: false), '7-Eleven'),
-    (RegExp(r'\bwalmart\b', caseSensitive: false), 'Walmart'),
-    (RegExp(r'\bcostco\b', caseSensitive: false), 'Costco'),
-    (RegExp(r'\bsanborns\b', caseSensitive: false), 'Sanborns'),
-    (RegExp(r"\bmcdonald'?s\b", caseSensitive: false), "McDonald's"),
-    (RegExp(r'\bburger\s*king\b', caseSensitive: false), 'Burger King'),
+  /// These may stand anywhere on the receipt, so each is a name nothing else
+  /// is called: ambiguous words (e.g. "Copa", "United", "Delta") need a
+  /// qualifier, and short or everyday ones are in [_headerBrands].
+  static const List<(String, String)> _brandNames = [
+    // Apps first: their receipts name restaurants and hotels as well.
+    (r'uber\s*eats', 'Uber Eats'),
+    ('uber', 'Uber'),
+    (r'didi\s*food', 'DiDi Food'),
+    ('didi', 'DiDi'),
+    ('cabify', 'Cabify'),
+    ('rappi', 'Rappi'),
+    ('lyft', 'Lyft'),
+    ('airbnb', 'Airbnb'),
+    ('indrive', 'inDrive'),
+    (r'pedidos\s?ya', 'PedidosYa'),
+    ('deliveroo', 'Deliveroo'),
+    (r'booking\.com', 'Booking.com'),
+    ('expedia', 'Expedia'),
+    // Airlines.
+    (r'aerom[eé]xico', 'Aeroméxico'),
+    ('volaris', 'Volaris'),
+    (r'viva\s*aerobus', 'Viva Aerobus'),
+    ('avianca', 'Avianca'),
+    (r'copa\s*airlines', 'Copa Airlines'),
+    (r'latam\s*airlines', 'LATAM Airlines'),
+    (r'tag\s*airlines', 'TAG Airlines'),
+    (r'british\s*airways', 'British Airways'),
+    ('iberia', 'Iberia'),
+    (r'american\s*airlines', 'American Airlines'),
+    (r'united\s*airlines', 'United Airlines'),
+    (r'delta\s*air\s*lines', 'Delta Air Lines'),
+    ('jetblue', 'JetBlue'),
+    (r'spirit\s*airlines', 'Spirit Airlines'),
+    (r'southwest\s*airlines', 'Southwest Airlines'),
+    ('lufthansa', 'Lufthansa'),
+    (r'air\s*france', 'Air France'),
+    ('ryanair', 'Ryanair'),
+    ('easyjet', 'easyJet'),
+    // Coffee and bakeries.
+    ('starbucks', 'Starbucks'),
+    (r'costa\s*coffee', 'Costa Coffee'),
+    (r'maison\s*kayser', 'Maison Kayser'),
+    (r'tim\s*hortons', 'Tim Hortons'),
+    (r'cielito\s*querido', 'Cielito Querido'),
+    (r'punta\s*del\s*cielo', 'Punta del Cielo'),
+    (r'juan\s*valdez', 'Juan Valdez'),
+    (r'krispy\s*kreme', 'Krispy Kreme'),
+    (r"dunkin'?", "Dunkin'"),
+    (r'pret\s*a\s*manger', 'Pret A Manger'),
+    (r'caf[eé]\s*barista', 'Café Barista'),
+    (r'caff[eè]\s*nero', 'Caffè Nero'),
+    ('greggs', 'Greggs'),
+    ('caffenio', 'Caffenio'),
+    (r'the\s*italian\s*coffee', 'The Italian Coffee Company'),
+    // Shops, supermarkets and pharmacies.
+    (r'oxxo\s*gas', 'OXXO Gas'),
+    ('oxxo', 'OXXO'),
+    (r'7[\s-]?eleven', '7-Eleven'),
+    (r'wal[\s-]?mart', 'Walmart'),
+    ('costco', 'Costco'),
+    ('sanborns', 'Sanborns'),
+    (r'bodega\s*aurrer[aá]', 'Bodega Aurrera'),
+    (r"sam'?s\s*club", "Sam's Club"),
+    ('chedraui', 'Chedraui'),
+    ('soriana', 'Soriana'),
+    (r'la\s*comer', 'La Comer'),
+    ('superama', 'Superama'),
+    ('pricesmart', 'PriceSmart'),
+    (r'circle\s*k', 'Circle K'),
+    (r'super\s*selectos', 'Super Selectos'),
+    (r'despensa\s*familiar', 'Despensa Familiar'),
+    (r'maxi\s*despensa', 'Maxi Despensa'),
+    ('farmatodo', 'Farmatodo'),
+    (r'central\s*madeirense', 'Central Madeirense'),
+    ('carulla', 'Carulla'),
+    ('tesco', 'Tesco'),
+    (r"sainsbury'?s", "Sainsbury's"),
+    ('waitrose', 'Waitrose'),
+    ('morrisons', 'Morrisons'),
+    (r'marks\s*(&|and)\s*spencer', 'Marks & Spencer'),
+    (r'wh\s?smith', 'WHSmith'),
+    ('walgreens', 'Walgreens'),
+    (r'cvs\s*/?\s*pharmacy', 'CVS'),
+    (r'duane\s*reade', 'Duane Reade'),
+    (r'whole\s*foods', 'Whole Foods'),
+    (r"trader\s*joe'?s", "Trader Joe's"),
+    (r'palacio\s*de\s*hierro', 'Palacio de Hierro'),
+    ('coppel', 'Coppel'),
+    ('elektra', 'Elektra'),
+    (r'office\s*depot', 'Office Depot'),
+    ('officemax', 'OfficeMax'),
+    (r'home\s*depot', 'Home Depot'),
+    (r'best\s*buy', 'Best Buy'),
+    ('cemaco', 'Cemaco'),
+    ('steren', 'Steren'),
+    ('miniso', 'Miniso'),
+    ('dufry', 'Dufry'),
+    (r'hudson\s*news', 'Hudson News'),
+    (r'farmacias?\s*guadalajara', 'Farmacias Guadalajara'),
+    (r'farmacias?\s*del\s*ahorro', 'Farmacias del Ahorro'),
+    (r'farmacias?\s*similares', 'Farmacias Similares'),
+    (r'farmacias?\s*benavides', 'Farmacias Benavides'),
+    (r'farmacias?\s*san\s*pablo', 'Farmacia San Pablo'),
+    (r'farmacias?\s*galeno', 'Farmacias Galeno'),
+    (r'farmacias?\s*cruz\s*verde', 'Cruz Verde'),
+    ('meykos', 'Meykos'),
+    // Restaurants and fast food.
+    (r"mc\s?donald'?s", "McDonald's"),
+    (r'burger\s*king', 'Burger King'),
     // "KEC": the F of a thermal-printed KFC is often read as an E.
-    (RegExp(r'\bk[fe]c\b', caseSensitive: false), 'KFC'),
-    (RegExp(r'\bpizza\s*hut\b', caseSensitive: false), 'Pizza Hut'),
-    (RegExp(r"\bdomino'?s\s*pizza\b", caseSensitive: false), "Domino's"),
-    (RegExp(r'\blittle\s*caesars\b', caseSensitive: false), 'Little Caesars'),
-    (RegExp(r"\bcarl'?s\s*jr\b", caseSensitive: false), "Carl's Jr."),
-    (RegExp(r'\bmarriott\b', caseSensitive: false), 'Marriott'),
-    (RegExp(r'\bhilton\b', caseSensitive: false), 'Hilton'),
-    (RegExp(r'\bhyatt\b', caseSensitive: false), 'Hyatt'),
-    (RegExp(r'\bholiday\s*inn\b', caseSensitive: false), 'Holiday Inn'),
-    (RegExp(r'\bhertz\b', caseSensitive: false), 'Hertz'),
-    (RegExp(r'\beuropcar\b', caseSensitive: false), 'Europcar'),
-    (RegExp(r'\bpemex\b', caseSensitive: false), 'Pemex'),
-    (RegExp(r'\bdufry\b', caseSensitive: false), 'Dufry'),
-    (RegExp(r'\byellow\s*cab\b', caseSensitive: false), 'Yellow Cab'),
+    ('k[fe]c', 'KFC'),
+    (r'pizza\s*hut', 'Pizza Hut'),
+    (r"domino'?s", "Domino's"),
+    (r'little\s*caesars', 'Little Caesars'),
+    (r"carl'?s\s*jr", "Carl's Jr."),
+    (r'pollo\s*campero', 'Pollo Campero'),
+    (r'pollo\s*brujo', 'Pollo Brujo'),
+    (r'(pollo\s*)?pinulito', 'Pollo Pinulito'),
+    (r'pollo\s*campestre', 'Pollo Campestre'),
+    (r'el\s*pollo\s*loco', 'El Pollo Loco'),
+    (r'taco\s*bell', 'Taco Bell'),
+    (r"wendy'?s", "Wendy's"),
+    (r"applebee'?s", "Applebee's"),
+    (r"denny'?s", "Denny's"),
+    (r'olive\s*garden', 'Olive Garden'),
+    (r'panda\s*express', 'Panda Express'),
+    ('popeyes', 'Popeyes'),
+    (r'five\s*guys', 'Five Guys'),
+    (r'shake\s*shack', 'Shake Shack'),
+    (r'chick-?fil-?a', 'Chick-fil-A'),
+    ('panera', 'Panera'),
+    (r"nando'?s", "Nando's"),
+    ('wagamama', 'Wagamama'),
+    (r"p\.?\s?f\.?\s?chang'?s", "P.F. Chang's"),
+    (r'california\s*pizza\s*kitchen', 'California Pizza Kitchen'),
+    (r"italianni'?s", "Italianni's"),
+    (r'la\s*casa\s*de\s*to[nñ]o', 'La Casa de Toño'),
+    (r'sushi\s*itto', 'Sushi Itto'),
+    (r'tre\s*fratelli', 'Tre Fratelli'),
+    (r'crepes\s*(&|y|and)\s*waffles', 'Crepes & Waffles'),
+    ('frisby', 'Frisby'),
+    (r'tgi\s*friday', 'TGI Fridays'),
+    ('hooters', 'Hooters'),
+    (r'red\s*lobster', 'Red Lobster'),
+    (r'dairy\s*queen', 'Dairy Queen'),
+    (r'baskin\s*robbins', 'Baskin-Robbins'),
+    ('cinnabon', 'Cinnabon'),
+    (r"papa\s*john'?s", "Papa John's"),
+    ('telepizza', 'Telepizza'),
+    ('potzollcalli', 'Potzollcalli'),
+    (r'bisquets\s*obreg[oó]n', 'Bisquets Obregón'),
+    // Hotels and car hire.
+    ('marriott', 'Marriott'),
+    ('hilton', 'Hilton'),
+    ('hyatt', 'Hyatt'),
+    (r'holiday\s*inn', 'Holiday Inn'),
+    (r'fiesta\s*inn', 'Fiesta Inn'),
+    (r'fiesta\s*americana', 'Fiesta Americana'),
+    (r'city\s*express', 'City Express'),
+    (r'hampton\s*inn', 'Hampton Inn'),
+    ('sheraton', 'Sheraton'),
+    ('westin', 'Westin'),
+    (r'crowne\s*plaza', 'Crowne Plaza'),
+    (r'best\s*western', 'Best Western'),
+    ('wyndham', 'Wyndham'),
+    ('radisson', 'Radisson'),
+    ('novotel', 'Novotel'),
+    (r'premier\s*inn', 'Premier Inn'),
+    ('travelodge', 'Travelodge'),
+    ('doubletree', 'DoubleTree'),
+    (r'embassy\s*suites', 'Embassy Suites'),
+    ('hertz', 'Hertz'),
+    ('europcar', 'Europcar'),
+    (r'enterprise\s*rent', 'Enterprise'),
+    (r'alamo\s*rent', 'Alamo'),
+    (r'budget\s*rent', 'Budget'),
+    (r'national\s*car\s*rental', 'National'),
+    // Fuel, tolls, buses, trains, taxis, cinemas.
+    ('pemex', 'Pemex'),
+    ('texaco', 'Texaco'),
+    ('chevron', 'Chevron'),
+    (r'exxon(\s*mobil)?', 'Exxon'),
+    (r'puma\s*energy', 'Puma Energy'),
+    ('repsol', 'Repsol'),
+    ('hidrosina', 'Hidrosina'),
+    ('terpel', 'Terpel'),
+    ('primax', 'Primax'),
+    ('capufe', 'CAPUFE'),
+    (r'primera\s*plus', 'Primera Plus'),
+    (r'estrella\s*roja', 'Estrella Roja'),
+    (r'estrella\s*de\s*oro', 'Estrella de Oro'),
+    (r'omnibus\s*de\s*m[eé]xico', 'Omnibus de México'),
+    (r'tica\s*bus', 'Tica Bus'),
+    ('litegua', 'Litegua'),
+    ('trainline', 'Trainline'),
+    (r'transport\s*for\s*london', 'Transport for London'),
+    (r'heathrow\s*express', 'Heathrow Express'),
+    (r'gatwick\s*express', 'Gatwick Express'),
+    (r'national\s*express', 'National Express'),
+    ('amtrak', 'Amtrak'),
+    (r'addison\s*lee', 'Addison Lee'),
+    (r'yellow\s*cab', 'Yellow Cab'),
+    (r'cin[eé]polis', 'Cinépolis'),
+    ('cinemex', 'Cinemex'),
+  ];
+
+  static final List<(RegExp, String)> _brands = [
+    for (final (pattern, name) in _brandNames)
+      (RegExp('\\b(?:$pattern)\\b', caseSensitive: false), name),
   ];
 
   /// App receipts print plan names ("Uber One"); always use the plain name.
   static const Set<String> _appBrands = {
     'Uber', 'Uber Eats', 'DiDi', 'DiDi Food', 'Cabify', 'Rappi', 'Lyft',
-    'Airbnb',
+    'Airbnb', 'inDrive', 'PedidosYa', 'Deliveroo',
   };
 
+  /// Short or everyday words that are a brand only where the name goes, at
+  /// the start of one of the top rows ("SHELL", "ADO", "VIPS REFORMA",
+  /// "TARGET"), never inside an item or an address ("HARD SHELL TACO", "1
+  /// LIVERPOOL STREET", "COMBO UNO").
+  static const List<(String, String)> _headerBrands = [
+    ('shell', 'Shell'), ('puma', 'Puma'), ('uno', 'Uno'), ('bp', 'BP'), //
+    ('mobil', 'Mobil'), ('gulf', 'Gulf'), ('ado', 'ADO'), ('etn', 'ETN'),
+    ('vips', 'Vips'), ('toks', 'Toks'), ("chili's", "Chili's"),
+    ('chilis', "Chili's"), ('ihop', 'IHOP'), ('subway', 'Subway'),
+    ('chipotle', 'Chipotle'), ('sushi roll', 'Sushi Roll'),
+    ('los cebollines', 'Los Cebollines'), ('san martin', 'San Martin'),
+    ('liverpool', 'Liverpool'), ('suburbia', 'Suburbia'), ('sears', 'Sears'),
+    ('target', 'Target'), ('pret', 'Pret'), ('boots', 'Boots'), ('cvs', 'CVS'),
+    ('heb', 'H-E-B'), ('h-e-b', 'H-E-B'), ('paiz', 'Paiz'), ('asda', 'Asda'),
+    ('aldi', 'Aldi'), ('lidl', 'Lidl'), ('itsu', 'Itsu'), ('avis', 'Avis'),
+    ('sixt', 'Sixt'), ('zara', 'Zara'),
+  ];
+
+  /// "0XX0", "BURGER K1NG", "P0LLO CAMPER0": digits standing inside a word
+  /// where their look-alike letters belong. For matching names only.
+  static String _lettersForDigits(String text) => text.replaceAllMapped(
+        RegExp(r'(?<=[A-Za-z])[0158](?=[A-Za-z])|'
+            r'(?<![\w.,/\-])[0158](?=[A-Za-z]{2})|'
+            r'(?<=[A-Za-z]{2})[0158](?![\w.,/\-])'),
+        (m) => const {'0': 'O', '1': 'I', '5': 'S', '8': 'B'}[m[0]!]!,
+      );
+
   static (RegExp, String)? _knownBrand(List<String> rows) {
-    final text = rows.join('\n');
+    final text = _lettersForDigits(rows.join('\n'));
+    // The brand printed nearest the top is the shop; one further down is a
+    // partner, a card or an advert.
+    (RegExp, String)? found;
+    var at = text.length;
     for (final brand in _brands) {
-      if (brand.$1.hasMatch(text)) return brand;
+      final match = brand.$1.firstMatch(text);
+      if (match == null) continue;
+      if (_appBrands.contains(brand.$2)) return brand;
+      if (match.start < at) {
+        at = match.start;
+        found = brand;
+      }
     }
+    final header = _headerRows(rows).toSet();
+    var start = 0;
+    for (var i = 0; i < rows.length && start < at; i++) {
+      final brand = header.contains(i) ? _headerBrand(rows[i]) : null;
+      if (brand != null) return brand;
+      start += rows[i].length + 1;
+    }
+    if (found != null) return found;
     // A long brand name read with a letter or two wrong ("starbLICks",
     // "stabckS"). Short names are left out: too easy to match by chance.
-    // Single words, and two words together for two-word names
+    // Single words, and two or three words together for names of several
     // ("COSTA COFEE" -> "costacofee").
     final tokens = [
       for (final line in text.split('\n'))
@@ -294,14 +638,45 @@ class ReceiptTextParser {
         for (var k = 0; k + 1 < line.length; k++)
           if (line[k].length >= 3 && line[k + 1].length >= 3)
             line[k] + line[k + 1],
+        for (var k = 0; k + 2 < line.length; k++)
+          if (line[k].length >= 3 && line[k + 2].length >= 3)
+            line[k] + line[k + 1] + line[k + 2],
       ],
     ];
     for (final (word, name) in _fuzzyBrands) {
+      // Two wrong letters in a long name, one in a shorter one.
+      final edits = word.length >= 8 ? 2 : 1;
       for (final w in words) {
-        if ((w.length - word.length).abs() <= 2 && _editDistance(w, word) <= 2) {
+        if ((w.length - word.length).abs() <= edits &&
+            _editDistance(w, word) <= edits) {
           return (RegExp(RegExp.escape(name), caseSensitive: false), name);
         }
       }
+    }
+    return null;
+  }
+
+  /// The [_headerBrands] name a top row starts with, if the row is little
+  /// more than that name ("ADO", "VIPS REFORMA", "UNO GUATEMALA, S.A.").
+  static (RegExp, String)? _headerBrand(String raw) {
+    final cleaned = _cleanCandidate(raw);
+    if (_notAName(raw, cleaned)) return null;
+    if (!_legalSuffix.hasMatch(cleaned) && _isAddress(cleaned)) return null;
+    final row = TextNormaliser.stripDiacritics(_lettersForDigits(cleaned))
+        .toLowerCase()
+        .replaceAll('’', "'");
+    for (final (word, name) in _headerBrands) {
+      if (!row.startsWith(word)) continue;
+      final rest = row.substring(word.length);
+      if (RegExp('^[a-z0-9]').hasMatch(rest)) continue; // "SHELLFISH"
+      final more = RegExp('[a-z0-9]+').allMatches(
+        rest.replaceAll(_legalSuffix, ''),
+      );
+      if (more.length > 2) continue;
+      return (
+        RegExp('\\b${RegExp.escape(word)}(?![a-z0-9])', caseSensitive: false),
+        name,
+      );
     }
     return null;
   }
@@ -314,6 +689,31 @@ class ReceiptTextParser {
     ('europcar', 'Europcar'),
     ('aeromexico', 'Aeroméxico'),
     ('mcdonalds', "McDonald's"),
+    ('burgerking', 'Burger King'),
+    ('pollocampero', 'Pollo Campero'),
+    ('littlecaesars', 'Little Caesars'),
+    ('krispykreme', 'Krispy Kreme'),
+    ('dominospizza', "Domino's"),
+    ('cielitoquerido', 'Cielito Querido'),
+    ('puntadelcielo', 'Punta del Cielo'),
+    ('pretamanger', 'Pret A Manger'),
+    ('walmart', 'Walmart'),
+    ('chedraui', 'Chedraui'),
+    ('bodegaaurrera', 'Bodega Aurrera'),
+    ('pricesmart', 'PriceSmart'),
+    ('walgreens', 'Walgreens'),
+    ('farmaciasguadalajara', 'Farmacias Guadalajara'),
+    ('farmaciasdelahorro', 'Farmacias del Ahorro'),
+    ('farmaciassimilares', 'Farmacias Similares'),
+    ('farmatodo', 'Farmatodo'),
+    ('cinepolis', 'Cinépolis'),
+    ('cinemex', 'Cinemex'),
+    ('avianca', 'Avianca'),
+    ('britishairways', 'British Airways'),
+    ('vivaaerobus', 'Viva Aerobus'),
+    ('holidayinn', 'Holiday Inn'),
+    ('sheraton', 'Sheraton'),
+    ('radisson', 'Radisson'),
   ];
 
   static int _editDistance(String a, String b) {
@@ -345,21 +745,34 @@ class ReceiptTextParser {
     List<double> heights,
     List<List<(String, double)>> pieces,
   ) {
-    final guess = _layoutMerchant(rows, heights, pieces);
+    final (guess, legal) = _layoutMerchant(rows, heights, pieces);
     final brand = _knownBrand(rows);
-    // Keep a fuller printed name ("Starbucks Coffee") when it is the brand.
-    if (brand == null) return guess;
-    if (!_appBrands.contains(brand.$2) &&
-        guess != null &&
-        brand.$1.hasMatch(guess)) {
-      return guess;
+    // Nothing near the top names the place: its own web or e-mail address
+    // further down may.
+    if (brand == null) return guess ?? _domainName(rows);
+    if (guess == null || legal || _appBrands.contains(brand.$2)) {
+      return brand.$2;
     }
-    return brand.$2;
+    // Keep a fuller printed name ("Starbucks Coffee", "Vips Reforma") when
+    // it is the brand, with the brand spelt its own way ("OXXO", not
+    // "Oxxo"). A company name around it ("CADENA COMERCIAL OXXO SA DE CV")
+    // is not kept.
+    final match = brand.$1.firstMatch(_lettersForDigits(guess));
+    if (match == null) return brand.$2;
+    final before = TextNormaliser.smartTitleCase(guess.substring(0, match.start));
+    final after = TextNormaliser.smartTitleCase(guess.substring(match.end));
+    return [
+      if (before.isNotEmpty) before,
+      brand.$2,
+      if (after.isNotEmpty) after,
+    ].join(' ').replaceAll(RegExp(r"\s+(?=[/,.'])"), '');
   }
 
-  /// Drops a leading Mexican RFC ("XXX010101AB1-DUFRY…") and a bank name
-  /// printed beside the shop's on a card slip ("Bancamiga EJEMPLO 360").
+  /// Drops marks before the first word ("¡BIENVENIDOS!"), a leading Mexican
+  /// RFC ("XXX010101AB1-DUFRY…") and a bank name printed beside the shop's
+  /// on a card slip ("Bancamiga EJEMPLO 360").
   static String _cleanCandidate(String row) => row
+      .replaceFirst(RegExp(r'^[^A-Za-z0-9À-ÿ(]+'), '')
       .replaceFirst(RegExp(r'^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}\s*[-–]?\s*'), '')
       .replaceFirst(
         RegExp(r'^(banc\w*|banco|bank)\s+(?=\S)', caseSensitive: false),
@@ -373,7 +786,100 @@ class ReceiptTextParser {
     caseSensitive: false,
   );
 
-  String? _layoutMerchant(
+  /// Whether a top row is something other than a name: a bank, a heading,
+  /// a field, a document title, a tax regime, a request, an item.
+  /// [raw] is the row as read, [row] the same after [_cleanCandidate].
+  static bool _notAName(String raw, String row) =>
+      _acquirer.hasMatch(raw.replaceFirst(RegExp(r'^[^A-Za-z0-9À-ÿ(]+'), '')) ||
+      _merchantNoise.hasMatch(row) ||
+      _greeting.hasMatch(row) ||
+      _serviceRow.hasMatch(row) ||
+      _branchRow.hasMatch(row) ||
+      _fieldRow.hasMatch(row) ||
+      _documentWord.hasMatch(row) ||
+      _taxStatus.hasMatch(row) ||
+      _request.hasMatch(row) ||
+      _pricedRow.hasMatch(row) ||
+      _maskedNumber.hasMatch(row);
+
+  /// More parts of an address, beside a number or a comma ("ZONA 10",
+  /// "LOCAL 23 PB", "KM 16.5", "PISO 2", "DIAGONAL 6 10-01").
+  static final RegExp _placeWord = RegExp(
+    r'\b(zona|local|loc|km|kil[oó]metro|edificio|edif|torre|nivel|piso|'
+    r'manzana|mz|lote|interior|depto|dpto|apto|sector|barrio|urb|'
+    r'urbanizaci[oó]n|fracc|fraccionamiento|residencial|suite|ste|floor|'
+    r'unit|diagonal|transversal|carrera|cra|autopista|perif[eé]rico|'
+    r'circuito|paseo|pasaje|callej[oó]n|prolongaci[oó]n|prol|street|road|'
+    r'highway|hwy)\b',
+    caseSensitive: false,
+  );
+
+  /// "1234 EXAMPLE ST", "10 Example Street": a house number, then a street.
+  static final RegExp _streetNumber = RegExp(
+    r'^#?\d{1,5}[A-Za-z]?\s.*\b(st|street|rd|road|ave|avenue|blvd|boulevard|'
+    r'dr|drive|ln|lane|way|hwy|highway|pkwy|parkway|ct|court|pl|place|sq|'
+    r'square|terrace|close|row|pike|trail|circle)\b',
+    caseSensitive: false,
+  );
+
+  /// "HOUSTON, TX 77002" and "LONDON W1A 1AA": a US state and ZIP code, a
+  /// UK postcode.
+  static final RegExp _postcode = RegExp(
+    r',\s*[A-Za-z]{2}\.?\s+\d{5}(-\d{4})?\b|\b[A-Z]{1,2}\d[A-Z\d]?\s\d[A-Z]{2}\b',
+  );
+
+  /// A state or department closing a "TOWN, STATE" row ("ZAPOPAN, JALISCO",
+  /// "MERIDA, YUC.", "MIXCO, GUATEMALA", "CHACAO, MIRANDA").
+  static final RegExp _regionTail = RegExp(
+    r',\s*(aguascalientes|ags|baja\s+california(\s+sur)?|b\.?\s?c\.?(\s?s)?|'
+    r'campeche|camp|chiapas|chis|chihuahua|chih|coahuila|coah|colima|'
+    r'durango|dgo|guanajuato|gto|guerrero|gro|hidalgo|hgo|jalisco|jal|'
+    r'm[eé]xico|m[eé]x|edo\.?\s*(de\s*)?m[eé]x(ico)?|michoac[aá]n|mich|'
+    r'morelos|mor|nayarit|nay|nuevo\s+le[oó]n|n\.?\s?l|oaxaca|oax|puebla|pue|'
+    r'quer[eé]taro|qro|quintana\s+roo|q\.?\s?roo|san\s+luis\s+potos[ií]|'
+    r's\.?\s?l\.?\s?p|sinaloa|sin|sonora|son|tabasco|tab|tamaulipas|tamps|'
+    r'tlaxcala|tlax|veracruz|ver|yucat[aá]n|yuc|zacatecas|zac|cdmx|d\.?\s?f|'
+    r'sacatep[eé]quez|quetzaltenango|escuintla|chimaltenango|pet[eé]n|'
+    r'alta\s+verapaz|izabal|huehuetenango|la\s+libertad|santa\s+ana|'
+    r'san\s+miguel|sonsonate|cundinamarca|antioquia|valle\s+del\s+cauca|'
+    r'atl[aá]ntico|miranda|zulia|carabobo|aragua|lara|distrito\s+capital|'
+    r'nueva\s+esparta|anzo[aá]tegui)\.?\s*$',
+    caseSensitive: false,
+  );
+
+  /// Address lines name places and streets ("CHACAO CARACAS (CHACAO)
+  /// MIRANDA", "C.EJEMPLO, L.1, COL.CENTRO", "ZONA 10", "1234 EXAMPLE ST",
+  /// "HOUSTON, TX 77002", "ZAPOPAN, JALISCO").
+  static bool _isAddress(String row) =>
+      Countries.detectInText(row) != null ||
+      ((_addressRow.hasMatch(row) || _placeWord.hasMatch(row)) &&
+          RegExp(r'[\d,]').hasMatch(row)) ||
+      _streetNumber.hasMatch(row) ||
+      _postcode.hasMatch(row) ||
+      _regionTail.hasMatch(row);
+
+  /// The rows the name can be on: the top eight with words in them (rules
+  /// ("=====") and stray marks from a QR code do not use up the window),
+  /// and never under the items' column headings, a total, or the second
+  /// row that ends in a price.
+  static List<int> _headerRows(List<String> rows) {
+    final top = <int>[];
+    var priced = 0;
+    for (var i = 0; i < rows.length && i < 14 && top.length < 8; i++) {
+      if (!_merchantLabel.hasMatch(rows[i])) {
+        if (_itemsHeading.hasMatch(rows[i]) || _totalRow.hasMatch(rows[i])) {
+          break;
+        }
+        if (_pricedRow.hasMatch(rows[i]) && ++priced == 2) break;
+      }
+      if (TextNormaliser.letterCount(rows[i]) >= 3) top.add(i);
+    }
+    return top;
+  }
+
+  /// The name as the top rows give it, and whether it is only the
+  /// registered company ("GRUPO EJEMPLO ALIMENTOS, SA DE CV").
+  (String?, bool) _layoutMerchant(
     List<String> rows,
     List<double> heights,
     List<List<(String, double)>> pieces,
@@ -382,14 +888,7 @@ class ReceiptTextParser {
     var bestScore = 0.0;
     String? plain;
     var plainScore = 0.0;
-    // The top eight rows with words in them: rules ("=====") and stray
-    // marks from a QR code do not use up the window.
-    // The name is never under the items' column headings.
-    final top = <int>[];
-    for (var i = 0; i < rows.length && i < 14 && top.length < 8; i++) {
-      if (_itemsHeading.hasMatch(rows[i])) break;
-      if (TextNormaliser.letterCount(rows[i]) >= 3) top.add(i);
-    }
+    final top = _headerRows(rows);
     var maxHeight = 0.0;
     for (final i in top) {
       if (heights[i] > maxHeight) maxHeight = heights[i];
@@ -404,12 +903,14 @@ class ReceiptTextParser {
       ],
     ];
     for (final (i, place, text, height) in candidates) {
-      final row = _cleanCandidate(text);
+      // "COMERCIO: TACOS EJEMPLO": the row says it is the name.
+      final named = _merchantLabel.firstMatch(text);
+      final row = named != null ? named[1]!.trim() : _cleanCandidate(text);
       final letters = TextNormaliser.letterCount(row);
       if (letters < 3) continue;
       final digits = RegExp(r'\d').allMatches(row).length;
       if (digits > letters) continue;
-      if (_merchantNoise.hasMatch(row) || _greeting.hasMatch(row)) continue;
+      if (named == null && _notAName(text, row)) continue;
       // A word that mixes digits and letters ("1OMeAPERTURA", "MYT015") is
       // a code or OCR noise, not a shop name.
       if (row.split(' ').any((w) =>
@@ -418,13 +919,7 @@ class ReceiptTextParser {
           RegExp('[A-Za-z]{2}').hasMatch(w))) {
         continue;
       }
-      // Address lines ("CHACAO CARACAS (CHACAO) MIRANDA", "C.EJEMPLO, L.1,
-      // COL.CENTRO") name places and streets.
-      if (!_legalSuffix.hasMatch(row) &&
-          (Countries.detectInText(row) != null ||
-              (_addressRow.hasMatch(row) && RegExp(r'[\d,]').hasMatch(row)))) {
-        continue;
-      }
+      if (!_legalSuffix.hasMatch(row) && _isAddress(row)) continue;
       if (i > 0 &&
           _greeting.hasMatch(rows[i - 1]) &&
           rows[i - 1].trimRight().endsWith(',')) {
@@ -432,7 +927,7 @@ class ReceiptTextParser {
       }
       if (_datesIn(row).isNotEmpty) continue;
 
-      var score = 1.0 - place * 0.08;
+      var score = named != null ? 1.5 : 1.0 - place * 0.08;
       // Big print helps a little, but a heading ("PRECUENTA") is often the
       // biggest text; the name is mostly decided by being near the top.
       if (maxHeight > 0) score *= 0.7 + 0.3 * (height / maxHeight);
@@ -459,12 +954,14 @@ class ReceiptTextParser {
     }
     // The registered company ("GRUPO EJEMPLO ALIMENTOS, SA DE CV") is
     // rarely the name on the sign: prefer a plain name from the top lines.
+    var legal = best != null;
     if (plain != null && plainScore >= bestScore * 0.55) {
       best = plain;
+      legal = false;
     } else if (plain != null && best == null) {
       best = plain;
     }
-    if (best == null) return null;
+    if (best == null) return (null, false);
     // Stylised capitals are sometimes read twice: "HHotel".
     var cleaned = best
         .replaceAllMapped(RegExp(r'\b([A-Z])\1(?=[a-z])'), (m) => m[1]!)
@@ -474,7 +971,81 @@ class ReceiptTextParser {
       '',
     );
     cleaned = TextNormaliser.smartTitleCase(cleaned);
-    return cleaned.isEmpty ? null : cleaned;
+    return cleaned.isEmpty ? (null, false) : (cleaned, legal);
+  }
+
+  /// A web or e-mail address: "www.cafe-ejemplo.com.mx",
+  /// "facturas@cafe-ejemplo.com.mx", "https://cafe-ejemplo.com/factura".
+  static final RegExp _webAddress = RegExp(
+    r'(?:[\w.+\-]+@|https?://|www\.)((?:[a-z0-9\-]+\.)+[a-z]{2,})',
+    caseSensitive: false,
+  );
+
+  /// The parts of an address that are not the owner's name.
+  static const Set<String> _domainEndings = {
+    'www', 'com', 'net', 'org', 'edu', 'gob', 'gov', 'info', 'biz', 'app', //
+    'shop', 'store', 'rest', 'io', 'mx', 'gt', 'sv', 'hn', 'ni', 'cr', 'pa',
+    'co', 've', 'pe', 'cl', 'ar', 'br', 'ec', 'bo', 'uy', 'py', 'do', 'es',
+    'pt', 'uk', 'us', 'ca', 'eu',
+  };
+
+  /// Sites that belong to someone other than the shop: payment and card
+  /// companies, invoicing and tax portals, surveys, mail and social
+  /// networks, link shorteners, till software.
+  static final RegExp _foreignSite = RegExp(
+    r'factur|cfdi|invoice|ticket|encuesta|survey|opinion|feedback|pago|'
+    r'payment|bank|banc|soft|sistema|system|mail|facebook|instagram|twitter|'
+    r'tiktok|whatsapp|youtube|google|hacienda|seniat|infile|digifact|'
+    r'megaprint|edicom|contpaq|paypal|getnet|zettle|sumup|netpay|openpay|'
+    r'conekta|stripe|billpocket|linktr|'
+    r'^(sat|gob|gov|dian|mh|pos|app|web|live|msn|aol|outlook|yahoo|icloud|'
+    r'prodigy|proton|clip|visa|amex|mastercard|square|toast|bit|qr|fb|goo|'
+    r'wa|t|x)$',
+  );
+
+  /// A row that credits the till's software or a certifier ("Sistema:
+  /// www.example-pos.com", "Certificador: INFILE").
+  static final RegExp _creditRow = RegExp(
+    r'sistema|software|desarrollado|powered|certificador|proveedor',
+    caseSensitive: false,
+  );
+
+  /// The kind of business a web address often starts with, to put the
+  /// space back: "cafeejemplo" -> "cafe ejemplo".
+  static final RegExp _businessPrefix = RegExp(
+    r'^(cafeteria|cafe|restaurante|restaurant|hotel|hostal|tacos|taqueria|'
+    r'pizzeria|pizza|farmacia|panaderia|pasteleria|mariscos|tortas|sushi|'
+    r'burger|grupo)(?=[a-z]{4,}$)',
+  );
+
+  /// When nothing near the top names the place: the one web or e-mail
+  /// address on the receipt that is the shop's own ("www.cafe-ejemplo.com.mx"
+  /// -> "Cafe Ejemplo"). Null when there is none, or more than one.
+  static String? _domainName(List<String> rows) {
+    final names = <String>{};
+    for (final raw in rows) {
+      if (_creditRow.hasMatch(raw)) continue;
+      // "www.cafe-ejemplo.com. mx": a space OCR put after a dot.
+      final row = raw.replaceAllMapped(
+        RegExp(r'\.\s(?=(com|mx|gt|sv|co|net|org|uk)\b)', caseSensitive: false),
+        (m) => '.',
+      );
+      for (final m in _webAddress.allMatches(row)) {
+        final labels = m[1]!.toLowerCase().split('.')
+          ..removeWhere(_domainEndings.contains);
+        if (labels.isEmpty) continue;
+        if (labels.any(_foreignSite.hasMatch)) continue;
+        final name = labels.last;
+        if (RegExp('[a-z]').allMatches(name).length < 4) continue;
+        names.add(name);
+      }
+    }
+    if (names.length != 1) return null;
+    final words = names.single
+        .replaceFirstMapped(_businessPrefix, (m) => '${m[1]} ')
+        .replaceAll(RegExp(r'[\-_]+'), ' ')
+        .toUpperCase();
+    return TextNormaliser.smartTitleCase(words);
   }
 
   // -------------------------------------------------------------------- date
@@ -498,15 +1069,23 @@ class ReceiptTextParser {
     r'(?<!\d)(\d{1,2})\s?([-/.])\s?(\d{1,2})\s?\2\s?'
     r'(\d{4}(?=\d{1,2}:\d{2})|\d{4}(?!\d)|\d{2}(?![\d/.\-]))',
   );
-  /// "28 JUL 2026", "4 de noviembre de 2026", "23 Nov'26". The year must not be the
+
+  /// "28 JUL 2026", "4 de noviembre de 2026", "23 Nov'26", "23rd November
+  /// 2026", "23 N0V 2026" (a zero read for the O). The year must not be the
   /// start of a time or a price ("26 MAR 14:42", "1 MARUCHAN 18.50").
+  /// Groups: day, "de", month, what separates month and year, "de", year.
   static final RegExp _dayMonthName = RegExp(
-    r'\b(\d{1,2})[\s\-/.]*(?:de\s+)?([A-Za-zÁÉÍÓÚáéíóú]{3,10})\.?'
-    r"[\s\-/.,'’`´]*(?:del?\s+)?(\d{4}|\d{2})\b(?![:.,]\d)",
+    r'\b(\d{1,2})(?:st|nd|rd|th)?[\s\-/.]*(de\s+)?([A-Za-zÁÉÍÓÚáéíóú0]{3,10})\.?'
+    r"([\s\-/.,'’`´]*)(del?\s+)?(\d{4}|\d{2})\b(?![:.,]\d)",
     caseSensitive: false,
   );
+
+  /// "NOV 23, 2026", "November 23rd, 2026", "Noviembre 23 de 2026",
+  /// "NOV-23-2026": the month's name first, as US-made tills print it.
+  /// Groups: month, the day (one of three), year.
   static final RegExp _monthNameDay = RegExp(
-    r'\b([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s+(\d{4})\b(?![:.,]\d)',
+    r'\b([A-Za-z]{3,10})\.?(?:\s+(\d{1,2})(?:st|nd|rd|th)?'
+    r'(?:\s*,\s*|\s+del?\s+|\s+)|-(\d{1,2})-|/(\d{1,2})/)(\d{4})\b(?![:.,]\d)',
     caseSensitive: false,
   );
 
@@ -529,20 +1108,60 @@ class ReceiptTextParser {
       RegExp(r'fecha|date|emisi[oó]n|emitido', caseSensitive: false);
 
   /// Dates that are on the receipt but are not the day of purchase: valid
-  /// until, tax-authority limits, check-out, date of birth.
+  /// until, tax-authority limits and resolutions, delivery, date of birth,
+  /// member since, the day of a journey.
   static final RegExp _otherDate = RegExp(
-    r'vigencia|vigente|v[aá]lid[oa]|\bvalid\b|vence|vencimiento|caduc|expir|'
-    r'l[ií]mite|nacimiento|\bbirth|\bdob\b|resoluci[oó]n|rango\s*autorizado|'
-    r'\bhasta\b|\buntil\b|check\s*-?\s*out|\bsalida\b|\bentrega\b|'
-    r'best\s*before|use\s*by',
+    r'vigencia|vigente|v[aá]lid[oa]|\bvalid\b|vence|vencimiento|\bvto\b|'
+    r'caduc|expir|l[ií]mite|nacimiento|\bbirth|\bdob\b|resoluci[oó]n|'
+    r'\bres\.?\s*(dian|no\b|n[uú]m|n[°º])|rango\s*autorizado|numeraci[oó]n|'
+    r'fecha\s*(de\s*)?autorizaci[oó]n|\bhasta\b|\buntil\b|\bdesde\b|'
+    r'\bsince\b|\bentrega\b|best\s*before|use\s*by|pr[oó]xim[oa]|'
+    r'fecha\s*(del?\s*)?(viaje|vuelo)|(travel|flight)\s*date',
     caseSensitive: false,
   );
+
+  /// The end of a stay or a visit: "Salida: 23/11/2026", "Check-out",
+  /// "Departure". The bill is paid on that day.
+  static final RegExp _departureWord = RegExp(
+    r'check\s*-?\s*out|\bsalida\b|\bdeparture\b|\begreso\b',
+    caseSensitive: false,
+  );
+
+  /// The start of a stay or a visit: "Llegada: 20/11/2026", "Check-in",
+  /// "Arrival", a car park's "ENTRADA".
+  static final RegExp _arrivalWord = RegExp(
+    r'check\s*-?\s*in\b|\bllegada\b|\barrival\b|\bentrada\b|\bingreso\b',
+    caseSensitive: false,
+  );
+
+  /// "Fecha de impresion", "IMPRESO": when the paper was printed, which is
+  /// the purchase only if no other date says otherwise.
+  static final RegExp _printedWord = RegExp(
+    r'impresi[oó]n|impreso|reimpres|\bprinted\b|print\s*date',
+    caseSensitive: false,
+  );
+
+  /// A row that announces another kind of date and leaves it for the next
+  /// row: "... RESOLUCION No. 123 DE FECHA" / "12/03/2019".
+  static final RegExp _danglingLabel =
+      RegExp(r'\b(de|del|fecha|el|al|hasta|desde)\s*:?\s*$', caseSensitive: false);
+
+  /// "DE FECHA 12/03/2019", "DEL 2026-02-10": a row that carries on from
+  /// the one before.
+  static final RegExp _continuedDate =
+      RegExp(r'^\W*(de\s+fecha|del?\s+\d)', caseSensitive: false);
 
   /// A date-shaped run with letters where digits belong: "28/O7/2O26".
   static final RegExp _noisyDate = RegExp(
     r'(?<![A-Za-z0-9])([0-9OoQDIl|SBZ]{1,2})\s?([-/.])\s?'
     r'([0-9OoQDIl|SBZ]{1,2})\s?\2\s?([0-9OoQDIl|SBZ]{4}|[0-9OoQDIl|SBZ]{2})'
     r'(?![A-Za-z0-9])',
+  );
+
+  /// The same with the year first: "2O26-11-23".
+  static final RegExp _noisyIsoDate = RegExp(
+    r'(?<![A-Za-z0-9])([2Z][0OoQD][0-9OoQDIl|SBZ]{2})([-/.])'
+    r'([0-9OoQDIl|SBZ]{1,2})\2([0-9OoQDIl|SBZ]{1,2})(?![A-Za-z0-9])',
   );
   static const Map<String, String> _digitLookalikes = {
     'O': '0', 'o': '0', 'Q': '0', 'D': '0', 'I': '1', 'l': '1', '|': '1', //
@@ -564,11 +1183,25 @@ class ReceiptTextParser {
     caseSensitive: false,
   );
 
-  /// Puts back digits that OCR read as look-alike letters, but only inside
-  /// something already shaped like a date and mostly made of digits.
   /// "16-1 1-2026": a space OCR put inside the month.
   static final RegExp _spaceInDate =
       RegExp(r'(?<=\b\d{1,2}[-/.]\d)\s(?=\d[-/.]\d{2,4}\b)');
+
+  /// "23/11/20 26": a space OCR put inside the year. Not before a time or
+  /// a price ("23/11/20 09:02").
+  static final RegExp _spaceInYear = RegExp(
+    r'(?<=\d\s?[-/.]\s?\d{1,2}\s?[-/.]\s?20)\s(?=\d{2}(?![\d:.,]))',
+  );
+
+  /// "23|11|2026", "23I11I2026": the slashes read as bars.
+  static final RegExp _barredDate = RegExp(
+    r'(?<![\w|])(\d{1,2})\s?([|Il])\s?(\d{1,2})\s?\2\s?(20\d{2})(?!\d)',
+  );
+
+  /// "23/NOV/2O26": the year after a month's name, a zero read as an O.
+  static final RegExp _noisyYear = RegExp(
+    r'(?<=[A-Za-z0]{3}\.?[\s\-/.,]{1,2})2[Oo0][0-9Oo]{2}(?![A-Za-z0-9])',
+  );
 
   /// "Nov16'26", "NOV 16 '26": month, day and a two-digit year after an
   /// apostrophe, as some tills print it.
@@ -576,53 +1209,160 @@ class ReceiptTextParser {
     r"(?<![A-Za-z])([A-Za-z]{3,9})\.?\s?(\d{1,2})\s?['’`´]\s?(\d{2})(?!\d)",
   );
 
-  static String _repairDates(String row) => row.replaceAllMapped(_noisyDate, (m) {
+  /// "NOV 23, 26 09:02": the same after a comma, as card terminals print
+  /// it. Only at the end of the row or before the time.
+  static final RegExp _monthDayCommaYear = RegExp(
+    r'(?<![A-Za-z])([A-Za-z]{3,10})\.?\s(\d{1,2}),\s?(\d{2})'
+    r'(?=\s*$|\s+\d{1,2}:\d{2})',
+  );
+
+  /// Undoes what OCR does to a printed date: stray spaces, bars for
+  /// slashes, and look-alike letters for digits, but only inside something
+  /// already shaped like a date and mostly made of digits.
+  static String _repairDates(String row) {
+    var text = row
+        .replaceAll(_spaceInDate, '')
+        .replaceAll(_spaceInYear, '')
+        .replaceAllMapped(_barredDate, (m) => '${m[1]}/${m[3]}/${m[4]}')
+        .replaceAllMapped(
+          _noisyYear,
+          (m) => m[0]!.replaceAll(RegExp('[Oo]'), '0'),
+        );
+    for (final pattern in [_noisyDate, _noisyIsoDate]) {
+      text = text.replaceAllMapped(pattern, (m) {
         final groups = [m[1]!, m[3]!, m[4]!];
         if (groups.any((g) => !RegExp(r'\d').hasMatch(g))) return m[0]!;
-        final text = m[0]!;
-        if (!RegExp(r'[A-Za-z|]').hasMatch(text)) return text;
+        final found = m[0]!;
+        if (!RegExp(r'[A-Za-z|]').hasMatch(found)) return found;
         final buffer = StringBuffer();
-        for (final rune in text.runes) {
+        for (final rune in found.runes) {
           final char = String.fromCharCode(rune);
           buffer.write(_digitLookalikes[char] ?? char);
         }
         return buffer.toString();
       });
+    }
+    return text;
+  }
 
   /// The purchase date and whether it needs checking. A labelled date
   /// ("FECHA 28/07/2026") wins; then a plain one; then a day found inside a
-  /// ticket number; last, a date that is labelled as something else.
-  (DateTime?, bool) _date(List<String> rows) {
+  /// ticket number; then the end or start of a stay; last, a date that is
+  /// labelled as something else.
+  (DateTime?, bool) _date(List<String> rawRows) {
     final now = _clock();
     final latest = DateTime(now.year, now.month, now.day + 1);
     final earliest = DateTime(2010);
     bool inRange(DateTime d) => !d.isBefore(earliest) && !d.isAfter(latest);
+    final yearAgo = DateTime(now.year - 1, now.month, now.day);
 
-    DateTime? labelled;
+    final rows = [for (final raw in rawRows) _repairDates(raw)];
+    final read = [for (final row in rows) _readings(row)];
+    final printedOrder = _printedOrder(read, DateTime(now.year + 2));
+    final monthFirst = printedOrder ?? monthFirstDates;
+    // Dates whose day and month were told apart only by which is recent.
+    final guessed = <DateTime>{};
+    final lately = DateTime(now.year, now.month, now.day - 45);
+    final longAgo = DateTime(now.year, now.month, now.day - 90);
+
+    // One reading of a date in figures, or none. "11/12/2026" scanned on 23
+    // November cannot be 11 December: it is 12 November, printed month
+    // first by a US-made till. "11/05/26" is far more likely 5 November
+    // than a receipt kept since May. Both are guesses, to be checked.
+    DateTime? settle((int, DateTime?, DateTime?, DateTime?) reading) {
+      final (_, dayFirst, monthFirstDate, fixed) = reading;
+      if (fixed != null) return inRange(fixed) ? fixed : null;
+      final usual = monthFirst ? monthFirstDate : dayFirst;
+      final swapped = monthFirst ? dayFirst : monthFirstDate;
+      if (usual == null) {
+        return swapped != null && inRange(swapped) ? swapped : null;
+      }
+      final recentSwap = printedOrder == null &&
+          swapped != null &&
+          inRange(swapped) &&
+          !swapped.isBefore(lately);
+      if (!inRange(usual)) {
+        if (!recentSwap) return null;
+        guessed.add(swapped);
+        return swapped;
+      }
+      if (recentSwap && !monthFirstDates && usual.isBefore(longAgo)) {
+        guessed.add(swapped);
+        return swapped;
+      }
+      return usual;
+    }
+
+    String? kindOf(String words) {
+      if (_otherDate.hasMatch(words)) return 'other';
+      if (_departureWord.hasMatch(words)) return 'departure';
+      if (_arrivalWord.hasMatch(words)) return 'arrival';
+      if (_printedWord.hasMatch(words)) return 'printed';
+      if (_dateKeyword.hasMatch(words)) return 'label';
+      return null;
+    }
+
+    final labelled = <DateTime>[];
     final plain = <DateTime>[];
     final other = <DateTime>[];
+    final arrivals = <DateTime>[];
+    final departures = <DateTime>[];
     final compact = <DateTime>[];
     // (first number, year) of dates whose middle was unreadable.
     final partials = <(int, int)>[];
-    for (final raw in rows) {
-      final row = _repairDates(raw.replaceAll(_spaceInDate, ''));
-      // "FECHA: 12/11/2026  VENCE: 12/12/2026": what comes after the word for
-      // another kind of date is that date; what comes before is the
-      // purchase.
-      final otherWord = _otherDate.firstMatch(row);
-      final head = otherWord == null ? row : row.substring(0, otherWord.start);
-      final tail = otherWord == null ? '' : row.substring(otherWord.start);
-      final dates = _datesIn(head).where(inRange).toList();
-      final otherDates = _datesIn(tail).where(inRange).toList();
-      other.addAll(otherDates);
-      if (dates.isNotEmpty) {
-        if (_dateKeyword.hasMatch(head)) {
-          labelled ??= dates.first;
-        } else {
-          plain.addAll(dates);
+    for (var i = 0; i < rows.length; i++) {
+      final row = rows[i];
+      final found = <(int, DateTime)>[
+        for (final reading in read[i])
+          if (settle(reading) case final date?) (reading.$1, date),
+      ];
+      if (found.isNotEmpty) {
+        // Each date is what the words before it say: "FECHA: 12/11/2026
+        // VENCE: 12/12/2026", "Llegada: 20/11/2026 Salida: 23/11/2026". A
+        // date with no words of its own ("DEL 01/11/2026 AL 30/11/2026") is
+        // the same kind as the one before it.
+        final carriedOn = i > 0 &&
+            read[i - 1].isEmpty &&
+            kindOf(rows[i - 1]) == 'other' &&
+            (_danglingLabel.hasMatch(rows[i - 1]) ||
+                _continuedDate.hasMatch(row) ||
+                // "Fecha 2026-02-10 Vigencia 24 meses" under "Autorizacion
+                // numeracion de facturacion ...": the row itself goes on
+                // to say what its date is.
+                _otherDate.hasMatch(row.substring(found.last.$1)));
+        // A label after its date ("23/11/2026 :FECHA") still labels it,
+        // unless it belongs to another kind of date further on.
+        final rest = row.substring(found.first.$1);
+        final others = [_otherDate, _departureWord, _arrivalWord, _printedWord]
+            .map((p) => p.firstMatch(rest)?.start ?? rest.length)
+            .reduce((a, b) => a < b ? a : b);
+        var kind = carriedOn
+            ? 'other'
+            : _dateKeyword.hasMatch(rest.substring(0, others))
+                ? 'label'
+                : null;
+        var from = 0;
+        for (final (at, date) in found) {
+          final words = kindOf(row.substring(from, at));
+          if (words != null && !(carriedOn && from == 0 && words == 'label')) {
+            kind = words;
+          }
+          from = at;
+          switch (kind) {
+            case 'other':
+              other.add(date);
+            case 'departure':
+              departures.add(date);
+            case 'arrival':
+              arrivals.add(date);
+            case 'label':
+              labelled.add(date);
+            default:
+              plain.add(date);
+          }
         }
+        continue;
       }
-      if (dates.isNotEmpty || otherDates.isNotEmpty) continue;
       final partial = _partialDate.firstMatch(row);
       if (partial != null) {
         partials.add((int.parse(partial[1]!), int.parse(partial[2]!)));
@@ -631,16 +1371,33 @@ class ReceiptTextParser {
       // "2O26O728": zeros read as the letter O inside a run of digits.
       final digits = row.replaceAll(RegExp(r'(?<=\d)[Oo]|[Oo](?=\d)'), '0');
       for (final m in _compactDate.allMatches(digits)) {
-        final found = <DateTime>[];
-        _addDate(found, int.parse(m[1]!), int.parse(m[2]!), int.parse(m[3]!));
-        compact.addAll(found.where(inRange));
+        final date =
+            _validDate(int.parse(m[1]!), int.parse(m[2]!), int.parse(m[3]!));
+        if (date != null && inRange(date)) compact.add(date);
       }
     }
 
+    // A date years old beside a recent one is not a misread year: it is a
+    // resolution of the tax authority ("DE FECHA 12/03/2019"), a member
+    // since, or a street number read as a year.
+    bool recent(DateTime d) => !d.isBefore(yearAgo);
+    if (labelled.any(recent) || plain.any(recent)) {
+      other
+        ..addAll(labelled.where((d) => !recent(d)))
+        ..addAll(plain.where((d) => !recent(d)));
+      labelled.removeWhere((d) => !recent(d));
+      plain.removeWhere((d) => !recent(d));
+    }
+
+    final departure = departures.isEmpty ? null : departures.last;
     final DateTime? date;
     var doubtful = false;
-    if (labelled != null) {
-      date = labelled;
+    if (labelled.isNotEmpty) {
+      date = labelled.first;
+    } else if (departure != null && plain.contains(departure)) {
+      // A stay with dated charges: the bill is the day of departure, which
+      // is also the last day printed on its own.
+      date = departure;
     } else if (plain.isNotEmpty) {
       date = plain.first;
       // Two different unlabelled dates: the first is only a guess.
@@ -652,17 +1409,23 @@ class ReceiptTextParser {
       // "28/0'/2026" beside ticket 20260728.
       doubtful = !partials.any((p) =>
           p.$2 == found.year && (p.$1 == found.day || p.$1 == found.month));
+    } else if (departure != null) {
+      date = departure;
+      // In and out on different days: paid on the way out, most likely.
+      doubtful = arrivals.any((d) => d != departure);
+    } else if (arrivals.isNotEmpty) {
+      date = arrivals.first;
     } else if (other.isNotEmpty) {
       date = other.first;
       doubtful = true;
     } else {
       return (null, false);
     }
-    final yearAgo = DateTime(now.year - 1, now.month, now.day);
+    if (guessed.contains(date)) doubtful = true;
     // An old unlabelled date (often a street name read as one) against a
     // recent day in the ticket number: the ticket number is the better
     // guess.
-    if (labelled == null &&
+    if (labelled.isEmpty &&
         compact.isNotEmpty &&
         !compact.contains(date) &&
         date.isBefore(yearAgo)) {
@@ -676,10 +1439,59 @@ class ReceiptTextParser {
     return (date, doubtful);
   }
 
-  List<DateTime> _datesIn(String row) {
-    final found = <DateTime>[];
+  /// Whether this receipt prints its dates month first (true), day first
+  /// (false), or does not show it (null). A date that reads only one way
+  /// ("12/31/2026", "13/04/2026") shows it for the others; so does the same
+  /// day printed with the month's name ("Nov05'26" beside "11/05/2026").
+  static bool? _printedOrder(
+    List<List<(int, DateTime?, DateTime?, DateTime?)>> read,
+    DateTime latest,
+  ) {
+    bool sane(DateTime? d) =>
+        d != null && d.year >= 2010 && !d.isAfter(latest);
+    final all = [for (final row in read) ...row];
+    final named = {
+      for (final r in all)
+        if (r.$4 != null) r.$4!,
+    };
+    var dayFirst = 0;
+    var monthFirst = 0;
+    for (final (_, day, month, fixed) in all) {
+      if (fixed != null) continue;
+      if (month == null || (named.contains(day) && !named.contains(month))) {
+        if (sane(day)) dayFirst++;
+      } else if (day == null || (named.contains(month) && !named.contains(day))) {
+        if (sane(month)) monthFirst++;
+      }
+    }
+    if (dayFirst > 0 && monthFirst == 0) return false;
+    if (monthFirst > 0 && dayFirst == 0) return true;
+    return null;
+  }
+
+  /// The dates on a row, read in the country's usual order.
+  List<DateTime> _datesIn(String row) => [
+        for (final (_, dayFirst, monthFirst, fixed) in _readings(row))
+          fixed ??
+              (monthFirstDates
+                  ? (monthFirst ?? dayFirst)
+                  : (dayFirst ?? monthFirst))!,
+      ];
+
+  /// Every date on a row, left to right: where it starts, and its reading
+  /// with the day first, with the month first ("03/04/2026" has both), or
+  /// the single reading of a date with the year first or a month's name.
+  static List<(int, DateTime?, DateTime?, DateTime?)> _readings(String row) {
+    final found = <(int, DateTime?, DateTime?, DateTime?)>[];
+    void add(int at, DateTime? date) {
+      if (date != null) found.add((at, null, null, date));
+    }
+
     for (final m in _isoDate.allMatches(row)) {
-      _addDate(found, int.parse(m[1]!), int.parse(m[2]!), int.parse(m[3]!));
+      add(
+        m.start,
+        _validDate(int.parse(m[1]!), int.parse(m[2]!), int.parse(m[3]!)),
+      );
     }
     final numeric = _numericDate.allMatches(row).toList();
     // Beside a full date, "10.05.26" is a time, not a second date.
@@ -697,46 +1509,56 @@ class ReceiptTextParser {
       final a = int.parse(m[1]!);
       final b = int.parse(m[3]!);
       final year = _fullYear(int.parse(m[4]!));
-      int day;
-      int month;
-      if (a > 12) {
-        day = a;
-        month = b;
-      } else if (b > 12) {
-        day = b;
-        month = a;
-      } else if (monthFirstDates) {
-        month = a;
-        day = b;
-      } else {
-        day = a;
-        month = b;
+      final dayFirst = _validDate(year, b, a);
+      final monthFirst = _validDate(year, a, b);
+      if (a == b) {
+        add(m.start, dayFirst);
+      } else if (dayFirst != null || monthFirst != null) {
+        found.add((m.start, dayFirst, monthFirst, null));
       }
-      _addDate(found, year, month, day);
     }
-    if (_addressRow.hasMatch(row) && !_dateKeyword.hasMatch(row)) {
-      return found;
+    if (!_addressRow.hasMatch(row) || _dateKeyword.hasMatch(row)) {
+      for (final m in _dayMonthName.allMatches(row)) {
+        final month = _monthFromName(m[3]!);
+        if (month == null) continue;
+        // "5 DE MAYO 12 CENTRO" is a street and its number: written out
+        // with "de", a date has all four digits of its year, or says "de"
+        // again ("5 de mayo del 26").
+        if (m[2] != null &&
+            m[6]!.length == 2 &&
+            m[5] == null &&
+            !RegExp("['’`´]").hasMatch(m[4]!)) {
+          continue;
+        }
+        add(
+          m.start,
+          _validDate(_fullYear(int.parse(m[6]!)), month, int.parse(m[1]!)),
+        );
+      }
+      for (final pattern in [_monthDayShortYear, _monthDayCommaYear]) {
+        for (final m in pattern.allMatches(row)) {
+          final month = _monthFromName(m[1]!);
+          if (month == null) continue;
+          add(
+            m.start,
+            _validDate(_fullYear(int.parse(m[3]!)), month, int.parse(m[2]!)),
+          );
+        }
+      }
+      for (final m in _monthNameDay.allMatches(row)) {
+        final month = _monthFromName(m[1]!);
+        if (month == null) continue;
+        final day = int.parse((m[2] ?? m[3] ?? m[4])!);
+        add(m.start, _validDate(int.parse(m[5]!), month, day));
+      }
     }
-    for (final m in _dayMonthName.allMatches(row)) {
-      final month = _monthFromName(m[2]!);
-      if (month == null) continue;
-      _addDate(found, _fullYear(int.parse(m[3]!)), month, int.parse(m[1]!));
-    }
-    for (final m in _monthDayShortYear.allMatches(row)) {
-      final month = _monthFromName(m[1]!);
-      if (month == null) continue;
-      _addDate(found, _fullYear(int.parse(m[3]!)), month, int.parse(m[2]!));
-    }
-    for (final m in _monthNameDay.allMatches(row)) {
-      final month = _monthFromName(m[1]!);
-      if (month == null) continue;
-      _addDate(found, int.parse(m[3]!), month, int.parse(m[2]!));
-    }
-    return found;
+    return found..sort((x, y) => x.$1.compareTo(y.$1));
   }
 
   static int? _monthFromName(String name) {
-    final key = TextNormaliser.stripDiacritics(name).toLowerCase();
+    final key = TextNormaliser.stripDiacritics(name)
+        .toLowerCase()
+        .replaceAll('0', 'o');
     if (key.length < 3) return null;
     if (!_monthNames.any((m) => m.startsWith(key))) return null;
     return _monthPrefixes[key.substring(0, 3)];
@@ -744,28 +1566,46 @@ class ReceiptTextParser {
 
   static int _fullYear(int year) => year < 100 ? 2000 + year : year;
 
-  static void _addDate(List<DateTime> out, int year, int month, int day) {
-    if (month < 1 || month > 12 || day < 1 || day > 31) return;
+  /// The day, or null when the calendar has no such day (31/02, month 13).
+  static DateTime? _validDate(int year, int month, int day) {
+    if (month < 1 || month > 12 || day < 1 || day > 31) return null;
     final date = DateTime(year, month, day);
-    if (date.month != month || date.day != day) return; // e.g. 31/02
-    out.add(date);
+    return date.month == month && date.day == day ? date : null;
   }
 
   // -------------------------------------------------------------------- time
 
+  /// "14:35", "02:35:10 p. m.", "9:02PM". May stand hard against a date or
+  /// its "T" ("2026-11-23T09:02:11").
   static final RegExp _timePattern = RegExp(
-    r'\b([01]?\d|2[0-3]):([0-5]\d)(?::[0-5]\d)?\s*([ap]\.?\s?m\.?)?',
+    r'(?<![\d.,:])([01]?\d|2[0-3]):([0-5]\d)(?::[0-5]\d)?(?!\d)'
+    r'(?:\s*([ap]\.?\s?m\b\.?))?',
     caseSensitive: false,
   );
   static final RegExp _timeKeyword =
       RegExp(r'hora|time|fecha|date', caseSensitive: false);
 
+  /// Opening hours and house rules, which print times that are not the
+  /// purchase: "HORARIO: LUN A DOM 07:00 A 23:00", "Abierto de 7:00 a
+  /// 23:00", "Check-out 12:00".
+  static final RegExp _hoursRow = RegExp(
+    r'horario|abierto|abrimos|\bopen\b|opening|\bhours\b|check\s*-?\s*(in|out)|'
+    r'\d{1,2}:\d{2}\s*(hrs?\.?\s*)?(a|al|to|-|–)\s*(las\s*)?\d{1,2}:\d{2}',
+    caseSensitive: false,
+  );
+
+  /// "28/07/202614:42": a time printed hard against the year.
+  static final RegExp _timeAfterYear = RegExp(r'(?<=[-/.]\d{4})(?=\d{1,2}:\d{2})');
+
   String? _time(List<String> rows) {
     RegExpMatch? fallback;
-    for (final row in rows) {
+    for (final raw in rows) {
+      final row = raw.replaceAll(_timeAfterYear, ' ');
       final match = _timePattern.firstMatch(row);
       if (match == null) continue;
-      if (_timeKeyword.hasMatch(row) || _datesIn(row).isNotEmpty) {
+      final dated = _datesIn(row).isNotEmpty;
+      if (_hoursRow.hasMatch(row) && !dated) continue;
+      if (_timeKeyword.hasMatch(row) || dated) {
         return _formatTime(match);
       }
       fallback ??= match;
@@ -783,6 +1623,7 @@ class ReceiptTextParser {
     }
     return '${hour.toString().padLeft(2, '0')}:${m[2]}';
   }
+
 
   // ------------------------------------------------------------------- total
 
@@ -817,6 +1658,44 @@ class ReceiptTextParser {
 
   static final RegExp _notTotal =
       RegExp(r'sub\s*-?\s*t(o)?t(a)?l|%', caseSensitive: false);
+
+  /// "TOTAL (IVA 16% INCLUIDO) $240.00": the percentage is a note that the
+  /// tax is in the total, not a suggested tip or a tax row.
+  static final RegExp _includedNote =
+      RegExp(r'\binc(?:l\w*|\b)', caseSensitive: false);
+
+  /// Whether [row] cannot be the bill's total: a subtotal, or a row with a
+  /// percentage (a tax, or a tip suggestion such as "15% $71.25 TOTAL
+  /// $546.25") unless that percentage is only the tax-included note.
+  bool _isNotTotal(String row) {
+    if (_subtotalRow.hasMatch(row)) return true;
+    if (!_notTotal.hasMatch(row)) return false;
+    return !(_taxRow.hasMatch(row) &&
+        _includedNote.hasMatch(row) &&
+        !_tipOnly.hasMatch(row) &&
+        _decimalAmounts([row], 2).length == 1);
+  }
+
+  /// The total of one part of the bill, not the bill: "TOTAL AHORRO
+  /// $324.60", "TOTAL DESCUENTOS", "TOTAL IVA 41.66", "TAX TOTAL", "TOTAL
+  /// SAVINGS". ("TOTAL IVA INCLUIDO" is the bill.)
+  static final RegExp _partTotal = RegExp(
+    r'total\s*(?:de\s*|del\s*|en\s*|of\s*)?(?:los\s*|sus?\s*|tu\s*)?'
+    r'(?:ahorr\w*|descuentos?|dsctos?|savings?|saved|discounts?|iva|'
+    r'i\.v\.a\.?|impuestos?|tax(?:es)?|vat|igv|itbms|isv|ieps|exento|'
+    r'gravad[oa]s?)\b(?!\s*inc)|'
+    r'\b(?:ahorro|descuentos?|savings?|discounts?|iva|tax|vat|impuestos?)'
+    r'\s*total(?:es)?\b',
+    caseSensitive: false,
+  );
+
+  /// A balance or a points count: money on a card, not money paid with it
+  /// ("SALDO EN TARJETA DE PUNTOS: 185.00").
+  static final RegExp _balanceRow = RegExp(
+    r'\bsaldo\b|\bbalance\b(?!\s*due)|\bpuntos\b|\bpoints\b|disponible|'
+    r'available|acumulad',
+    caseSensitive: false,
+  );
 
   /// A row that counts things instead of pricing them: "Total de productos:
   /// 24", "No. de articulos 3", "ITEMS SOLD 6", "TOTAL PUNTOS 120". Matched
@@ -919,6 +1798,12 @@ class ReceiptTextParser {
       value,
       bare: decimalToken == null,
       signless: decimalToken == null ? null : _signless(row, token, exponent),
+      // "47500" for 475.00: a faint decimal point is easily lost.
+      pointless: decimalToken == null &&
+              exponent == 2 &&
+              RegExp(r'^\d{3,7}$').hasMatch(token[0]!)
+          ? int.parse(token[0]!)
+          : null,
     );
   }
 
@@ -1025,7 +1910,7 @@ class ReceiptTextParser {
     final slip = _cardSlip.hasMatch(rows.join('\n'));
     int? charged;
     for (final row in rows) {
-      if (_cashRow.hasMatch(row)) continue;
+      if (_cashRow.hasMatch(row) || _balanceRow.hasMatch(row)) continue;
       final isCharge = (slip && _chargedRow.hasMatch(row)) ||
           _cardPaidRow.hasMatch(row);
       if (!isCharge) continue;
@@ -1062,6 +1947,7 @@ class ReceiptTextParser {
 
     var subtotal = 0;
     var tax = 0;
+    int? taxTotal;
     var sawTax = false;
     var change = 0;
     final paid = <int>[];
@@ -1071,14 +1957,20 @@ class ReceiptTextParser {
       if (_subtotalRow.hasMatch(row)) {
         if (v > subtotal) subtotal = v;
       } else if (_taxRow.hasMatch(row) && !_taxBase.hasMatch(row)) {
-        tax += v;
+        // "TOTAL IVA 41.66" restates the tax rows; it is not one more.
+        if (_partTotal.hasMatch(row)) {
+          taxTotal = v;
+        } else {
+          tax += v;
+        }
         sawTax = true;
       } else if (_changeRow.hasMatch(row)) {
         change = v;
-      } else if (_paidRow.hasMatch(row)) {
+      } else if (_paidRow.hasMatch(row) && !_balanceRow.hasMatch(row)) {
         paid.add(v);
       }
     }
+    if (taxTotal != null) tax = taxTotal;
     final computed = subtotal > 0 && sawTax ? subtotal + tax : null;
     final paidNet = [for (final p in paid) p - change];
 
@@ -1087,11 +1979,16 @@ class ReceiptTextParser {
     // Tips and service charges printed on their own rows: the gap between
     // the items (or the subtotal) and a total that includes them.
     var tips = 0;
-    for (final row in rows) {
+    final tipRows = <(int, int)>[];
+    for (var i = 0; i < rows.length; i++) {
+      final row = rows[i];
       if (!_tipOnly.hasMatch(row) || _tipIncluded.hasMatch(row)) continue;
       if (_totalPriority(row) >= 0 || _subtotalRow.hasMatch(row)) continue;
       final v = _lastDecimalAmount(row, exponent);
-      if (v != null && v > 0) tips += v;
+      if (v != null && v > 0) {
+        tips += v;
+        tipRows.add((i, v));
+      }
     }
 
     // What the item prices above a row add up to. The last one is left out
@@ -1114,6 +2011,10 @@ class ReceiptTextParser {
       return sum > 0 ? sum : null;
     }
 
+    final printed = _decimalAmounts(rows, exponent);
+    final computedPrinted =
+        computed != null && printed.any((a) => _near(a, computed));
+
     // Readings of the receipt independent of the item lines.
     bool backedByTotals(int amount) {
       if (_ladder(rows, exponent, amount)) return true;
@@ -1122,8 +2023,13 @@ class ReceiptTextParser {
               (tips > 0 && _near(computed + tips, amount)))) {
         return true;
       }
-      if (computed == null && subtotal > 0 && tips > 0) {
-        if (_near(subtotal + tips, amount)) return true;
+      // The subtotal already has the tax inside it (the tax row is for
+      // information), so the total repeats it or adds only the tip:
+      // "SUBTOTAL Q250.00 / IVA 12% Q26.79 / PROPINA Q25.00 / TOTAL
+      // Q275.00". Not when subtotal plus tax is itself printed.
+      if (subtotal > 0 && !computedPrinted) {
+        if (_near(subtotal, amount)) return true;
+        if (tips > 0 && _near(subtotal + tips, amount)) return true;
       }
       if (paidNet.any((p) => _near(p, amount))) return true;
       return inWords(amount);
@@ -1172,7 +2078,38 @@ class ReceiptTextParser {
       break;
     }
 
+    // A later total that is this one plus the tax rows, or plus the tip
+    // between them, is the bill: "TOTAL NETO 20,25 / IVA 0,81 / TOTAL
+    // 21,06", "TOTAL A PAGAR 475.00 / PROPINA 47.50 / TOTAL 522.50".
+    final first = pick;
+    if (first != null) {
+      for (final c in candidates) {
+        if (c.weak || c.row <= first.row || c.amount <= first.amount) continue;
+        final gap = c.amount - first.amount;
+        var tipsBetween = 0;
+        for (final (row, tip) in tipRows) {
+          if (row > first.row && row < c.row) tipsBetween += tip;
+        }
+        if ((sawTax && tax > 0 && _near(gap, tax)) ||
+            (tipsBetween > 0 && _near(gap, tipsBetween))) {
+          pick = c;
+          break;
+        }
+      }
+    }
+
     if (pick != null) {
+      // A tip printed under the total and paid in cash: what was handed
+      // over, less the change, is the total plus that tip ("TOTAL 428.50 /
+      // PROPINA 42.85 / EFECTIVO 500.00 / CAMBIO 28.65").
+      var tipsAfter = 0;
+      for (final (row, tip) in tipRows) {
+        if (row > pick.row) tipsAfter += tip;
+      }
+      if (tipsAfter > 0) {
+        final withTip = pick.amount + tipsAfter;
+        if (paidNet.any((p) => _near(p, withTip))) return (withTip, false);
+      }
       final signless = pick.signless;
       if (backedByTotals(pick.amount)) return (pick.amount, false);
       // "Total 53,760.00" where the 5 was the "$".
@@ -1186,6 +2123,14 @@ class ReceiptTextParser {
           !contradicted(signless) &&
           backedByItems(signless, pick.row)) {
         return (signless, false);
+      }
+      // "TOTAL 47500" where the items add up to 475.00.
+      final pointless = pick.pointless;
+      if (pointless != null &&
+          (backedByTotals(pointless) ||
+              (!contradicted(pointless) &&
+                  backedByItems(pointless, pick.row)))) {
+        return (pointless, false);
       }
       // The figure plus the printed tip is an amount further down: the total
       // with tip, its label lost ("IMPORTE 1,250.00 / PROPINA 187.50 /
@@ -1225,7 +2170,7 @@ class ReceiptTextParser {
       }
     }
     final itemsTotal = _itemsTotal(priced);
-    final printedAmounts = _decimalAmounts(rows, exponent);
+    final printedAmounts = printed;
     for (final w in formal) {
       if (itemsTotal != null && w.matches(itemsTotal, exponent)) {
         return (itemsTotal, false);
@@ -1294,6 +2239,112 @@ class ReceiptTextParser {
     );
   }
 
+  /// A label with nothing but its name on the row: "SUBTOTAL", "IVA 16%",
+  /// "TOTAL $", "CAMBIO:".
+  bool _isBareLabel(String row) {
+    final text = row.replaceAll(RegExp(r'\d+(?:[.,]\d+)?\s?%'), ' ');
+    if (RegExp(r'\d').hasMatch(text)) return false;
+    if (text.length > 36 || _itemsHeading.hasMatch(text)) return false;
+    return _subtotalRow.hasMatch(text) ||
+        _totalPriority(text) >= 0 ||
+        _taxRow.hasMatch(text) ||
+        _tipOnly.hasMatch(text) ||
+        _tenderLine.hasMatch(text) ||
+        _moneyOffRow.hasMatch(text);
+  }
+
+  /// A row that is one amount and nothing else: "$475.00", "11.46E".
+  bool _isBareAmount(String row, int exponent) {
+    if (TextNormaliser.letterCount(row) > 3) return false;
+    final tokens =
+        _amountToken.allMatches(row.replaceAll(_clockTime, ' ')).toList();
+    if (tokens.length != 1) return false;
+    final token = tokens.single[0]!;
+    return exponent == 0
+        ? token.length >= 3
+        : RegExp(r'[.,]\d{2}$').hasMatch(token);
+  }
+
+  /// Puts each amount back beside its label when the labels were read as
+  /// one block and the amounts as another ("SUBTOTAL / IVA / TOTAL" and
+  /// then "728.76 / 116.60 / 845.36"), or a label on one row and its
+  /// amount on the next. When the block of amounts is longer than the
+  /// block of labels the first amounts are the prices of the items above,
+  /// and the pairing is kept only if those add up to it.
+  List<String> _pairLabelBlocks(List<String> rows, int exponent) {
+    final out = <String>[];
+    var i = 0;
+    while (i < rows.length) {
+      if (!_isBareLabel(rows[i])) {
+        out.add(rows[i++]);
+        continue;
+      }
+      var j = i;
+      while (j < rows.length && _isBareLabel(rows[j])) {
+        j++;
+      }
+      var k = j;
+      while (k < rows.length && _isBareAmount(rows[k], exponent)) {
+        k++;
+      }
+      final labels = rows.sublist(i, j);
+      final spare = (k - j) - labels.length;
+      if (spare >= 0) {
+        final loose = rows.sublist(j, j + spare);
+        final paired = [
+          for (var n = 0; n < labels.length; n++)
+            '${labels[n]} ${rows[j + spare + n]}',
+        ];
+        if (_blockAddsUp(paired, loose, exponent)) {
+          out
+            ..addAll(loose)
+            ..addAll(paired);
+          i = k;
+          continue;
+        }
+      }
+      out.addAll(labels);
+      i = j;
+    }
+    return out;
+  }
+
+  /// Whether labels paired with amounts make sense as the foot of a bill.
+  /// [loose] are the amounts before them that got no label.
+  bool _blockAddsUp(List<String> paired, List<String> loose, int exponent) {
+    if (paired.length == 1 && loose.isEmpty) return true;
+    int? total;
+    int? subtotal;
+    var extras = 0;
+    var dearestPart = 0;
+    for (final row in paired) {
+      final v = _lastAmount(row, exponent);
+      if (v == null) return false;
+      if (_subtotalRow.hasMatch(row)) {
+        subtotal = v;
+      } else if (_tenderLine.hasMatch(row) || _moneyOffRow.hasMatch(row)) {
+        continue;
+      } else if (_taxRow.hasMatch(row) ||
+          (_tipOnly.hasMatch(row) && !_tipIncluded.hasMatch(row))) {
+        if (!_taxBase.hasMatch(row)) extras += v;
+      } else if (_totalPriority(row) >= 0) {
+        if (total == null || v > total) total = v;
+        continue;
+      }
+      if (v > dearestPart) dearestPart = v;
+    }
+    if (loose.isEmpty) return total == null || total >= dearestPart;
+    if (total == null) return false;
+    var items = 0;
+    for (final row in loose) {
+      items += _lastAmount(row, exponent) ?? 0;
+    }
+    return _near(items, total) ||
+        _near(items + extras, total) ||
+        (subtotal != null &&
+            (_near(items, subtotal) || _near(subtotal + extras, total)));
+  }
+
   /// Rows that state a total, best first.
   List<_Candidate> _keywordTotals(List<String> rows, int exponent, int floor) {
     // A bare whole number is suspect on a receipt that prints its money with
@@ -1310,7 +2361,8 @@ class ReceiptTextParser {
     final out = <_Candidate>[];
     for (var i = 0; i < rows.length; i++) {
       final row = rows[i];
-      if (_notTotal.hasMatch(row) || _tenderLine.hasMatch(row)) continue;
+      if (_isNotTotal(row) || _tenderLine.hasMatch(row)) continue;
+      if (_partTotal.hasMatch(row)) continue;
       if (_tipOnly.hasMatch(row) && !_tipIncluded.hasMatch(row)) continue;
       var priority = _totalPriority(row);
       // "T0TAL CON PROPINA": the tip-inclusive total, whatever OCR made of
@@ -1324,7 +2376,10 @@ class ReceiptTextParser {
         priority = _goodsTotalPriority;
       } else if (read == null &&
           i + 1 < rows.length &&
-          TextNormaliser.letterCount(rows[i + 1]) < 4) {
+          TextNormaliser.letterCount(rows[i + 1]) < 4 &&
+          // Several amounts under a label are a table ("TOTAL CON PROPINA"
+          // over "522.50 546.25 570.00"), not that label's amount.
+          _decimalAmounts([rows[i + 1]], exponent).length <= 1) {
         read = _lastAmountToken(rows[i + 1], exponent);
       }
       if (read == null) continue;
@@ -1334,6 +2389,7 @@ class ReceiptTextParser {
         priority: priority,
         amount: read.amount,
         signless: read.signless,
+        pointless: read.pointless,
         weak: read.bare &&
             exponent > 0 &&
             (decimalRows >= 2 || _oddTotalLabel(row)),
@@ -1562,45 +2618,278 @@ class ReceiptTextParser {
 
   // ---------------------------------------------------------------- currency
 
-  static final RegExp _codeNearAmount = RegExp(
-    '\\b(${Currencies.common.join('|')})\\b\\s?[:=]?\\s?\\\$?\\s?\\d|'
-    '\\d[.,]\\d{2}\\s?(${Currencies.common.join('|')})\\b',
+  /// A figure as money is printed: "1,234.50", "45.000", "125". Not the
+  /// start of a date ("CAD 12/2027" is an expiry, not Canadian dollars).
+  static const String _figure =
+      r'(?:\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?)'
+      r'(?![\d/]|-\d)';
+
+  /// A figure with two decimals after a point: "1,234.50".
+  static const String _figure2 = r'(?:\d{1,3}(?:,\d{3})+|\d+)\.\d{2}(?!\d)';
+
+  /// "MXN: 570.00", "USD$ 21.50", "Total (MXN) $5,361.24".
+  static final RegExp _codeBeforeAmount = RegExp(
+    '(?<![A-Za-z])(${Currencies.common.join('|')})(?![A-Za-z])'
+    '\\)?\\s?[:=]?\\s?\\\$?\\s?($_figure)',
   );
-  static final RegExp _bolivar = RegExp(r'\bBs\.?\s?S?\.?\s?\d');
+
+  /// "570.00 MXN".
+  static final RegExp _codeAfterAmount = RegExp(
+    '\\d[.,]\\d{2}\\s?(${Currencies.common.join('|')})(?![A-Za-z])',
+  );
+
+  /// Evidence a currency needs before it is believed, by how it is named.
+  /// A sign of its own ("£", "Bs", "R$") needs one sighting. Three capitals
+  /// need a total row or three other rows: "COMPRA USD 17.80" is an
+  /// exchange rate, "BIC PEN 1.99" a pen.
+  static const int _signEvidence = 1;
+  static const int _codeEvidence = 3;
+
+  /// A single letter counts only beside a total: "GRINGA Q 130.00" is a
+  /// dish with cheese and "VOLUMEN L 35.24" is litres.
+  static const int _letterEvidence = 3;
+
+  /// Signs and abbreviations that only one currency uses, beside a figure.
+  static final List<(RegExp, String, int)> _signs = [
+    (
+      RegExp('(?<![A-Za-z])U\\.?S\\.?\\s?\\\$\\s?$_figure'),
+      'USD',
+      _signEvidence,
+    ),
+    (RegExp('(?<![A-Za-z])U\\\$S\\s?$_figure'), 'USD', _signEvidence),
+    (RegExp('(?<![A-Za-z])MX\\s?\\\$\\s?$_figure'), 'MXN', _signEvidence),
+    (RegExp('(?<![A-Za-z])R\\\$\\s?$_figure'), 'BRL', _signEvidence),
+    (RegExp('(?<![A-Za-z])S/\\.?\\s?$_figure'), 'PEN', _signEvidence),
+    (RegExp('₡\\s?$_figure'), 'CRC', _signEvidence),
+    (RegExp('£\\s?$_figure'), 'GBP', _signEvidence),
+    (RegExp('€\\s?$_figure|\\d[.,]\\d{2}\\s?€'), 'EUR', _signEvidence),
+    (RegExp('[₹]\\s?$_figure'), 'INR', _signEvidence),
+    (RegExp('[₦]\\s?$_figure'), 'NGN', _signEvidence),
+    (RegExp('[₴]\\s?$_figure|\\d[.,]\\d{2}\\s?₴'), 'UAH', _signEvidence),
+    (RegExp('[₺]\\s?$_figure|\\d[.,]\\d{2}\\s?₺'), 'TRY', _signEvidence),
+    (RegExp('[₱]\\s?$_figure'), 'PHP', _signEvidence),
+    (RegExp('[฿]\\s?$_figure'), 'THB', _signEvidence),
+    (RegExp('[₩]\\s?$_figure'), 'KRW', _signEvidence),
+    (RegExp('[₫]\\s?$_figure|\\d\\s?₫'), 'VND', _signEvidence),
+    (RegExp('[₵]\\s?$_figure'), 'GHS', _signEvidence),
+    (RegExp('\\d[.,]\\d{2}\\s?zł'), 'PLN', _signEvidence),
+    // "Bs 52,40", "Bs.S 52,40", "Bs.D 52,40", "BS. 52,40".
+    (
+      RegExp('(?<![A-Za-z])B[sS]\\.?\\s?[SDF]?\\.?\\s?[:=]?\\s?$_figure'),
+      _bolivarSign,
+      _signEvidence,
+    ),
+    // Honduras: "Lps. 350.00", "L 350.00", "L. 350.00".
+    (
+      RegExp('(?<![A-Za-z0-9])L(?:ps|PS)\\.?\\s?$_figure'),
+      'HNL',
+      _signEvidence,
+    ),
+    (RegExp('(?<![A-Za-z0-9])L\\.?\\s?$_figure2'), 'HNL', _letterEvidence),
+    // Guatemala: "Q125.00", "Q 125.00", "Q. 125.00".
+    (RegExp('(?<![A-Za-z0-9])Q\\.?\\s?$_figure2'), 'GTQ', _letterEvidence),
+  ];
+
+  /// "Bs" is the bolivar, or the boliviano on a receipt from Bolivia.
+  static const String _bolivarSign = 'Bs';
+
   static final RegExp _monedaNacional = RegExp(r'\bM\.\s?N\.?');
 
-  (String, bool) _detectCurrency(List<String> rows) {
-    final scores = <String, int>{};
-    for (final row in rows) {
-      final weight = _totalPriority(row) >= 0 ? 3 : 1;
-      for (final m in _codeNearAmount.allMatches(row)) {
-        final code = m[1] ?? m[2];
-        if (code == null) continue;
-        scores[code] = (scores[code] ?? 0) + weight;
+  /// A bare "$" beside a figure (not "R$", "US$", "MX$").
+  static final RegExp _bareDollar =
+      RegExp('(?<![A-Za-z])\\\$\\s?$_figure');
+
+  /// Currencies that are never written with a "$": on their receipts a "$"
+  /// amount is a price in dollars for reference ("REF \$ 14,50").
+  static const Set<String> _noDollarSign = {
+    'VES', 'GTQ', 'HNL', 'CRC', 'PEN', 'GBP', 'EUR', 'BOB',
+  };
+
+  /// Every amount on [row] that names its currency: the code, where the
+  /// name and figure sit in the row, and the evidence that kind of name
+  /// needs.
+  List<_CurrencyMark> _currencyMarks(String row) {
+    final marks = <_CurrencyMark>[];
+    final totalRow = _totalPriority(row) >= 0;
+    for (final m in _codeBeforeAmount.allMatches(row)) {
+      // A whole number after three capitals is money only beside a word
+      // for the total: "TOTAL MXN 90", not "LOTE 12 CAD 122027".
+      if (!totalRow && !RegExp('[.,]').hasMatch(m[2]!)) continue;
+      marks.add(_CurrencyMark(m[1]!, m.start, m.end, _codeEvidence));
+    }
+    for (final m in _codeAfterAmount.allMatches(row)) {
+      marks.add(_CurrencyMark(m[1]!, m.start, m.end, _codeEvidence));
+    }
+    for (final (pattern, code, needed) in _signs) {
+      if (needed == _letterEvidence && !totalRow) continue;
+      for (final m in pattern.allMatches(row)) {
+        final currency = code != _bolivarSign
+            ? code
+            : defaultCurrency == 'BOB'
+                ? 'BOB'
+                : 'VES';
+        marks.add(_CurrencyMark(currency, m.start, m.end, needed));
       }
     }
-    if (scores.isNotEmpty) {
-      final best = scores.entries.reduce((a, b) => b.value > a.value ? b : a);
-      return (best.key, true);
+    return marks;
+  }
+
+  /// The receipt's currency, whether the receipt itself says so, and the
+  /// other currencies it also gives amounts in.
+  ///
+  /// Each row that names a currency beside an amount counts once, three
+  /// times on a total row; an amount in words that names its currency
+  /// ("QUETZALES") counts as a total row. The most named wins, the home
+  /// currency on a tie.
+  ((String, bool), Set<String>) _detectCurrency(List<String> rows) {
+    final scores = <String, int>{};
+    final needed = <String, int>{};
+    final firstRow = <String, int>{};
+    void count(String code, int weight, int needs, int row) {
+      scores[code] = (scores[code] ?? 0) + weight;
+      final least = needed[code];
+      if (least == null || needs < least) needed[code] = needs;
+      firstRow.putIfAbsent(code, () => row);
     }
-    final joined = rows.join('\n');
-    for (final entry in Currencies.unambiguousSymbols.entries) {
-      if (entry.key == 'S/') {
-        // Peruvian sol, but not "S/N" (sin número) in an address.
-        if (RegExp(r'\bS/\.?\s?\d').hasMatch(joined)) return ('PEN', true);
+
+    for (var i = 0; i < rows.length; i++) {
+      final weight = _totalPriority(rows[i]) >= 0 ? 3 : 1;
+      final onRow = <String, int>{};
+      for (final mark in _currencyMarks(rows[i])) {
+        final least = onRow[mark.code];
+        if (least == null || mark.needed < least) {
+          onRow[mark.code] = mark.needed;
+        }
+      }
+      onRow.forEach((code, needs) => count(code, weight, needs, i));
+    }
+    for (final words in AmountInWords.find(rows)) {
+      final code = words.currency;
+      if (words.formal && code != null) count(code, 3, 1, rows.length);
+    }
+    final named = [
+      for (final code in scores.keys)
+        if (scores[code]! >= needed[code]!) code,
+    ];
+    if (named.isEmpty) {
+      final joined = rows.join('\n');
+      if (_monedaNacional.hasMatch(joined)) {
+        return ((defaultCurrency, true), const {});
+      }
+      return ((defaultCurrency, false), const {});
+    }
+    named.sort((a, b) {
+      if (scores[a] != scores[b]) return scores[b]!.compareTo(scores[a]!);
+      if (a == defaultCurrency) return -1;
+      if (b == defaultCurrency) return 1;
+      return firstRow[a]!.compareTo(firstRow[b]!);
+    });
+    final best = named.first;
+    final others = {...named.skip(1)};
+    if (best != defaultCurrency && _isEquivalentOnly(rows, best)) {
+      return ((defaultCurrency, false), {best, ...others});
+    }
+    return ((best, true), others);
+  }
+
+  /// Whether [code] is only the bill restated in dollars or euros for the
+  /// visitor: named on total rows and nowhere else ("TOTAL USD 84.07"),
+  /// beside a total with no currency named that is more than twice or less
+  /// than half as much ("TOTAL \$1,530.00"). A tip or a tax never changes a
+  /// total that much; an exchange rate does.
+  bool _isEquivalentOnly(List<String> rows, String code) {
+    if (code != 'USD' && code != 'EUR') return false;
+    final named = <int>[];
+    final plain = <int>[];
+    for (final row in rows) {
+      final marks = _currencyMarks(row);
+      final inCode = marks.any((m) => m.code == code);
+      if (_totalPriority(row) < 60) {
+        if (inCode) return false;
         continue;
       }
-      if (joined.contains(entry.key)) return (entry.value, true);
+      if (_isNotTotal(row) || _tenderLine.hasMatch(row)) continue;
+      if (_partTotal.hasMatch(row)) continue;
+      final value = _lastDecimalAmount(row, 2);
+      if (value == null || value <= 0) continue;
+      if (marks.isEmpty) {
+        plain.add(value);
+      } else if (inCode) {
+        named.add(value);
+      }
     }
-    if (_bolivar.hasMatch(joined)) return ('VES', true);
-    if (_monedaNacional.hasMatch(joined)) return (defaultCurrency, true);
-    return (defaultCurrency, false);
+    return plain.any(
+      (p) => named.isNotEmpty && named.every((n) => p > n * 2 || p * 2 < n),
+    );
   }
+
+  /// The rows without the amounts given in a currency other than the
+  /// receipt's own: "TOTAL REF USD 14,50" under a total in bolivares,
+  /// "TOTAL USD 84.07" under a total in pesos. Those restate the bill; they
+  /// are not a second thing paid.
+  List<String> _ownCurrencyRows(
+    List<String> rows,
+    String currency,
+    Set<String> others,
+  ) {
+    final foreign = {...others}..remove(currency);
+    final ownSign = rows.any(
+      (row) => _currencyMarks(row).any((m) => m.code == currency),
+    );
+    final dollarsForeign = ownSign && _noDollarSign.contains(currency);
+    if (foreign.isEmpty && !dollarsForeign) return rows;
+    final out = <String>[];
+    for (final row in rows) {
+      final cuts = <(int, int)>[
+        for (final mark in _currencyMarks(row))
+          if (foreign.contains(mark.code)) (mark.start, mark.end),
+        if (dollarsForeign)
+          for (final m in _bareDollar.allMatches(row)) (m.start, m.end),
+      ];
+      if (cuts.isEmpty) {
+        out.add(row);
+        continue;
+      }
+      // From the end of the row backwards, so the places stay true; two
+      // names for one amount ("USD $ 21.50") are cut once.
+      cuts.sort((a, b) => b.$1.compareTo(a.$1));
+      var text = row;
+      var cutFrom = row.length;
+      for (final (from, to) in cuts) {
+        final end = to < cutFrom ? to : cutFrom;
+        if (from >= end) continue;
+        text = text.replaceRange(from, end, ' ');
+        cutFrom = from;
+      }
+      // Nothing but the label left: the whole row was the other currency.
+      out.add(RegExp(r'\d').hasMatch(text)
+          ? TextNormaliser.collapseSpaces(text)
+          : '');
+    }
+    return out;
+  }
+}
+
+/// An amount on a row that names its currency.
+class _CurrencyMark {
+  const _CurrencyMark(this.code, this.start, this.end, this.needed);
+
+  final String code;
+  final int start;
+  final int end;
+
+  /// The score a currency named only this way must reach to be believed.
+  final int needed;
 }
 
 /// An amount read from a row.
 class _Reading {
-  const _Reading(this.amount, {required this.bare, this.signless});
+  const _Reading(
+    this.amount, {
+    required this.bare,
+    this.signless,
+    this.pointless,
+  });
 
   final int amount;
 
@@ -1609,6 +2898,10 @@ class _Reading {
 
   /// The amount if its first digit was really a misread "$".
   final int? signless;
+
+  /// The amount if a whole number is really a price whose decimal point
+  /// was not read ("47500" for 475.00).
+  final int? pointless;
 }
 
 /// A row that carries a price.
@@ -1628,6 +2921,7 @@ class _Candidate {
     required this.amount,
     required this.weak,
     this.signless,
+    this.pointless,
   });
 
   final int row;
@@ -1639,4 +2933,7 @@ class _Candidate {
 
   /// The amount if its first digit was really a misread "$".
   final int? signless;
+
+  /// The amount if its decimal point was not read.
+  final int? pointless;
 }
