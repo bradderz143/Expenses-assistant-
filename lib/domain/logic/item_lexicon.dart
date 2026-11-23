@@ -93,7 +93,8 @@ class _Unit {
   _Unit(this.type, this.text, {this.entry, this.plural = false});
   final _U type;
 
-  /// English for a number, quantity or letter; the Spanish connector.
+  /// English for a number, quantity or letter; the Spanish connector;
+  /// for an entry, the Spanish words it was found by.
   final String text;
   _Entry? entry;
   final bool plural;
@@ -134,6 +135,9 @@ class ItemLexicon {
   static const Map<String, String> _drinks = {
     'agua': 'water',
     'agua natural': 'still water',
+    // Sparkling in Mexico and Guatemala, often still in Venezuela and
+    // Colombia: the English that is right everywhere.
+    'agua mineral': 'mineral water',
     'agua con gas': 'sparkling water',
     'agua sin gas': 'still water',
     'agua gasificada': 'sparkling water',
@@ -171,6 +175,9 @@ class ItemLexicon {
     'cafe expresso': 'espresso',
     'cafe cortado': 'cortado',
     'cafe del dia': 'coffee of the day',
+    'cafe americano': 'americano',
+    'cafe negro': 'black coffee',
+    'cafe helado': 'iced coffee',
     'cafe tinto': 'black coffee',
     'cafe lechero': 'café lechero (milky coffee)',
     'te': 'tea',
@@ -184,10 +191,14 @@ class ItemLexicon {
     'chocomilk': 'chocolate milk',
     'choco milk': 'chocolate milk',
     'leche': 'milk',
+    'leche vegetal': 'plant-based milk',
+    'bebida vegetal': 'plant-based drink',
     'cerveza': 'beer',
     'chela': 'beer',
     'cerveza de barril': 'draught beer',
     'cerveza clara': 'lager',
+    'cerveza oscura': 'dark beer',
+    'cerveza artesanal': 'craft beer',
     'vino': 'wine',
     'vino tinto': 'red wine',
     'vino rosado': 'rosé wine',
@@ -217,6 +228,7 @@ class ItemLexicon {
     'margarita': 'margarita',
     'mojito': 'mojito',
     'cuba libre': 'cuba libre',
+    'vodka tonic': 'vodka tonic',
     'pina colada': 'piña colada',
     'sangria': 'sangria',
     'tinto de verano': 'tinto de verano',
@@ -251,6 +263,7 @@ class ItemLexicon {
     'chamoyada': 'chamoyada',
     'champurrado': 'champurrado (chocolate atole)',
     'atole': 'atole (hot corn drink)',
+    'atoles': 'atoles (hot corn drinks)',
     'atol': 'atol (hot corn drink)',
     'atol de elote': 'atol de elote (hot sweetcorn drink)',
     'atol shuco': 'atol shuco',
@@ -324,7 +337,6 @@ class ItemLexicon {
     'platillo': 'dish',
     'plato': 'plate',
     'plato fuerte': 'main course',
-    'entrada': 'starter',
     'guarnicion': 'side dish',
     'complemento': 'side',
     'botana': 'snack',
@@ -356,11 +368,12 @@ class ItemLexicon {
     'pan': 'bread',
     'pan dulce': 'sweet bread',
     'pan tostado': 'toast',
+    'pan de ajo': 'garlic bread',
+    'pan con ajo': 'garlic bread',
     'pan de caja': 'sliced bread',
     'pan arabe': 'pitta bread',
     'pan pita': 'pitta bread',
     'pan pizza': 'pan pizza',
-    'pan de chocolate': 'pain au chocolat',
     'chocolatin': 'pain au chocolat',
     'cuernito': 'croissant',
     'cuerno': 'croissant',
@@ -372,11 +385,11 @@ class ItemLexicon {
     'pay de queso': 'cheesecake',
     'tarta': 'tart',
     'flan': 'flan',
-    'gelatina': 'jelly',
+    'gelatina': 'gelatin dessert',
     'helado': 'ice cream',
     'copa de helado': 'ice cream sundae',
     'nieve': 'sorbet',
-    'paleta': 'ice pop',
+    'paleta de hielo': 'ice pop',
     'paleta helada': 'ice pop',
     'raspado': 'shaved ice',
     'crepa': 'crepe',
@@ -387,10 +400,7 @@ class ItemLexicon {
     'coctel de frutas': 'fruit cocktail',
     'coctel de camaron': 'shrimp cocktail',
     'coctel de camarones': 'shrimp cocktail',
-    'hot cakes': 'pancakes',
     'hotcakes': 'pancakes',
-    'hot cake': 'pancake',
-    'pancake': 'pancake',
     'panqueque': 'pancake',
     'omelette': 'omelette',
     'omelet': 'omelette',
@@ -416,9 +426,12 @@ class ItemLexicon {
     'brocheta': 'skewer',
     'parrillada': 'mixed grill',
     'carne asada': 'carne asada (grilled beef)',
+    'carne a la tampiquena': 'carne a la tampiqueña (steak platter)',
+    'tampiquena': 'carne a la tampiqueña (steak platter)',
     'carnes frias': 'cold cuts',
     'pure de papa': 'mashed potato',
-    'pure': 'mashed potato',
+    'pure': 'purée',
+    'pure de papas': 'mashed potato',
     'papas fritas': 'fries',
     'papas a la francesa': 'french fries',
     'papas francesas': 'french fries',
@@ -454,9 +467,13 @@ class ItemLexicon {
     'tortilla': 'tortilla',
     'totopos': 'tortilla chips',
     'mariscos': 'seafood',
-    'verduras': 'vegetables',
-    'vegetales': 'vegetables',
     'ingrediente': 'ingredient',
+    // One line for the whole meal, as small restaurants print it.
+    'consumo': 'consumption',
+    'consumo de alimentos': 'food consumed',
+    'consumo de alimentos y bebidas': 'food and drinks consumed',
+    'alimentos': 'food',
+    'alimentos y bebidas': 'food and drinks',
   };
 
   /// Dishes that must not be translated word for word ("al pastor" is not
@@ -493,6 +510,7 @@ class ItemLexicon {
     'molletes': 'molletes',
     'mole': 'mole',
     'pozole': 'pozole',
+    'pozoles': 'pozoles',
     'menudo': 'menudo',
     'pancita': 'pancita',
     'birria': 'birria',
@@ -557,7 +575,7 @@ class ItemLexicon {
     'pabellon': 'pabellón criollo',
     'pabellon criollo': 'pabellón criollo',
     'hallaca': 'hallaca',
-    'cachito': 'cachito (ham roll)',
+    'cachito': 'cachito (savoury roll)',
     'patacon': 'patacón|patacones',
     'tostones': 'tostones (fried plantain)',
     'golfeado': 'golfeado (sticky bun)',
@@ -572,6 +590,7 @@ class ItemLexicon {
     'tapado': 'tapado',
     'chuchito': 'chuchito',
     'rellenitos': 'rellenitos',
+    'rellenitos de platano': 'rellenitos de plátano (stuffed plantain)',
     'garnacha': 'garnacha',
     'shuco': 'shuco',
     'desayuno chapin': 'desayuno chapín (Guatemalan breakfast)',
@@ -595,6 +614,8 @@ class ItemLexicon {
     'club sandwich': 'club sandwich',
     'sandwich club': 'club sandwich',
     'pizza': 'pizza',
+    'pizza margarita': 'margherita pizza',
+    'pizza margherita': 'margherita pizza',
     'pasta': 'pasta',
     'lasagna': 'lasagne',
     'spaghetti': 'spaghetti',
@@ -646,7 +667,9 @@ class ItemLexicon {
     'ribeye': 'rib-eye steak',
     't bone': 'T-bone steak',
     'tbone': 'T-bone steak',
-    'new york': 'New York strip steak',
+    'hot cakes': 'pancakes',
+    'hot cake': 'pancake',
+    'pancake': 'pancake',
     'sirloin': 'sirloin steak',
     'big mac': 'Big Mac',
     'whopper': 'Whopper',
@@ -706,6 +729,8 @@ class ItemLexicon {
     'cangrejo': 'crab',
     'langosta': 'lobster',
     'cola de langosta': 'lobster tail',
+    'cola de res': 'oxtail',
+    'rabo de res': 'oxtail',
     'langostino': 'king prawn',
     'ostion': 'oyster',
     'almeja': 'clam',
@@ -718,6 +743,8 @@ class ItemLexicon {
     'garbanzo': 'chickpea',
     'elote': 'corn',
     'maiz': 'corn',
+    'choclo': 'sweetcorn',
+    'chispas de chocolate': 'chocolate chip',
     'harina': 'flour',
     'trigo': 'wheat',
     'avena': 'oat',
@@ -790,15 +817,15 @@ class ItemLexicon {
     'tamarindo': 'tamarind',
     'jamaica': 'hibiscus',
     'rosa de jamaica': 'hibiscus',
-    'maracuya': 'passion-fruit',
-    'parchita': 'passion-fruit',
+    'maracuya': 'passion fruit',
+    'parchita': 'passion fruit',
     'guanabana': 'soursop',
     'lulo': 'lulo',
     'tomate de arbol': 'tree tomato',
     'zarzamora': 'blackberry',
     'mora': 'blackberry',
     'frambuesa': 'raspberry',
-    'frutos rojos': 'red berry',
+    'frutos rojos': 'mixed berry',
     'cereza': 'cherry',
     'kiwi': 'kiwi',
     'higo': 'fig',
@@ -850,14 +877,22 @@ class ItemLexicon {
     'vinagre': 'vinegar',
     'aceite': 'oil',
     'chamoy': 'chamoy',
-    'moka': 'mocha',
-    'moca': 'mocha',
-    'te verde': 'green tea',
-    'te negro': 'black tea',
-    'manzanilla': 'chamomile',
     'jengibre': 'ginger',
     'curcuma': 'turmeric',
     'tofu': 'tofu',
+  };
+
+  /// Flavours that are a drink when ordered on their own ("TE VERDE",
+  /// "MOKA GDE") and a flavour next to anything else ("HELADO DE MATCHA").
+  static const Map<String, String> _drinkFlavours = {
+    'moka': 'mocha',
+    'moca': 'mocha',
+    'mocha': 'mocha',
+    'te verde': 'green tea',
+    'te negro': 'black tea',
+    'manzanilla': 'chamomile',
+    'chai': 'chai',
+    'matcha': 'matcha',
   };
 
   /// Things that are neither food nor drink in English wording either.
@@ -869,9 +904,6 @@ class ItemLexicon {
   static const Map<String, String> _ingredientsAsPrinted = {
     'caramel': 'caramel',
     'vanilla': 'vanilla',
-    'mocha': 'mocha',
-    'chai': 'chai',
-    'matcha': 'matcha',
     'taro': 'taro',
     'whip': 'whip',
     'chicken': 'chicken',
@@ -952,6 +984,7 @@ class ItemLexicon {
     'corona': 'Corona',
     'modelo': 'Modelo',
     'modelo especial': 'Modelo Especial',
+    'corona extra': 'Corona Extra',
     'negra modelo': 'Negra Modelo',
     'victoria': 'Victoria',
     'pacifico': 'Pacífico',
@@ -969,6 +1002,8 @@ class ItemLexicon {
     'cabro': 'Cabro',
     'pilsener': 'Pilsener',
     'polar': 'Polar',
+    'polar light': 'Polar Light',
+    'polar pilsen': 'Polar Pilsen',
     'aguila': 'Águila',
     'club colombia': 'Club Colombia',
     'poker': 'Poker',
@@ -1022,6 +1057,20 @@ class ItemLexicon {
     'tajin': 'Tajín',
     'valentina': 'Valentina',
     'tabasco': 'Tabasco',
+    'bimbo': 'Bimbo',
+    'marinela': 'Marinela',
+    'barcel': 'Barcel',
+    'gamesa': 'Gamesa',
+    'lala': 'Lala',
+    'alpura': 'Alpura',
+    'nestle': 'Nestlé',
+    'danone': 'Danone',
+    'pinguinos': 'Pingüinos',
+    'carlos v': 'Carlos V',
+    'skittles': 'Skittles',
+    'halls': 'Halls',
+    'trident': 'Trident',
+    'emperador': 'Emperador',
   };
 
   /// Words that describe, and go in front in English. A word ending in "o"
@@ -1117,6 +1166,11 @@ class ItemLexicon {
     'mini': 'mini',
     'junior': 'junior',
     'infantil': 'children\'s',
+    'adulto': 'adult',
+    'nino': 'child',
+    'continental': 'continental',
+    'glaseado': 'glazed',
+    'americana': 'American',
     'desechable': 'disposable',
     'retornable': 'returnable',
     'no retornable': 'non-returnable',
@@ -1128,7 +1182,6 @@ class ItemLexicon {
     'verde': 'green',
     'amarillo': 'yellow',
     'azul': 'blue',
-    'rosa': 'pink',
     'oscuro': 'dark',
     'dulce': 'sweet',
     'picante': 'spicy',
@@ -1171,6 +1224,8 @@ class ItemLexicon {
     'anejo': 'añejo',
     'reposado': 'reposado',
     'plata': 'silver',
+    'ambar': 'amber',
+    'lager': 'lager',
     '4 quesos': 'four-cheese',
     'cuatro quesos': 'four-cheese',
     '3 quesos': 'three-cheese',
@@ -1193,6 +1248,7 @@ class ItemLexicon {
     'club': 'club',
     'diet': 'diet',
     'red velvet': 'red velvet',
+    'new york': 'New York',
     'lemon pepper': 'lemon pepper',
     'honey mustard': 'honey mustard',
     'white': 'white',
@@ -1227,6 +1283,13 @@ class ItemLexicon {
     'pelua': 'pelúa',
     'domino': 'dominó',
     'con todo': 'with everything',
+    'refill': 'refill',
+    'alfredo': 'Alfredo',
+    'bolonesa': 'bolognese',
+    'a la bolonesa': 'bolognese',
+    'carbonara': 'carbonara',
+    'a la carbonara': 'carbonara',
+    'al pesto': 'with pesto',
   };
 
   /// Sizes. A word ending in "o" also covers its feminine.
@@ -1290,6 +1353,8 @@ class ItemLexicon {
   static const Map<String, String> _service = {
     'vaso desechable': 'disposable cup',
     'vaso para llevar': 'to-go cup',
+    'bolsa de papel': 'paper bag',
+    'bolsa de plastico': 'plastic bag',
     'tapa': 'lid',
     'popote': 'straw',
     'pitillo': 'straw',
@@ -1308,8 +1373,14 @@ class ItemLexicon {
     'servicio': 'service',
     'servicio a domicilio': 'home delivery',
     'envio': 'delivery',
-    'refill': 'refill',
     'barra libre': 'open bar',
+    'servicio a habitacion': 'room service',
+    'servicio a la habitacion': 'room service',
+    'servicio a cuartos': 'room service',
+    'servicio al cuarto': 'room service',
+    'room service': 'room service',
+    'cargo por servicio': 'service charge',
+    'cargo de servicio': 'service charge',
   };
 
   /// Openers of an option line.
@@ -1332,6 +1403,8 @@ class ItemLexicon {
     'rosa de jamaica': ('hibiscus drink', ItemKind.drink),
     'avena': ('oatmeal', ItemKind.food),
     'elote': ('corn on the cob', ItemKind.food),
+    'pure': ('mashed potato', ItemKind.food),
+    'new york': ('New York strip steak', ItemKind.food),
   };
 
   /// Names whose word-for-word English would be wrong and that have no
@@ -1345,8 +1418,9 @@ class ItemLexicon {
 
   /// Heads whose meaning changes with what follows "de" ("crema de elote"
   /// is a soup, "crema de whisky" a liqueur, "crema de cacahuate" peanut
-  /// butter): only the listed phrases are translated.
-  static const Set<String> _onlyListedWithDe = {'crema'};
+  /// butter; "cola de res" is oxtail, not a beef cola): only the listed
+  /// phrases are translated.
+  static const Set<String> _onlyListedWithDe = {'crema', 'cola'};
 
   /// Flavours that make a "torta" a cake; otherwise it is Mexico's
   /// sandwich.
@@ -1492,6 +1566,8 @@ class ItemLexicon {
     'del': 'de',
     'en': 'en',
     'para': 'para',
+    // Only in a choice line: "CAMBIO DE LECHE A DESLACTOSADA".
+    'a': 'a',
   };
 
   static const Map<String, String> _connectorEnglish = {
@@ -1501,6 +1577,7 @@ class ItemLexicon {
     'o': 'or',
     'en': 'in',
     'para': 'for',
+    'a': 'to',
   };
 
   /// Words of a name that are never made plural.
@@ -1524,6 +1601,25 @@ class ItemLexicon {
       _Entry('medio', 'half', null, _Role.adjective, ItemKind.other);
   static const _Entry _medium =
       _Entry('medio', 'medium', null, _Role.size, ItemKind.other);
+  static const _Entry _american =
+      _Entry('americano', 'American', null, _Role.adjective, ItemKind.other);
+  static const _Entry _fruitDrink =
+      _Entry('fresco', 'fruit drink', null, _Role.head, ItemKind.drink);
+  static const _Entry _fresca =
+      _Entry('fresca', 'Fresca', null, _Role.brand, ItemKind.drink);
+
+  /// What a describing word names after "de": the meat cooked that way
+  /// ("TACOS DE ASADA", "BURRITO DE DESHEBRADA").
+  static const Map<String, _Entry> _meats = {
+    'asada': _Entry('asada', 'carne asada', null, _Role.ingredient,
+        ItemKind.food),
+    'adobada': _Entry('adobada', 'adobada (marinated pork)', null,
+        _Role.ingredient, ItemKind.food),
+    'deshebrada': _Entry('deshebrada', 'shredded beef', null,
+        _Role.ingredient, ItemKind.food),
+    'molida': _Entry('molida', 'minced beef', null, _Role.ingredient,
+        ItemKind.food),
+  };
 
   static void _build() {
     if (_built) return;
@@ -1536,6 +1632,7 @@ class ItemLexicon {
       (_dishesKept, _Role.head, ItemKind.food, false),
       (_dishesAsPrinted, _Role.head, ItemKind.food, true),
       (_ingredients, _Role.ingredient, ItemKind.food, false),
+      (_drinkFlavours, _Role.ingredient, ItemKind.drink, false),
       (_ingredientsOther, _Role.ingredient, ItemKind.other, false),
       (_ingredientsAsPrinted, _Role.ingredient, ItemKind.food, true),
       (_drinkBrands, _Role.brand, ItemKind.drink, true),
@@ -1578,15 +1675,22 @@ class ItemLexicon {
         entries.add(entry);
       });
     }
-    for (final entry in entries) {
-      for (final (key, plural) in _variantsOf(entry)) {
-        final taken = _index[key];
-        if (taken == null) {
-          _index[key] = _Hit(entry, plural, true);
-        } else if (taken.derived && !taken.entry.sameMeaning(entry)) {
-          _conflicts.add('"$key" (from "${taken.entry.key}" and '
-              '"${entry.key}"): "${taken.entry.english}" and '
-              '"${entry.english}"');
+    // The plain plural of a written word ("rebanadas", slices) wins over
+    // a feminine made from another one ("rebanado" -> "rebanadas", sliced).
+    for (final feminine in const [false, true]) {
+      final made = <String>{};
+      for (final entry in entries) {
+        for (final (key, plural) in _variantsOf(entry, feminine: feminine)) {
+          final taken = _index[key];
+          if (taken == null) {
+            _index[key] = _Hit(entry, plural, true);
+            made.add(key);
+          } else if (made.contains(key) &&
+              !taken.entry.sameMeaning(entry)) {
+            _conflicts.add('"$key" (from "${taken.entry.key}" and '
+                '"${entry.key}"): "${taken.entry.english}" and '
+                '"${entry.english}"');
+          }
         }
       }
     }
@@ -1604,14 +1708,20 @@ class ItemLexicon {
   /// a thing.
   static const Set<String> _bothWays = {'vegetal', 'batido', 'cortado'};
 
-  /// The other ways tills print [entry]: plural ("tacos"), feminine
-  /// ("frita"), and with "de" left out ("JUGO NARANJA").
-  static Iterable<(String, bool)> _variantsOf(_Entry entry) sync* {
+  /// The other ways tills print [entry]: plural ("tacos"), with "de"
+  /// left out ("JUGO NARANJA"), and, when [feminine] is asked for, the
+  /// feminine of a describing word ("frita", "fritas").
+  static Iterable<(String, bool)> _variantsOf(
+    _Entry entry, {
+    required bool feminine,
+  }) sync* {
     final words = entry.key.split(' ');
-    final forms = <(List<String>, bool)>[(words, false)];
+    final forms = <(List<String>, bool)>[];
     final gendered =
         entry.role == _Role.adjective || entry.role == _Role.size;
-    if (gendered && words.length == 1 && words.first.endsWith('o')) {
+    if (!feminine) {
+      forms.add((words, false));
+    } else if (gendered && words.length == 1 && words.first.endsWith('o')) {
       final w = words.first;
       forms.add((['${w.substring(0, w.length - 1)}a'], false));
     }
@@ -1621,6 +1731,14 @@ class ItemLexicon {
     if (inflects) {
       for (final (base, _) in [...forms]) {
         for (final ending in const ['es', 's']) {
+          if (entry.asPrinted && base.length > 1) {
+            // English wording takes its plural at the end: "HOT DOGS".
+            final last = _pluralWord(base.last, ending);
+            if (last != null) {
+              forms.add(([...base.take(base.length - 1), last], true));
+            }
+            continue;
+          }
           final first = _pluralWord(base.first, ending);
           if (first == null) continue;
           forms.add(([first, ...base.skip(1)], true));
@@ -1970,7 +2088,8 @@ class ItemLexicon {
 
   /// Abbreviations written out in full, by what stands next to them:
   /// "C" between words is "con", "L." before a milk type is "leche",
-  /// "DESC" after milk is "descremada" and otherwise "descuento".
+  /// "DESC" after milk is "descremada" and otherwise "descuento", "JAM"
+  /// after a drink is "jamaica" and otherwise "jamon".
   static void _writeOut(List<_Token> tokens) {
     String? wordAt(int i) =>
         i >= 0 && i < tokens.length && tokens[i].type == _T.word
@@ -1986,7 +2105,18 @@ class ItemLexicon {
         if (next != null && !_isLetter(next)) full = 'con';
       } else if (t.text == 'l') {
         final after = next == 'de' ? wordAt(i + 2) : next;
-        if (after != null && _milkTypes.contains(after)) full = 'leche';
+        if (after != null &&
+            _milkTypes.contains(_abbreviations[after] ?? after)) {
+          full = 'leche';
+        }
+      } else if (t.text == 'jam') {
+        // "AGUA JAM" is hibiscus water, "TORTA JAM" a ham sandwich.
+        final thing = _index[before == 'de' ? wordAt(i - 2) : before]?.entry;
+        full = thing != null &&
+                thing.role == _Role.head &&
+                thing.kind == ItemKind.drink
+            ? 'jamaica'
+            : 'jamon';
       } else if (t.text == 'desc') {
         full = before == 'leche' || before == 'yogurt'
             ? 'descremada'
@@ -2111,7 +2241,8 @@ class ItemLexicon {
         if (n == 1 && t.type == _T.number) continue;
         final hit = _index[window.map((w) => w.text).join(' ')];
         if (hit == null) continue;
-        units.add(_Unit(_U.entry, '', entry: hit.entry, plural: hit.plural));
+        units.add(_Unit(_U.entry, window.map((w) => w.text).join(' '),
+            entry: hit.entry, plural: hit.plural));
         matched = n;
       }
       if (matched > 0) {
@@ -2156,6 +2287,46 @@ class ItemLexicon {
         drinkBefore = true;
       }
       if (u.type == _U.connector && u.text != 'de') drinkBefore = false;
+    }
+    // "CAFE AMERICANO" and "AMERICANO GDE" are the coffee; behind food
+    // ("DESAYUNO AMERICANO", "QUESO AMERICANO") the word is "American".
+    var foodBefore = false;
+    for (final u in units) {
+      if (u.entry?.key == 'americano' && foodBefore) u.entry = _american;
+      if (u.isNoun) foodBefore = u.entry!.kind == ItemKind.food;
+      if (u.type == _U.connector && u.text != 'de') foodBefore = false;
+    }
+    // "TACOS DE ASADA": straight after "de", a describing word in the
+    // feminine is not describing the tacos ("grilled tacos") but naming
+    // the meat. Only meats with a settled name are read.
+    for (var i = 1; i < units.length; i++) {
+      final u = units[i];
+      final before = units[i - 1];
+      if (u.role != _Role.adjective ||
+          before.type != _U.connector ||
+          before.text != 'de') {
+        continue;
+      }
+      final key = u.entry!.key;
+      if (!key.endsWith('o') ||
+          u.text != '${key.substring(0, key.length - 1)}a') {
+        continue;
+      }
+      final meat = _meats[u.text];
+      units[i] = meat == null
+          ? _Unit(_U.unknown, u.text)
+          : _Unit(_U.entry, u.text, entry: meat);
+    }
+    // "FRESCO DE TAMARINDO" has its own entry; a line that opens with
+    // "FRESCO" and names nothing else ("FRESCO NATURAL") is the fruit
+    // drink of Guatemala and El Salvador, not the word "fresh", and one
+    // that opens with "FRESCA" ("FRESCA 600ML") is the soft drink.
+    final opener = units.indexWhere((u) => !u.isNumber);
+    if (opener >= 0 &&
+        units[opener].role == _Role.adjective &&
+        !units.skip(opener + 1).any((u) => u.isNoun)) {
+      if (units[opener].text == 'fresco') units[opener].entry = _fruitDrink;
+      if (units[opener].text == 'fresca') units[opener].entry = _fresca;
     }
     // A word that is the whole line.
     final core = [
@@ -2211,9 +2382,15 @@ class ItemLexicon {
       }
     }
     final out = <String>[];
+    final swapped = rest.any((u) => u.type == _U.connector && u.text == 'a');
     if (rest.isNotEmpty && rest.first.role == _Role.lead) {
-      out.add(rest.removeAt(0).english);
-      if (rest.isEmpty || rest.first.type == _U.connector) return null;
+      // "CAMBIO LECHE A ALMENDRA" -> "Change milk to almond".
+      final lead = rest.removeAt(0).english;
+      out.add(swapped && lead == 'change to' ? 'change' : lead);
+      // "CAMBIO 50.00" is the change handed back, not a choice.
+      if (rest.isEmpty || rest.first.type != _U.entry) return null;
+    } else if (swapped) {
+      return null;
     }
     if (rest.any((u) => u.role == _Role.lead)) return null;
 
@@ -2329,7 +2506,10 @@ class ItemLexicon {
     }
     inside.first.linked = false;
     final english = _name(inside);
-    return english == null ? null : '$words of $english';
+    if (english == null) return null;
+    // "DOCENA DE DONAS" -> "dozen doughnuts".
+    final of = measure.entry!.english.endsWith('dozen') ? '' : ' of';
+    return '$words$of $english';
   }
 
   static String? _described(List<_Unit> body) {
@@ -2352,9 +2532,14 @@ class ItemLexicon {
     }
     if (words.isEmpty) return null;
 
+    // The thing is the first dish or drink; with none, whichever comes
+    // first of a brand ("FANTA NARANJA" -> "Fanta orange") and an
+    // ingredient ("CHOCOLATE HERSHEY" -> "Hershey's chocolate").
     var h = words.indexWhere((u) => u.role == _Role.head);
-    if (h < 0) h = words.indexWhere((u) => u.role == _Role.brand);
-    if (h < 0) h = words.indexWhere((u) => u.role == _Role.ingredient);
+    if (h < 0) {
+      h = words.indexWhere(
+          (u) => u.role == _Role.brand || u.role == _Role.ingredient);
+    }
     if (h < 0) {
       // Only describing words: "MINERAL", "PARA LLEVAR", "DESLACTOSADA".
       if (words.any((u) => u.role == _Role.measure)) return null;
@@ -2385,20 +2570,40 @@ class ItemLexicon {
     final groups = <List<_Unit>>[];
     final behind = <String>[];
     final packs = <String>[];
+    final variety = <_Unit, String>{};
     var nounBefore = false;
     for (var i = end; i < words.length; i++) {
       final u = words[i];
       switch (u.role) {
         case _Role.adjective:
-          describing.insert(0, u.singular);
+          if (head.role == _Role.brand) {
+            // "POLAR LIGHT", "DOS EQUIS AMBAR": what follows a brand is
+            // its variety and stays behind it.
+            behind.add(u.singular);
+          } else if (i > end &&
+              words[i - 1].role == _Role.brand &&
+              words[i - 1].entry!.kind == ItemKind.drink &&
+              !u.linked) {
+            // "TEQUILA DON JULIO REPOSADO" -> "Don Julio reposado tequila":
+            // what follows a drink's brand is its variety.
+            variety[words[i - 1]] = ' ${u.singular}';
+          } else {
+            describing.insert(0, u.singular);
+          }
           nounBefore = false;
         case _Role.after:
         case null:
           behind.add(u.singular);
           nounBefore = false;
         case _Role.measure:
-          // "COCA ZERO BOT": how it comes, after a comma.
-          if (u.linked) return null;
+          // "COCA ZERO BOT", "REFRESCO DE LATA": how it comes, after a
+          // comma.
+          if (u.linked &&
+              !(i == words.length - 1 &&
+                  _drinkContainers.contains(u.entry!.key) &&
+                  head.entry!.kind == ItemKind.drink)) {
+            return null;
+          }
           if (i + 1 < words.length && words[i + 1].linked) return null;
           packs.add(u.singular);
           nounBefore = false;
@@ -2453,12 +2658,13 @@ class ItemLexicon {
           .any((u) => _sweetFlavours.contains(u.entry!.key));
       if (sweet) thing = head.plural ? 'cakes' : 'cake';
     }
+    String said(_Unit u) => '${u.singular}${variety[u] ?? ''}';
     final fillings = [
       for (final group in groups.reversed)
         group.length == 1
-            ? group.single.singular
-            : '${group.take(group.length - 1).map((u) => u.singular).join(', ')}'
-                ' and ${group.last.singular}',
+            ? said(group.single)
+            : '${group.take(group.length - 1).map(said).join(', ')}'
+                ' and ${said(group.last)}',
     ];
     final english = [
       ...describing,
