@@ -8,6 +8,7 @@ class WordsAmount {
     required this.exact,
     required this.formal,
     this.cents,
+    this.currency,
   });
 
   /// The whole-currency part: 3760.
@@ -23,6 +24,10 @@ class WordsAmount {
   /// Written the way a receipt states the amount due ("00/100", "SON:",
   /// "M.N.", "ONLY"), not a passing mention of money in an advert.
   final bool formal;
+
+  /// The currency the words name when only one country uses that word
+  /// ("QUETZALES" is GTQ); null for "PESOS", which several do.
+  final String? currency;
 
   /// The amount in minor units; missing hundredths count as zero.
   int toMinor(int exponent) {
@@ -262,6 +267,37 @@ class AmountInWords {
     'kwacha', 'birr',
   };
 
+  /// Currency words that belong to one currency. "Peso", "franco" and
+  /// "dinar" are shared by several countries and say nothing.
+  static const Map<String, String> _currencyCodes = {
+    'quetzal': 'GTQ', 'quetzales': 'GTQ', 'lempira': 'HNL', 'lempiras': 'HNL', //
+    'bolivar': 'VES', 'bolivares': 'VES', 'colon': 'CRC', 'colones': 'CRC',
+    'cordoba': 'NIO', 'cordobas': 'NIO', 'sol': 'PEN', 'soles': 'PEN',
+    'boliviano': 'BOB', 'bolivianos': 'BOB', 'guarani': 'PYG',
+    'guaranies': 'PYG', 'reais': 'BRL', 'euro': 'EUR', 'euros': 'EUR',
+    'dolar': 'USD', 'dolares': 'USD', 'dollar': 'USD', 'dollars': 'USD',
+    'pound': 'GBP', 'pounds': 'GBP', 'naira': 'NGN', 'cedi': 'GHS',
+    'cedis': 'GHS', 'rupee': 'INR', 'rupees': 'INR', 'rand': 'ZAR',
+    'yen': 'JPY', 'birr': 'ETB',
+  };
+
+  /// The code for a currency word, allowing one misread letter in a long
+  /// word ("QUETZA1ES").
+  static String? _codeFor(String text) {
+    final exact = _currencyCodes[text];
+    if (exact != null) return exact;
+    if (text.length < 7 || _currencies.contains(text)) return null;
+    String? found;
+    for (final entry in _currencyCodes.entries) {
+      if (entry.key.length < 7) continue;
+      if ((entry.key.length - text.length).abs() > 1) continue;
+      if (_distance(text, entry.key, 1) > 1) continue;
+      if (found != null && found != entry.value) return null;
+      found = entry.value;
+    }
+    return found;
+  }
+
   /// "con 50 CENTAVOS", "and fifty CENTS".
   static const Set<String> _centWords = {
     'centavo', 'centavos', 'centimo', 'centimos', 'ctvs', 'cts', 'cent', //
@@ -280,6 +316,8 @@ class AmountInWords {
     'con', 'en', 'la', 'de', 'por', 'in', 'of', 'the', 'a', 'el', 'los', //
     'pagar', 'recibi', 'recibimos', 'bs', 'mxn', 'usd', 'ves', 'cop', 'sum',
     'suma', 'cantidad', 'importe', 'monto', 'valor', 'total', 'amount',
+    // "Q. CIENTO VEINTICINCO CON 50/100", "LPS. DOS MIL…", "US$ TREINTA…"
+    'q', 'gtq', 'l', 'lps', 'hnl', 'us', 'crc', 'eur', 'gbp',
   };
 
   /// After the amount: "M.N.", "M/CTE", "ONLY".
@@ -565,9 +603,11 @@ class AmountInWords {
       i = j + 1;
     }
     var currencyAfter = false;
+    String? currencyCode;
     if (currencyAt(i)) {
       hasCurrency = true;
       currencyAfter = true;
+      currencyCode = _codeFor(tokens[i].text);
       i++;
     }
     if (cents == null) {
@@ -628,6 +668,7 @@ class AmountInWords {
       final text = before.text;
       if (_isCurrency(text)) {
         hasCurrency = true; // "SON PESOS: UN MIL…", "Rupees Four Hundred"
+        currencyCode ??= _codeFor(text);
       } else if (!_labels.contains(text) &&
           !_fillers.contains(text) &&
           !_hardBreak.hasMatch(gap) &&
@@ -679,6 +720,7 @@ class AmountInWords {
         cents: cents,
         exact: clean && !uncertainStart,
         formal: formal,
+        currency: currencyCode,
       ),
       next,
     );
