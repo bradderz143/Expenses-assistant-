@@ -10,6 +10,7 @@ import '../domain/logic/item_classifier.dart';
 import '../domain/logic/item_lexicon.dart';
 import '../domain/logic/item_line_parser.dart';
 import '../domain/logic/ocr_row_assembler.dart';
+import '../domain/logic/receipt_labels.dart';
 import '../domain/logic/receipt_text_lines.dart';
 import '../domain/logic/receipt_text_parser.dart';
 import '../domain/logic/text_normaliser.dart';
@@ -223,6 +224,20 @@ class TranslateItemsUseCase {
           country: current.country,
         );
         if (known != null) glossary.putIfAbsent(keys[i], () => known);
+      }
+    }
+    // The label lines of a receipt that is not a meal ("FECHA: 14/09/2026",
+    // "FORMA DE PAGO: EFECTIVO") get the label dictionary's English, with
+    // the value as printed. The user's saved wording and the standard
+    // wording above come first.
+    if (wholeText) {
+      final labelled = ReceiptLabels.translateAll(
+        [for (final item in items) item.description],
+        language,
+      );
+      for (var i = 0; i < items.length; i++) {
+        final fixed = labelled[i];
+        if (fixed != null) glossary.putIfAbsent(keys[i], () => fixed);
       }
     }
 
