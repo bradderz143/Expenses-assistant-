@@ -1014,7 +1014,63 @@ class ItemLineParser {
       loose = 0;
       i++;
     }
+    if (items.isEmpty) {
+      return _pairedBlocks(texts, parsed, summary, style);
+    }
     return items;
+  }
+
+  /// The two columns read as two blocks: every name, then every price
+  /// ("1 CAFE AMERICANO" / "1 PAN DULCE" / "45.00" / "25.00"). They are
+  /// paired in order only when a run of names is followed at once by exactly
+  /// as many lone prices; anything else is not guessed.
+  static List<ReceiptItem> _pairedBlocks(
+    List<String> texts,
+    List<_Row> parsed,
+    bool Function(int) summary,
+    _Style style,
+  ) {
+    final n = texts.length;
+    bool nameOnly(int i) =>
+        _wordy.hasMatch(texts[i]) &&
+        !_heading.hasMatch(texts[i]) &&
+        !summary(i) &&
+        parsed[i].tail.isEmpty &&
+        _looksLikeName(_nameOf(parsed[i].head, style).$1);
+    bool priceOnly(int i) =>
+        parsed[i].figuresOnly &&
+        parsed[i].tail.length == 1 &&
+        parsed[i].amounts.length == 1;
+    var start = 0;
+    while (start < n) {
+      if (!nameOnly(start)) {
+        start++;
+        continue;
+      }
+      var end = start;
+      while (end + 1 < n && nameOnly(end + 1)) {
+        end++;
+      }
+      var after = end + 1;
+      while (after < n && priceOnly(after)) {
+        after++;
+      }
+      final names = end - start + 1;
+      if (names >= 2 && after - (end + 1) == names) {
+        return [
+          for (var k = 0; k < names; k++)
+            ReceiptItem(
+              description: _nameOf(parsed[start + k].head, style).$1,
+              quantity: _nameOf(parsed[start + k].head, style).$2,
+              amountText: parsed[end + 1 + k].amount,
+              firstRow: start + k,
+              lastRow: end + 1 + k,
+            ),
+        ];
+      }
+      start = end + 1;
+    }
+    return const [];
   }
 
   /// [extract], falling back to line-by-line parsing for crops with no prices.
