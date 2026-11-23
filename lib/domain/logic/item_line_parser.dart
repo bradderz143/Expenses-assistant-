@@ -25,6 +25,7 @@ class _Style {
     this.oneDecimal = false,
     this.wholePrices = false,
     this.quantityColumn = false,
+    this.flags = '',
   });
 
   /// Prices with one decimal ("110.0").
@@ -35,6 +36,10 @@ class _Style {
 
   /// Item rows begin with a quantity ("1 CAFE", "2 PAN").
   final bool quantityColumn;
+
+  /// Letters this receipt prints after its prices as tax marks although
+  /// they could be a size: "1.15 G" (gravado) on every row.
+  final String flags;
 }
 
 /// One OCR row split into its wording and the figures after it.
@@ -92,6 +97,8 @@ class ItemLineParser {
     // Tax: "IVA 16%", "I.V.A.", "IMPUESTOS", "SALES TAX", "IGTF 3%".
     r'i\.?\s?v\.?\s?a(?:\b|\d)|ieps|i\.e\.p\.s|isr\b|ish\b|igtf\b|'
     r'impoconsumo|impuestos?\b|(?:sales|state|city)\s+tax|vat\b|gst\b|'
+    // The fuel tax printed under the fuel in Guatemala: "IDP Q 40.06".
+    r'idp\b|'
     // Tip and service: "PROPINA", "CARGO POR SERVICIO", "SERVICIO 10%",
     // "OPTIONAL SERVICE CHARGE", "TAXA DE SERVICO", "GORJETA".
     r'propina|gratuity|gorjeta|service\s*charge|'
@@ -127,17 +134,31 @@ class ItemLineParser {
   /// ("TOTAL 0% YOGUR", "TIP TOP PAN", "TABLE WATER", "MESA DE QUESOS",
   /// "TARJETA DE REGALO", "DATE SCONE"). See [_summaryOf].
   static final RegExp _soft = _folded(
-    r'^(?:total|tip|tarjeta|card|cartao|visa|credito|debito|mesa|table|'
+    r'^(?:total|tip|tarjeta|card|cartao|visa|credito|debito|credit|debit|'
+    r'mesa|table|'
     r'fecha|date|hora|time|ticket|cuenta|pago|saldo|balance|cash|tax)\b',
   );
 
   /// The count of things bought: "ARTICULOS 4", "NO. DE ARTICULOS: 2",
   /// "ARTICULOS VENDIDOS: 3", "PIEZAS 5".
+  /// And with the count first, or in Portuguese: "5 ITEMS", "TOTAL
+  /// ARTICULOS 6", "QTD. TOTAL DE ITENS 4".
   static final RegExp _count = _folded(
-    r'^(?:(?:no|num|numero|cantidad|cant)\.?\s*(?:de\s+)?)?'
-    r'(?:articulos|arts|piezas|pzas|productos|items)\b\.?'
-    r'(?:\s+(?:vendidos|comprados|sold))?\s*[:#=]?\s*\d+\s*$',
+    r'^(?:(?:(?:no|num|numero|cantidad|cant|qtd|qtde|quantidade|total)\.?\s*'
+    r'(?:total\s+)?(?:de\s+)?)?'
+    r'(?:articulos|arts|piezas|pzas|productos|items|itens)\b\.?'
+    r'(?:\s+(?:vendidos|comprados|sold))?\s*[:#=]?\s*\d+\s*$|'
+    r'\d{1,3}\s+(?:articulos|arts|piezas|pzas|productos|items|itens)'
+    r'(?:\s+(?:vendidos|comprados|sold))?\s*$)',
   );
+
+  /// A saving or discount named after its product, printed under it between
+  /// the items: "AHORRO CAFE NESCAFE -12.00".
+  static final RegExp _savingOn = _folded(r'^(?:ahorro|descuentos|savings)\s');
+
+  /// A masked card number read as a word: "XXXX1111" (its digits folded
+  /// to letters).
+  static final RegExp _masked = RegExp(r'^x{3,}[iosb]*$');
 
   /// The subtotal or total row itself.
   static final RegExp _totalWord = _folded(
@@ -180,6 +201,7 @@ class ItemLineParser {
       'item', 'sold', 'vendidos', 'descuento', 'descuentos', 'discount',
       'discounts', 'ahorro', 'savings',
       // header
+      'cargos', 'abono', 'abonos',
       'ticket', 'folio', 'mesa', 'table', 'fecha', 'date', 'hora', 'time',
       'numero', 'num', 'operacion', 'documento', 'factura', 'cerrada',
       'cerrado', 'pers', 'persona', 'personas', 'guests', 'covers', 'pax',
@@ -229,9 +251,18 @@ class ItemLineParser {
     final t = _fold(text).replaceFirst(_leadIn, '');
     if (t.isEmpty) return (_Summary.no, false);
     final totals = _totalWord.hasMatch(t);
-    if (_strict.hasMatch(t) || _count.hasMatch(t)) return (_Summary.yes, totals);
-    final words = [for (final m in _word.allMatches(t)) m[0]!];
+    final words = [
+      for (final m in _word.allMatches(t))
+        if (!_masked.hasMatch(m[0]!)) m[0]!,
+    ];
     final product = words.any((w) => !_vocabulary.contains(w));
+    if (product &&
+        row.head.isNotEmpty &&
+        (row.amount?.startsWith('-') ?? false) &&
+        _savingOn.hasMatch(t)) {
+      return (_Summary.no, false);
+    }
+    if (_strict.hasMatch(t) || _count.hasMatch(t)) return (_Summary.yes, totals);
     if (_soft.hasMatch(t)) {
       return row.amount != null && row.head.isNotEmpty && product
           ? (_Summary.product, false)
@@ -285,9 +316,23 @@ class ItemLineParser {
   /// measure "1.5 KG TORTILLA" (the unit is then kept with the quantity).
   static final RegExp _leadingQuantity = RegExp(
     r'^(\d{1,3}(?:[.,]\d{1,3})?)\s*(?:(kgs?|grs?|lbs?|oz|lts?|ml)|x|×|\*|'
-    r'pzas?|pz|piezas?|uds?|unds?|unid|uni|un|pcs?|ea)?\.?\s+(?=\D)',
+    r'pzas?|pz|piezas?|uds?|unds?|unid|uni|un|pcs?|ea)?\.?\s+'
+    // "1 175ML SAUVIGNON BLANC": the name itself begins with a measure.
+    r'(?=\D|\d+(?:[.,]\d+)?\s?(?:ml|cl|oz|grs?|kgs?|lts?|g|l)\b)',
     caseSensitive: false,
   );
+
+  /// "30.120 L PREMIUM", "8.524 GAL SUPER": a volume with its decimals,
+  /// where the bare letter cannot be a size of the product.
+  static final RegExp _leadingVolume = RegExp(
+    r'^(\d{1,3}[.,]\d{2,3})\s*(l|litros?|gal|galones)\.?\s+(?=\D)',
+    caseSensitive: false,
+  );
+
+  /// "001 1001 PRATO EXECUTIVO", "002 CAFE": the number of the line, with
+  /// its zeros, and a short product code. Not a quantity.
+  static final RegExp _lineCounter =
+      RegExp(r'^0\d{2}\s+(?:\d{3,}\s+)?(?=\S*[A-Za-zÀ-ÿ])');
 
   // ------------------------------------------------- whole-block extraction
 
@@ -341,6 +386,8 @@ class ItemLineParser {
     var m = _amountShape.firstMatch(token);
     // At least one true digit: "lO.OO" is letters.
     if (m != null && !RegExp(r'\d').hasMatch(m[3]!)) m = null;
+    // "1.5OZ" is a measure, not 1.50 with a tax letter.
+    if (m != null && RegExp(r'[.,]\d[Oo][A-Za-z]$').hasMatch(token)) m = null;
     if (m == null && style.wholePrices) m = _wholeShape.firstMatch(token);
     if (m == null) return null;
     final figures = m[3]!
@@ -378,7 +425,9 @@ class ItemLineParser {
     // Tax marks after the price are dropped.
     var end = tokens.length;
     var e = end;
-    while (e > 1 && _flagToken.hasMatch(tokens[e - 1])) {
+    while (e > 1 &&
+        (_flagToken.hasMatch(tokens[e - 1]) ||
+            (tokens[e - 1].length == 1 && style.flags.contains(tokens[e - 1])))) {
       e--;
     }
     if (e < end && amount(tokens[e - 1])) end = e;
@@ -430,11 +479,14 @@ class ItemLineParser {
       // Otherwise a size or an offer ("FOTO 4 X 6", "2 X 1"): part of the name.
     }
     if (headEnd < 0) {
+      // On a row that opens with its number, "X3" after the name is a pack
+      // size ("4 JABON PROTEX X3 9.800"), not how many.
+      final counted = RegExp(r'^\d{1,3}\s+\S').hasMatch(text);
       var i = end;
       while (i > 0 &&
           (amount(tokens[i - 1]) ||
               _perUnitToken.hasMatch(tokens[i - 1]) ||
-              _multiplierToken.hasMatch(tokens[i - 1]))) {
+              (!counted && _multiplierToken.hasMatch(tokens[i - 1])))) {
         i--;
       }
       headEnd = i;
@@ -508,11 +560,18 @@ class ItemLineParser {
     var t = head.replaceAll(_edges, '').trim();
     String? quantity;
     final one = style.quantityColumn ? _letterOne.firstMatch(t) : null;
+    final line = _lineCounter.firstMatch(t);
+    final volume = _leadingVolume.firstMatch(t);
     final coded = _quantityThenCode.firstMatch(t);
     final counted = _leadingQuantity.firstMatch(t);
     if (one != null) {
       quantity = '1';
       t = t.substring(one.end);
+    } else if (line != null) {
+      t = t.substring(line.end);
+    } else if (volume != null) {
+      quantity = '${_plain(volume[1]!)} ${volume[2]}';
+      t = t.substring(volume.end);
     } else if (coded != null) {
       quantity = coded[1];
       t = t.substring(coded[1]!.length).trim();
@@ -627,6 +686,15 @@ class ItemLineParser {
   static final RegExp _wholeEnd =
       RegExp(r'(?:^|\s)(?:\$?\d{1,3}(?:[.,]\d{3})+|\$\d+)$');
 
+  /// A price followed by one of the letters that could also be a size.
+  static final RegExp _markedPrice = RegExp(r'\s\d+[.,]\d{2}\s([GKLM])$');
+
+  /// The receipt's own key to its tax letters: "G = GRAVADO  E = EXENTO".
+  static final RegExp _flagLegend = RegExp(
+    r'\b([GKLM])\s?=\s?(?:GRAV|EXEN|NO\s+SUJ|IVA|TASA)',
+    caseSensitive: false,
+  );
+
   /// "1 CAFE AMERICANO", "2 PAN DULCE": a row that begins with a quantity.
   static final RegExp _quantityStart = RegExp(r'^\d{1,3}\s+[A-Za-zÀ-ÿ]{2}');
 
@@ -663,10 +731,25 @@ class ItemLineParser {
       if (_wholeEnd.hasMatch(text)) whole++;
       if (_quantityStart.hasMatch(text)) quantities++;
     }
+    // "1.15 G", "2.85 G", "3.45 G": the same letter after three prices is
+    // this till's tax mark, and so is one the receipt explains ("G =
+    // GRAVADO").
+    final marks = <String, int>{};
+    for (final row in rows) {
+      final m = _markedPrice.firstMatch(row.trimRight());
+      if (m != null) marks[m[1]!] = (marks[m[1]!] ?? 0) + 1;
+      for (final legend in _flagLegend.allMatches(row)) {
+        marks[legend[1]!] = 3;
+      }
+    }
     return _Style(
       oneDecimal: oneDecimal,
       wholePrices: !oneDecimal && !decimals && whole >= 2,
       quantityColumn: quantities >= 2,
+      flags: [
+        for (final mark in marks.entries)
+          if (mark.value >= 3) mark.key,
+      ].join(),
     );
   }
 
@@ -731,7 +814,19 @@ class ItemLineParser {
           TextNormaliser.letterCount(parsed[i].head.substring(m.end)) < 3;
     }
 
+    // A folio prints the day before every charge, the tax on it too
+    // ("16/11/26 IVA 16% 344.00"): such rows are passed over and do not end
+    // the list.
+    final dated = [for (final r in rows) _datedRow.hasMatch(r)];
+    var datedCharges = 0;
+    for (var k = 0; k < n; k++) {
+      if (dated[k] && parsed[k].amount != null) datedCharges++;
+    }
+    final folio = datedCharges >= 3;
+
     final items = <ReceiptItem>[];
+    // The number each item's row opened with, by the item's first row.
+    final leads = <int, String?>{};
     // Quantities printed on the row above their item ("2 x Bs 120,00").
     final quantityAbove = <int, String>{};
     var started = false;
@@ -747,6 +842,10 @@ class ItemLineParser {
         continue;
       }
       if (summary(i)) {
+        if (folio && dated[i] && !kinds[i].$2) {
+          i++;
+          continue;
+        }
         if (started) break;
         loose = 0;
         i++;
@@ -845,15 +944,19 @@ class ItemLineParser {
         var quantity = row.quantity ?? quantityAbove[i] ?? leading;
         // "TACO AL PASTOR 2 22.00 44.00": name, quantity, unit price and
         // line total, where 2 x 22.00 is 44.00.
+        // And with a measured quantity: "SUPER 8.524 31.49 268.42".
         final words = name.split(' ');
         if (quantity == null &&
             row.amounts.length >= 2 &&
             words.length >= 2 &&
-            RegExp(r'^[1-9]\d{0,2}$').hasMatch(words.last)) {
+            RegExp(r'^(?:[1-9]\d{0,2}|\d{1,3}[.,]\d{1,3})$')
+                .hasMatch(words.last)) {
           final unit = _value(row.amounts[row.amounts.length - 2], style);
+          final count = double.parse(words.last.replaceAll(',', '.'));
           if (unit != null &&
-              _close(unit * int.parse(words.last), _value(amountText, style))) {
-            quantity = words.last;
+              count > 0 &&
+              _close(unit * count, _value(amountText, style))) {
+            quantity = _plain(words.last);
             name = words.take(words.length - 1).join(' ');
           }
         }
@@ -865,6 +968,7 @@ class ItemLineParser {
           firstRow: quantityAbove.containsKey(i) ? i - 1 : i,
           lastRow: last,
         ));
+        leads[items.last.firstRow] = leading;
         loose = 0;
         voidAbove = false;
         i = last + 1;
@@ -917,6 +1021,7 @@ class ItemLineParser {
               firstRow: i,
               lastRow: last,
             ));
+            leads[i] = leading;
             loose = 0;
             voidAbove = false;
             i = last + 1;
@@ -1015,9 +1120,93 @@ class ItemLineParser {
       i++;
     }
     if (items.isEmpty) {
-      return _pairedBlocks(texts, parsed, summary, style);
+      final paired = _pairedBlocks(texts, parsed, summary, style);
+      return paired.isNotEmpty ? paired : _labelled(texts, parsed, style);
+    }
+    // "1 … AGUA", "2 … PAN", "3 … CAFE", "4 … JABON": numbers that count up
+    // from one, row after row, number the lines. They are not quantities.
+    final numbered = [
+      for (final item in items)
+        if (leads[item.firstRow] != null) item,
+    ];
+    var counting = numbered.length >= 4;
+    for (var k = 0; counting && k < numbered.length; k++) {
+      counting = leads[numbered[k].firstRow] == '${k + 1}';
+    }
+    if (counting) {
+      for (var k = 0; k < items.length; k++) {
+        final item = items[k];
+        if (item.quantity != null && item.quantity == leads[item.firstRow]) {
+          items[k] = ReceiptItem(
+            description: item.description,
+            amountText: item.amountText,
+            firstRow: item.firstRow,
+            lastRow: item.lastRow,
+          );
+        }
+      }
     }
     return items;
+  }
+
+  /// A row that opens with a full date: "16/11/26 HABITACION 2,150.00".
+  static final RegExp _datedRow = RegExp(
+    r'^\s*\d{1,2}\s?([/.\-])\s?\d{1,2}\s?\1\s?(?:\d{4}|\d{2})\s+\S',
+  );
+
+  static final RegExp _productLabel = RegExp(
+    r'^(?:producto|product|combustible|descripci[oó]n|concepto)\s*[:.]\s*'
+    r'(\S.*)$',
+    caseSensitive: false,
+  );
+  static final RegExp _amountLabel = RegExp(
+    r'^(?:importe|monto|venta|valor|sub\s?total|total)\b[^:]*:',
+    caseSensitive: false,
+  );
+  static final RegExp _quantityLabel = RegExp(
+    r'^(?:cantidad|cant|litros|volumen|galones)\.?\s*[:.]\s*'
+    r'(\d{1,4}(?:[.,]\d{1,3})?)\s*(lts?|l|litros?|gal(?:ones)?)?\b',
+    caseSensitive: false,
+  );
+
+  /// One thing sold, printed as fields: "PRODUCTO: MAGNA 87 OCT" /
+  /// "CANTIDAD: 38.462 LTS" / "IMPORTE: $918.86". Only when the receipt
+  /// names a single product and an amount follows it within a few rows.
+  static List<ReceiptItem> _labelled(
+    List<String> texts,
+    List<_Row> parsed,
+    _Style style,
+  ) {
+    final products = [
+      for (var i = 0; i < texts.length; i++)
+        if (_productLabel.hasMatch(texts[i]) && parsed[i].amount == null) i,
+    ];
+    if (products.length != 1) return const [];
+    final at = products.single;
+    final name = _nameOf(_productLabel.firstMatch(texts[at])![1]!, style).$1;
+    if (!_looksLikeName(name)) return const [];
+    String? quantity;
+    for (var j = at + 1; j < texts.length && j <= at + 6; j++) {
+      final measured = _quantityLabel.firstMatch(texts[j]);
+      if (measured != null) {
+        quantity = measured[2] == null
+            ? _plain(measured[1]!)
+            : '${_plain(measured[1]!)} ${measured[2]}';
+        continue;
+      }
+      if (_amountLabel.hasMatch(texts[j]) && parsed[j].amount != null) {
+        return [
+          ReceiptItem(
+            description: name,
+            quantity: quantity,
+            amountText: parsed[j].amount,
+            firstRow: at,
+            lastRow: j,
+          ),
+        ];
+      }
+    }
+    return const [];
   }
 
   /// The two columns read as two blocks: every name, then every price

@@ -13,9 +13,9 @@ import 'package:flutter_test/flutter_test.dart';
 /// where two readings are defensible both are accepted or nothing is
 /// asserted.
 ///
-/// Results that are clearly wrong today are not asserted in the main group:
-/// each has its own small test in the "known wrong results" group, skipped
-/// with a one-line description, to be un-skipped when fixed.
+/// Results that were clearly wrong when the sweep was first run are not
+/// asserted in the main group: each has its own small test in the "results
+/// that were wrong" group. All of them are fixed.
 
 // ---------------------------------------------------------------- Mexico
 
@@ -1281,8 +1281,8 @@ const _brRestaurant = [
 // ------------------------------------------------------------ the checks
 
 /// What a careful person reads off one receipt. A field left null is not
-/// asserted (two readings are defensible, or the result is a known bug
-/// with its own skipped test below).
+/// asserted (two readings are defensible, or the result has its own test
+/// in the group below).
 class _Case {
   const _Case(
     this.name,
@@ -1321,7 +1321,7 @@ class _Case {
   final List<String>? items;
 
   /// Only the amounts of the priced lines, in order: used instead of
-  /// [items] where a name is read wrong today (see the skipped tests).
+  /// [items] where a name has its own test in the group below.
   final List<String>? prices;
 }
 
@@ -1952,34 +1952,28 @@ void main() {
     }
   });
 
-  // Each of these is a clearly wrong result of today's reader on one of the
-  // receipts above, kept apart so it can be un-skipped when fixed.
-  group('known wrong results', () {
+  // Each of these was a clearly wrong result on one of the receipts above
+  // when the sweep was first run; all are fixed and kept here apart.
+  group('results that were wrong', () {
     // ------------------------------------------------------ the shop's name
     test('Brazil: the shop is the name on the first row', () {
       expect(
         _parse(_brRestaurant, home: 'BRL').merchant?.toLowerCase(),
         startsWith('restaurante exemplo'),
       );
-    },
-        skip: 'BUG: on a Brazilian NFC-e the second row of the document title, '
-            '"da Nota Fiscal de Consumidor Eletronica", is given as the shop');
+    });
 
     test('a hotel named after its city is the shop, not "RESTAURANTE"', () {
       expect(
         ['hotel ejemplo cancun', 'hoteles ejemplo de mexico'],
         contains(_parse(_mxHotelRestaurant).merchant?.toLowerCase()),
       );
-    },
-        skip: 'BUG: "HOTEL EJEMPLO CANCUN" is taken for an address row, so the '
-            'outlet row under it ("RESTAURANTE") is given as the shop');
+    });
 
     // -------------------------------------------------------------- the date
     test('DiDi e-mail: the date "20 nov 2026, 08:14" is read', () {
       expect(_parse(_mxDidi).date, DateTime(2026, 11, 20));
-    },
-        skip: 'BUG: a date with the month as a word is not read when a comma '
-            'and the time follow the year ("20 nov 2026, 08:14")');
+    });
 
     // ------------------------------------------- items missing or invented
     test('El Salvador: prices followed by the tax letter G are items', () {
@@ -1994,9 +1988,7 @@ void main() {
           'PROTECTOR SOLAR 120ML|9.75',
         ]),
       );
-    },
-        skip: 'BUG: no item at all is read when every price is followed by '
-            'the tax letter G ("1.15 G"): it is taken for grams');
+    });
 
     test('Walmart: a saving under its product does not end the list', () {
       expect(
@@ -2016,9 +2008,7 @@ void main() {
           'PAPEL HIG REGIO 12R|89.90',
         ]),
       );
-    },
-        skip: 'BUG: a discount row that starts with "AHORRO" between the items '
-            'is taken for the totals: it and every item after it are lost');
+    });
 
     test('hotel folio: every night and every extra is listed', () {
       // The room three times, the restaurant and the laundry, whatever is
@@ -2029,58 +2019,40 @@ void main() {
             _figure(i.amountText),
       ];
       expect(charges, ['215000', '215000', '48500', '215000', '26000']);
-    },
-        skip: 'BUG: on a hotel folio only the first night is listed: the tax '
-            'row under it ("16/11/26 IVA 16% 344.00") ends the list');
+    });
 
     test('Pemex: the product and amount printed after labels are an item', () {
       expect(_items(_mxPemex), _expectedItems(['MAGNA 87 OCT|918.86']));
-    },
-        skip: 'BUG: a fuel ticket laid out as "PRODUCTO: MAGNA", "CANTIDAD: '
-            '38.462 LTS", "IMPORTE: \$918.86" gives no item');
+    });
 
     test('US pump: the payment row "CREDIT" is not an item', () {
       expect(_names(_usFuel), isNot(contains('CREDIT')));
-    },
-        skip: 'BUG: on a pay-at-the-pump receipt the payment row '
-            '"CREDIT \$33.29" is listed as a purchased item');
+    });
 
     test('Guatemala fuel: the fuel tax row "IDP" is not an item', () {
       expect(_prices(_gtFuel), ['26842']);
-    },
-        skip: 'BUG: the fuel tax printed under the fuel ("IDP Q 40.06", '
-            'already inside the total) is listed as a purchased item');
+    });
 
     test('US drugstore: the count row "5 ITEMS" is not a line', () {
       expect(_names(_usDrugstore), isNot(contains('ITEMS')));
-    },
-        skip: 'BUG: "5 ITEMS" (the count before the word) is listed as an '
-            'item with no price');
+    });
 
     test('Brazil: the count row "QTD. TOTAL DE ITENS 4" is not a line', () {
       expect(_names(_brRestaurant), hasLength(4));
-    },
-        skip: 'BUG: "QTD. TOTAL DE ITENS 4" is listed as an item with no '
-            'price');
+    });
 
     // ---------------------------------------------------- names of the items
     test('bar: the measure "1.5OZ" stays in the name', () {
       expect(_names(_mxBar), contains('MEZCAL ESPADIN 1.5OZ'));
-    },
-        skip: 'BUG: a measure with a decimal at the end of a name is dropped: '
-            '"MEZCAL ESPADIN 1.5OZ" becomes "MEZCAL ESPADIN"');
+    });
 
     test('fuel table: "30.120 L PREMIUM" is PREMIUM', () {
       expect(_names(_mxFuelTable), ['PREMIUM', 'ACEITE MOBIL SUPER 1L']);
-    },
-        skip: 'BUG: the unit "L" after a leading quantity stays in the name: '
-            '"30.120 L PREMIUM" becomes "L PREMIUM" ("LTS" is handled)');
+    });
 
     test('Guatemala fuel: the gallons column is not part of the name', () {
       expect(_names(_gtFuel).first, 'SUPER');
-    },
-        skip: 'BUG: a volume column between the name and the prices stays in '
-            'the name: "SUPER 8.524 31.49 268.42" becomes "SUPER 8.524"');
+    });
 
     test('Colombia: the pack size "X3" stays in the name', () {
       final items = ItemLineParser.extract(_coSupermarket);
@@ -2089,15 +2061,11 @@ void main() {
         [for (final i in items) if (i.quantity == '3') i.description],
         isEmpty,
       );
-    },
-        skip: 'BUG: a pack size at the end of a name is taken for a quantity: '
-            '"JABON PROTEX X3 9.800" becomes 3 x "JABON PROTEX"');
+    });
 
     test('UK pub: the quantity before "175ML SAUVIGNON BLANC" is split', () {
       expect(_names(_ukPub), contains('175ML SAUVIGNON BLANC'));
-    },
-        skip: 'BUG: the quantity stays in the name when the name starts with '
-            'a figure: "1 175ML SAUVIGNON BLANC"');
+    });
 
     test('Brazil: names without the line number and the product code', () {
       expect(_names(_brRestaurant).take(4).toList(), [
@@ -2106,8 +2074,6 @@ void main() {
         'CAFE EXPRESSO',
         'PUDIM DE LEITE',
       ]);
-    },
-        skip: 'BUG: the line number and product code of an NFC-e stay in the '
-            'name: "001 1001 PRATO EXECUTIVO FRANGO"');
+    });
   });
 }

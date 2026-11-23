@@ -792,7 +792,7 @@ void main() {
       );
     });
 
-    test('fuel printed as labelled fields: no "PRECIO" item', () {
+    test('fuel printed as labelled fields: the fuel, not a "PRECIO" item', () {
       expect(
         read([
           'GASOLINERA EJEMPLO',
@@ -803,7 +803,7 @@ void main() {
           r'IMPORTE: $844.78',
           r'TOTAL: $844.78',
         ]),
-        isEmpty,
+        ['35.214|MAGNA|844.78'],
       );
     });
 

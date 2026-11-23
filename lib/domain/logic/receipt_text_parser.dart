@@ -290,6 +290,7 @@ class ReceiptTextParser {
     r'\b(documento|comprobante|factura|tiquete|boleta|boleto|recibo|receipt|'
     r'invoice|voucher|ticket|pagar[eé]|reimpresi[oó]n|reimpreso|reprint|'
     r'duplicado|duplicate|copia|guest\s+check|consumidor\s+final|'
+    r'nota\s+fiscal|cupom\s+fiscal|danfe|'
     r'p[uú]blico\s+en\s+general|no\s+fiscal|'
     r'(customer|merchant|cardholder|client|store|bank)\s+copy)\b',
     caseSensitive: false,
@@ -782,7 +783,9 @@ class ReceiptTextParser {
   /// The headings over the items ("CANT DESCRIPCION IMPORTE", "NOMBRE").
   static final RegExp _itemsHeading = RegExp(
     r'^\W*(nombre|cant\.?|cantidad|descripci[oó]n|producto|art[ií]culo|'
-    r'concepto|qty|quantity|item|description)\b',
+    r'concepto|qty|quantity|item|description|'
+    // Portuguese: "# COD DESCRICAO QTD UN VL UNIT VL TOTAL".
+    r'c[oó]d(?:igo)?\.?\s+descri\w+|descri[cç][aã]o|qtde?)\b',
     caseSensitive: false,
   );
 
@@ -847,11 +850,27 @@ class ReceiptTextParser {
     caseSensitive: false,
   );
 
+  /// "HOTEL EJEMPLO CANCUN", "CAFE COLOMBIA", "TACOS MEXICO": a business
+  /// called after its town or country. With no number or comma on the row
+  /// it is a name, not an address.
+  static final RegExp _businessStart = RegExp(
+    r'^\W*(?:hotel(?:es)?|hostal|posada|motel|caf[eé]|cafeter[ií]a|'
+    r'restaurante?|bar|cantina|tacos|taquer[ií]a|pizzer[ií]a|pizza|'
+    r'farmacia|panader[ií]a|pasteler[ií]a|mariscos|tortas|sushi|burger|'
+    r'grupo|super|supermercado|tienda|abarrotes|gasolinera|carnitas|'
+    r'pollos?|birria|antojitos|cocina|fonda|comedor|lavander[ií]a|'
+    r'ferreter[ií]a|papeler[ií]a|librer[ií]a|museo|club)\s+\S',
+    caseSensitive: false,
+  );
+
+  static bool _namedAfterPlace(String row) =>
+      _businessStart.hasMatch(row) && !RegExp(r'[\d,]').hasMatch(row);
+
   /// Address lines name places and streets ("CHACAO CARACAS (CHACAO)
   /// MIRANDA", "C.EJEMPLO, L.1, COL.CENTRO", "ZONA 10", "1234 EXAMPLE ST",
   /// "HOUSTON, TX 77002", "ZAPOPAN, JALISCO").
   static bool _isAddress(String row) =>
-      Countries.detectInText(row) != null ||
+      (Countries.detectInText(row) != null && !_namedAfterPlace(row)) ||
       ((_addressRow.hasMatch(row) || _placeWord.hasMatch(row)) &&
           RegExp(r'[\d,]').hasMatch(row)) ||
       _streetNumber.hasMatch(row) ||
@@ -1076,7 +1095,8 @@ class ReceiptTextParser {
   /// Groups: day, "de", month, what separates month and year, "de", year.
   static final RegExp _dayMonthName = RegExp(
     r'\b(\d{1,2})(?:st|nd|rd|th)?[\s\-/.]*(de\s+)?([A-Za-zÁÉÍÓÚáéíóú0]{3,10})\.?'
-    r"([\s\-/.,'’`´]*)(del?\s+)?(\d{4}|\d{2})\b(?![:.,]\d)",
+    r"([\s\-/.,'’`´]*)(del?\s+)?(\d{4}|\d{2})\b"
+    r'(?![:.]\d)(?!,\d(?!\d:\d{2}))',
     caseSensitive: false,
   );
 
@@ -1085,7 +1105,8 @@ class ReceiptTextParser {
   /// Groups: month, the day (one of three), year.
   static final RegExp _monthNameDay = RegExp(
     r'\b([A-Za-z]{3,10})\.?(?:\s+(\d{1,2})(?:st|nd|rd|th)?'
-    r'(?:\s*,\s*|\s+del?\s+|\s+)|-(\d{1,2})-|/(\d{1,2})/)(\d{4})\b(?![:.,]\d)',
+    r'(?:\s*,\s*|\s+del?\s+|\s+)|-(\d{1,2})-|/(\d{1,2})/)(\d{4})\b'
+    r'(?![:.]\d)(?!,\d(?!\d:\d{2}))',
     caseSensitive: false,
   );
 
