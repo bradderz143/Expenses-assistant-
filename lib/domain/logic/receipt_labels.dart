@@ -124,6 +124,9 @@ Amount = importe | monto
 Total amount = importe total | monto total
 Net amount = importe neto | monto neto
 Amount to pay = importe a pagar | monto a pagar
+Amount paid = importe pagado | monto pagado | valor pagado
+Amount received = importe recibido | monto recibido
+Cash received = efectivo recibido
 Total amount of the transaction = monto total de la operacion
 Value = valor
 Total value = valor total | vr total | vlr total
@@ -136,7 +139,7 @@ Sums = sumas
 Taxable sales = ventas gravadas | venta gravada | vtas gravadas
 Exempt sales = ventas exentas | venta exenta | vtas exentas
 Non-taxable sales = ventas no sujetas | venta no sujeta | vtas no sujetas
-VAT = iva
+VAT = iva | impuesto al valor agregado | impuesto al valor anadido
 VAT included = iva incluido | incluye iva | iva incl
 VAT withheld = iva retenido | retencion iva | retencion de iva
 VAT charged = iva trasladado
@@ -193,6 +196,7 @@ Price per night = precio por noche
 Cost = costo
 Rate = tarifa
 Base fare = tarifa base
+Starting fare = banderazo
 Nightly rate = tarifa por noche | tarifa noche
 Hourly rate = tarifa por hora
 Daily rate = tarifa diaria | tarifa por dia
@@ -239,7 +243,8 @@ Entry = entrada
 Departure = salida
 Arrival = llegada
 Duration = tiempo | duracion
-Length of stay = tiempo transcurrido | tiempo de estancia | tiempo total | estancia | permanencia | tiempo de permanencia | tiempo estacionado | tiempo de estadia | estadia
+Length of stay = tiempo transcurrido | tiempo de estancia | tiempo total | tiempo de permanencia | tiempo estacionado | tiempo de estadia
+Stay = estancia | permanencia | estadia
 Waiting time = tiempo de espera
 Lost ticket = boleto perdido
 Grace period = tolerancia
@@ -315,7 +320,8 @@ Merchant = comercio
 Establishment = establecimiento
 Branch = sucursal | suc
 Store = tienda
-Toll plaza = plaza de cobro | plaza
+Toll plaza = plaza de cobro
+Plaza = plaza
 Toll booth = caseta
 Station = estacion
 Service station = estacion de servicio
@@ -401,6 +407,8 @@ credit card = tarjeta de credito | tarjeta credito | t credito | t de credito | 
 debit card = tarjeta de debito | tarjeta debito | t debito | t de debito | tdd | tarj debito
 bank card = tarjeta bancaria
 card payment = pago con tarjeta | pago tarjeta | pago c/tarjeta
+credit card payment = pago con tarjeta de credito | pago tarjeta de credito | pago con tarjeta credito | pago tarjeta credito
+debit card payment = pago con tarjeta de debito | pago tarjeta de debito | pago con tarjeta debito | pago tarjeta debito
 card payment at the terminal = pago tarjeta c/terminal | pago con tarjeta c/terminal
 cash payment = pago en efectivo | pago efectivo
 payment in a single instalment = pago en una sola exhibicion | una sola exhibicion
@@ -476,7 +484,7 @@ passengers = pasajeros
 student = estudiante
 senior = tercera edad | inapam | adulto mayor
 one way = sencillo | viaje sencillo | solo ida
-return = redondo | viaje redondo | ida y vuelta
+round trip = redondo | viaje redondo | ida y vuelta
 outbound = ida
 first class = primera clase | primera
 economy class = clase turista | turista | clase economica | economica
@@ -542,7 +550,7 @@ complimentary = cortesia
 breakfast included = desayuno incluido
 frequent customer = cliente frecuente
 Monday = lunes | lun
-Tuesday = martes
+Tuesday = martes | mar
 Wednesday = miercoles | mie
 Thursday = jueves | jue
 Friday = viernes | vie
@@ -610,6 +618,17 @@ Sunday = domingo | dom
   static const Set<String> _travelWords = {
     'pasajero', 'pasajeros', 'taxi', 'viaje', 'destino', 'origen', //
     'asiento', 'vuelo', 'corrida', 'banderazo',
+  };
+
+  /// Words of running text that no name, place or code is made of.
+  static const Set<String> _sentenceWords = {
+    'se', 'no', 'por', 'para', 'con', 'sin', 'que', 'es', 'su', 'sus', //
+    'este', 'esta', 'un', 'una', 'favor', 'si', 'en',
+  };
+
+  static const Set<String> _tollWords = {
+    'peaje', 'caseta', 'carril', 'ejes', 'cobro', 'autopista', 'cruce', //
+    'capufe',
   };
 
   static const int _longest = 6;
@@ -708,6 +727,9 @@ Sunday = domingo | dom
   static final RegExp _monthDate = RegExp(
     r'^(\d{1,2}[-/. ]?)([A-Za-zÀ-ÿ]{3,10})(\.?[-/. ,]?\d{2,4}.*)$',
   );
+
+  /// "14", "2026", "14,": the day or the year beside a written month.
+  static final RegExp _dayOrYear = RegExp(r'^\d{1,4}[.,]?$');
 
   /// "Ticket10001", "CAJA1": a caption with its number stuck to it.
   static final RegExp _glued = RegExp(r'^([A-Za-zÀ-ÿ]{3,})([#$]?\d.*)$');
@@ -814,7 +836,9 @@ Sunday = domingo | dom
       final entry = _index[key];
       if (entry != null) {
         exact = (entry, j + 1);
-      } else {
+      } else if (j == i || token.norm.length > 1) {
+        // Not by swallowing a lone letter: in "TOTAL A PAGAR Q 20.00" the
+        // "Q" is the currency, not a misprint of "TOTAL A PAGAR".
         final close = _near(key);
         if (close != null) near = (close, j + 1);
       }
@@ -850,6 +874,11 @@ Sunday = domingo | dom
       // A taxi, bus or flight has a fare; a car park or a hotel a rate.
       case 'Rate':
         return seen.any(_travelWords.contains) ? 'Fare' : 'Rate';
+      // "PLAZA: 104 TEPOTZOTLAN" on a toll ticket is the toll plaza; on a
+      // bank slip or a shop's ticket "PLAZA" is the town or the shopping
+      // centre, and stays "Plaza".
+      case 'Plaza':
+        return seen.any(_tollWords.contains) ? 'Toll plaza' : 'Plaza';
     }
     return entry.english;
   }
@@ -868,23 +897,58 @@ Sunday = domingo | dom
       if (token.ending.isNotEmpty) break;
       if (head == null) continue;
       var k = j + 1;
+      var tied = false;
       if (k < tokens.length && const {'de', 'del'}.contains(tokens[k].norm)) {
+        tied = true;
         k++;
         if (k < tokens.length &&
             const {'la', 'el', 'los', 'las'}.contains(tokens[k].norm)) {
           k++;
         }
       }
-      final second = k < tokens.length ? _phrase(tokens, k) : null;
+      var second = k < tokens.length ? _phrase(tokens, k) : null;
+      // "TIPO PAGO EFECTIVO" is "TIPO PAGO" and its value, not the type of
+      // a "PAGO EFECTIVO": a caption right after the head goes with it.
+      if (second != null && second.$1.kind == _Kind.value && second.$2 > k + 1) {
+        final caption = _phrase(tokens.sublist(0, k + 1), k);
+        if (caption != null &&
+            (caption.$1.kind == _Kind.label || caption.$1.kind == _Kind.name)) {
+          second = caption;
+        }
+      }
       if (second == null || second.$1.kind == _Kind.printed) continue;
-      // "NO" is also "not": only a caption after it makes it a number.
-      if (buffer.toString() == 'no' && second.$1.kind == _Kind.value) continue;
+      // "NO" is also "not" ("NO PAGADO"): only "de" or a caption after it
+      // makes it a number.
+      final counted = second.$1.kind == _Kind.value;
+      if (buffer.toString() == 'no' && counted && !tied) continue;
+      // Without "de" the two may be neighbours in a row of column headings
+      // ("FECHA CONCEPTO CARGOS ABONOS", "CODIGO DESCRIPCION PRECIO"): one
+      // caption only when its value, a colon or the end of the line follows
+      // ("FECHA EMISION: 14/09", "NUM. TICKET 4521", "TIPO PAGO EFECTIVO").
+      if (!tied &&
+          tokens[second.$2 - 1].ending.isEmpty &&
+          second.$2 < tokens.length &&
+          tokens[second.$2].isWord) {
+        final after = _phrase(tokens, second.$2);
+        if (after == null ||
+            after.$1.kind == _Kind.label ||
+            after.$1.kind == _Kind.name) {
+          continue;
+        }
+      }
       final english = _sense(second.$1, seen);
+      // "NUMERO DE HABITACION" is the room's number; "NUMERO DE NOCHES",
+      // "NO. DE PASAJEROS" and "NUM. DE CUOTAS" say how many.
+      final howMany = _numberWords.contains(buffer.toString()) &&
+          (counted ||
+              (second.$1.kind == _Kind.label && english.endsWith('s')));
       joined = _Hit(
-        head.$1
-            .replaceAll('{X}', _upper(english))
-            .replaceAll('{x}', _lower(english)),
-        head.$2,
+        howMany
+            ? 'Number of ${_lower(english)}'
+            : head.$1
+                .replaceAll('{X}', _upper(english))
+                .replaceAll('{x}', _lower(english)),
+        howMany ? _Kind.label : head.$2,
         second.$2,
       );
     }
@@ -914,7 +978,7 @@ Sunday = domingo | dom
   static Set<String> _wordsOf(Iterable<String> lines) => {
         for (final line in lines)
           for (final token in _tokenise(line))
-            if (token.isWord) token.norm,
+            if (token.isWord) ...token.norm.split('/'),
       };
 
   /// [translate] for every line of one receipt, each read in the light of
@@ -932,7 +996,7 @@ Sunday = domingo | dom
     if (language != 'es') return null;
     final tokens = _tokenise(line);
     if (tokens.isEmpty) return null;
-    final context = seen ?? {for (final t in tokens) if (t.isWord) t.norm};
+    final context = seen ?? _wordsOf([line]);
     final pieces = <_Piece>[];
     var translated = false;
     var i = 0;
@@ -964,11 +1028,15 @@ Sunday = domingo | dom
       }
       // "14 SEP 2026", "14 DE SEPTIEMBRE DE 2026": a month beside a number,
       // and the "de" that ties the date together.
+      // Beside a whole date the same letters are a weekday ("MAR 15/09/2026"
+      // is a Tuesday, not March).
       final month = _months[token.norm];
       final afterNumber = i > 0 && tokens[i - 1].isNumber;
-      final dated = afterNumber ||
-          (next != null && next.isNumber) ||
-          (i > 1 && tokens[i - 1].norm == 'de' && tokens[i - 2].isNumber);
+      final dated = (afterNumber && _dayOrYear.hasMatch(tokens[i - 1].raw)) ||
+          (next != null && _dayOrYear.hasMatch(next.raw)) ||
+          (i > 1 &&
+              tokens[i - 1].norm == 'de' &&
+              _dayOrYear.hasMatch(tokens[i - 2].raw));
       if (month != null && dated) {
         pieces.add(_Piece('${token.lead}$month${token.ending}', _Kind.printed));
         translated = true;
@@ -1005,9 +1073,19 @@ Sunday = domingo | dom
       final hit = _match(tokens, i, context);
       if (hit == null) {
         // A lone letter is a code or a sign ("CLASE B", "2 X 45.00"), unless
-        // it is a Spanish word ("IVA Y PROPINA").
+        // it is a Spanish word ("IVA Y PROPINA", "PAGO A CREDITO"): a vowel
+        // is a code only between a caption and the end of the line, a number
+        // or the next caption ("SERIE A FOLIO 12345", "CLASE: A").
+        final vowel = const {'a', 'e', 'o', 'u', 'y'}.contains(token.norm);
+        final afterCaption = before != null &&
+            (before.kind == _Kind.label || before.kind == _Kind.name);
         if (token.norm.length == 1 &&
-            !const {'a', 'e', 'o', 'u', 'y'}.contains(token.norm)) {
+            (!vowel ||
+                (token.norm != 'y' &&
+                    afterCaption &&
+                    (next == null ||
+                        next.isNumber ||
+                        _startsCaption(tokens, i + 1, context))))) {
           pieces.add(_Piece(token.raw, _Kind.printed));
           i++;
           continue;
@@ -1027,9 +1105,13 @@ Sunday = domingo | dom
       var english = hit.english;
       if (hit.kind == _Kind.value) {
         // Two such words in a row ("VENTA CONTADO") depend on Spanish word
-        // order: left to the model.
+        // order: left to the model. Not after a quantity and its unit, which
+        // read the same way in English ("35.214 LTS MAGNA 844.78").
         if (before != null && before.kind == _Kind.value && !before.closed) {
-          return null;
+          final quantity = pieces.length >= 2 &&
+              pieces[pieces.length - 2].kind == _Kind.printed &&
+              _digit.hasMatch(pieces[pieces.length - 2].text);
+          if (!quantity) return null;
         }
         final opens = before == null ||
             before.closed ||
@@ -1037,8 +1119,11 @@ Sunday = domingo | dom
             before.kind == _Kind.name ||
             last.hasColon;
         if (opens) english = _upper(english);
-        // "FORMA DE PAGO EFECTIVO": the colon the printer left out.
-        if (before != null && before.kind == _Kind.label && !before.closed) {
+        // "FORMA DE PAGO EFECTIVO", "HABITACION DOBLE": the colon the
+        // printer left out.
+        if (before != null &&
+            (before.kind == _Kind.label || before.kind == _Kind.name) &&
+            !before.closed) {
           before.text = '${before.text}:';
         }
       }
@@ -1067,14 +1152,31 @@ Sunday = domingo | dom
           _Kind.value,
         ));
       } else {
+        // "NOTA: NO SE ACEPTAN DEVOLUCIONES": a sentence, not a name.
+        if (words.any((k) => _sentenceWords.contains(tokens[k].norm))) {
+          return null;
+        }
         for (var k = i; k < end; k++) {
           pieces.add(_Piece(tokens[k].raw, _Kind.printed));
         }
       }
       i = end;
     }
-    if (!translated) return null;
-    return pieces.map((p) => p.text).join(' ');
+    if (!translated) {
+      // "VISA", "MINIBAR 95.00", "TAXI": nothing to translate, but a line of
+      // words that English shares reads the same in English.
+      final shared = tokens.any((t) =>
+          t.isWord &&
+          t.norm.length >= 3 &&
+          _index[t.norm.replaceAll('l', 'i')]?.kind == _Kind.printed);
+      if (!shared) return null;
+    }
+    // "(1 MESES SIN INTERESES )": no gap inside the brackets.
+    return pieces
+        .map((p) => p.text)
+        .join(' ')
+        .replaceAll('( ', '(')
+        .replaceAll(' )', ')');
   }
 
   /// Whether a new "CAPTION: value" pair starts at token [i]: a caption

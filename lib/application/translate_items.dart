@@ -9,6 +9,7 @@ import '../domain/logic/item_area_detector.dart';
 import '../domain/logic/item_classifier.dart';
 import '../domain/logic/item_line_parser.dart';
 import '../domain/logic/ocr_row_assembler.dart';
+import '../domain/logic/receipt_labels.dart';
 import '../domain/logic/receipt_text_lines.dart';
 import '../domain/logic/receipt_text_parser.dart';
 import '../domain/logic/text_normaliser.dart';
@@ -209,6 +210,20 @@ class TranslateItemsUseCase {
     for (var i = 0; i < items.length; i++) {
       final fixed = KnownPhrases.translate(items[i].description, language);
       if (fixed != null) glossary.putIfAbsent(keys[i], () => fixed);
+    }
+    // The label lines of a receipt that is not a meal ("FECHA: 14/09/2026",
+    // "FORMA DE PAGO: EFECTIVO") get the label dictionary's English, with
+    // the value as printed. The user's saved wording and the standard
+    // wording above come first.
+    if (wholeText) {
+      final labelled = ReceiptLabels.translateAll(
+        [for (final item in items) item.description],
+        language,
+      );
+      for (var i = 0; i < items.length; i++) {
+        final fixed = labelled[i];
+        if (fixed != null) glossary.putIfAbsent(keys[i], () => fixed);
+      }
     }
 
     final machine = <int, String>{};

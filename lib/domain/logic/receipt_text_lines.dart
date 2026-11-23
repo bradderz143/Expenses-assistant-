@@ -19,7 +19,8 @@ class ReceiptTextLines {
   /// card-terminal references ("AFILIACION: 1000001", "AID: A0000000031010"),
   /// tax IDs ("RFC XXX010101AB1", "NIT: 1234567-8", "RIF: J-00000000-0"),
   /// tax-authority boilerplate ("SELLO DIGITAL…", "RESOLUCION DIAN No.…",
-  /// "REGIMEN GENERAL DE LEY") and telephone numbers.
+  /// "REGIMEN GENERAL DE LEY", "GIRO: VENTA DE COMBUSTIBLES") and telephone
+  /// numbers.
   static final RegExp _reference = RegExp(
     r'^(afiliaci[oó]n|terminal(\s*id)?|autorizaci[oó]n|aut\.|aut\s*[:#\d]|'
     r'id\s*pbx|tr[.,]?\s*no|referencia|ref\.?\s*[:#\d]|'
@@ -38,7 +39,7 @@ class ReceiptTextLines {
     r'uso\s+(de\s+|del\s+)?cfdi|lugar\s+de\s+expedici[oó]n|'
     r'fecha(\s+y\s+hora)?\s+de\s+(certificaci[oó]n|timbrado)|'
     r'(este\s+documento\s+es\s+una\s+)?representaci[oó]n\s+impresa|'
-    r'actividad\s+econ[oó]mica|seniat\b|'
+    r'actividad\s+econ[oó]mica|giro\s*:|seniat\b|'
     r'rfc\b|r\.f\.c|n\.?i\.?t\.?(?![a-zà-ÿ])|n\.?r\.?c\.?(?![a-zà-ÿ])|'
     r'r\.?i\.?f\.?(?![a-zà-ÿ])|dui\b|ruc\b|rtn\b|curp\b|'
     r'persona\s+(mor\w*|f[ií]sica)|'
@@ -72,6 +73,17 @@ class ReceiptTextLines {
   );
 
   static final RegExp _price = RegExp(r'\d[.,]\d{2}(?!\d)');
+
+  /// A figure a reader takes in at a glance: a date ("14/09/2026",
+  /// "2026-09-14"), a time ("12:49:05"), a percentage ("16%") or an amount
+  /// ("1,850.00").
+  static final RegExp _figure = RegExp(
+    r'(?<![\d/.-])(?:\d{1,2}[/.-]\d{1,2}(?:[/.-]\d{2,4})?|'
+    r'\d{4}-\d{2}-\d{2})(?![\d/-])|'
+    r'(?<![\d:])\d{1,2}:\d{2}(?::\d{2})?(?![\d:])|'
+    r'(?<![\d.,])\d{1,3}(?:[.,]\d+)?\s?%|'
+    r'(?<![\d.,])\d{1,3}(?:[.,\s]?\d{3})*[.,]\d{2}(?![\d.,])',
+  );
 
   /// Lines of an address: kept as printed, since translating street and
   /// district names gives nonsense ("Forests of the Lomas"). Postcodes;
@@ -163,12 +175,23 @@ class ReceiptTextLines {
   static String? _clean(String row) {
     var text = TextNormaliser.collapseSpaces(row);
     if (_web.hasMatch(text)) return null;
-    // "XX*** X*****", "=====": rules and stars that OCR half-read as letters.
-    final symbols = RegExp(r'[^\sA-Za-z0-9À-ÿ]').allMatches(text).length;
+    // "534985******4983": the card number is cut out; "VISA CREDITO" or
+    // "VISA" beside it stays. What is left of a row of stars and crosses
+    // ("XX*** X*****" -> "XX X") goes with it.
+    final unmasked =
+        TextNormaliser.collapseSpaces(text.replaceAll(_cardNumber, ' '));
+    if (unmasked != text) {
+      text = unmasked
+          .split(' ')
+          .where((t) => !RegExp(r'^[Xx]+$').hasMatch(t))
+          .join(' ');
+    }
+    // "=====", "--*--": rules that OCR half-read as letters. The strokes
+    // and dots of a date or an amount are not such symbols.
+    final symbols = RegExp(r'[^\sA-Za-z0-9À-ÿ]')
+        .allMatches(text.replaceAll(_figure, ''))
+        .length;
     if (symbols > TextNormaliser.letterCount(text)) return null;
-    // "534985******4983": the card number is cut out; "VISA CREDITO" beside
-    // it stays.
-    text = TextNormaliser.collapseSpaces(text.replaceAll(_cardNumber, ' '));
     text = text.split(' ').where((t) => !_code.hasMatch(t)).join(' ');
     // "TERMINAL: 12345678 FECHA: 14/09/26": a row of two columns is judged
     // column by column, so the date survives its neighbour.
@@ -191,9 +214,12 @@ class ReceiptTextLines {
     final digits = _digit.allMatches(text).length;
     if (!text.contains(' ') && digits > letters) return null;
     // A barcode before an item's name ("7501055300075 AGUA 1L 12.00") does
-    // not make the line a number.
+    // not make the line a number, and neither do the date, the rate and the
+    // amount around a word ("14/09/2026 IVA 16% 296.00").
     final counted = _digit
-        .allMatches(text.replaceAll(RegExp(r'(?<!\d)\d{8,}(?!\d)'), ''))
+        .allMatches(text
+            .replaceAll(RegExp(r'(?<!\d)\d{8,}(?!\d)'), '')
+            .replaceAll(_figure, ''))
         .length;
     return counted <= letters * 2 + 4 ? text : null;
   }
@@ -414,17 +440,24 @@ class ReceiptTextLines {
   );
 
   /// How much a line matters to someone checking the claim: 3 for money
-  /// lines, 2 for the heading and for lines with a price, a date or a
-  /// label, 1 for other short lines, 0 for small print and addresses.
+  /// lines ("TOTAL \$844.78", "FORMA DE PAGO: TARJETA DE CREDITO"), 2 for the
+  /// heading and for lines with a price, a date or a label ("PRODUCTO:
+  /// MAGNA"), 1 for other short lines, 0 for small print and addresses.
   static int _weight(List<String> lines, int index, Set<int> printed) {
     final line = lines[index];
     final hasNumber = _digit.hasMatch(line);
-    if (_money.hasMatch(line) && (hasNumber || line.length <= 30)) return 3;
+    final words = line.split(' ').length;
+    // A label and its value, not a sentence with a colon in it.
+    final labelled = line.contains(':') && (hasNumber || words <= 8);
+    if (_money.hasMatch(line) &&
+        (hasNumber || labelled || line.length <= 30)) {
+      return 3;
+    }
     if (index < 2) return 2;
     if (printed.contains(index)) return 0;
-    if (_price.hasMatch(line) || (line.contains(':') && hasNumber)) return 2;
-    if (hasNumber && line.split(' ').length <= 8) return 2;
-    return line.split(' ').length <= 5 ? 1 : 0;
+    if (_price.hasMatch(line) || labelled) return 2;
+    if (hasNumber && words <= 8) return 2;
+    return words <= 5 ? 1 : 0;
   }
 
   /// [lines] cut down to [limit], dropping the least important first (small
