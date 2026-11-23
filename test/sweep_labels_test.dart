@@ -580,6 +580,8 @@ void main() {
         'CONFIRMACION: 84512': 'Confirmation: 84512',
         'RESERVACION: 84512': 'Booking: 84512',
         'FIRMA DEL HUESPED': 'Guest signature',
+        'CARGO HABITACION 204': 'Room charge 204',
+        'CARGO A HABITACION 204': 'Room charge 204',
         'FECHA DE LLEGADA: 14/09/2026': 'Arrival date: 14/09/2026',
         'ADULTOS: 2 MENORES: 0': 'Adults: 2 Children: 0',
         'I.S.H. 3% 55.50': 'Lodging tax 3% 55.50',
@@ -753,6 +755,7 @@ void main() {
         'IVA Y PROPINA',
         'PAGO A CREDITO',
         'SALDO A FAVOR 12.00',
+        'PAGO A CUENTA 500.00',
         'NO PAGADO',
         'MONEDA: MXN - PESO MEXICANO',
         'PRECIO UNITARIO CON IVA (Q)',
@@ -799,6 +802,14 @@ void main() {
       expect(_label('TOTAL A PAGAR Q 20.00'), contains('Q 20.00'));
       expect(_label('HABITACION B'), 'Room B');
       expect(_label('CLASE: A'), 'Class: A');
+      // Codes that look like words stay codes.
+      expect(_label('FOLIO 8A5E'), 'Folio 8A5E');
+      expect(_label('PLACAS: MAR123'), 'Number plate: MAR123');
+      expect(_label('UNIDAD DOM123'), 'Unit DOM123');
+      // A caption with its number stuck to it is still read.
+      expect(_label('CAJA1 TICKET10001'), 'Till 1 Ticket 10001');
+      expect(_label('TOTAL\$570.00'), 'Total \$570.00');
+      expect(_label('EFECTIVO\$600.00'), 'Cash \$600.00');
       // "MAR" before a whole date is Tuesday; beside a day it is March.
       expect(_label('MAR 15/09/2026'), 'Tuesday 15/09/2026');
       expect(_label('15 MAR 2026'), '15 Mar 2026');

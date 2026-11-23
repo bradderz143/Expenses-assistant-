@@ -790,17 +790,22 @@ Sunday = domingo | dom
             .replaceAll('1', 'i')
             .replaceAll('5', 's')
             .replaceAll('8', 'b');
+        // Mostly letters, though: "8A5E" is a code, not "BASE".
+        final stuck = glued == null ? null : _index[_compact(glued[1]!)];
         if (month != null) {
           out.add(_Token.printed('$lead${date![1]}$month${date[3]}$trail'));
         } else if (core.length >= 3 &&
             _wordShape.hasMatch(letters) &&
-            TextNormaliser.letterCount(core) >= 2 &&
+            TextNormaliser.letterCount(core) * 2 > core.length &&
             _dictionary.words.contains(_compact(letters))) {
           out.add(_Token.word(raw, lead, trail, _fold(letters)));
-        } else if (glued != null &&
-            _index[_compact(glued[1]!)] != null &&
-            _index[_compact(glued[1]!)]!.kind != _Kind.printed) {
-          out.add(_Token.word(glued[1]!, lead, '', _fold(glued[1]!)));
+        } else if (stuck != null &&
+            // A caption, or a long word: "MAR123" and "DOM123" are codes,
+            // not a Tuesday and a Sunday.
+            (stuck.kind == _Kind.label ||
+                stuck.kind == _Kind.name ||
+                (stuck.kind == _Kind.value && glued![1]!.length >= 5))) {
+          out.add(_Token.word(glued![1]!, lead, '', _fold(glued[1]!)));
           out.add(_Token.printed('${glued[2]}$trail'));
         } else {
           out.add(_Token.printed(raw));
@@ -1127,12 +1132,14 @@ Sunday = domingo | dom
       final hit = _match(tokens, i, context, heading: captionBefore);
       if (hit == null) {
         // A lone letter is a code or a sign ("CLASE B", "2 X 45.00"), unless
-        // it is a Spanish word ("IVA Y PROPINA", "PAGO A CREDITO"): a vowel
-        // is a code only between a caption and the end of the line, a number
-        // or the next caption ("SERIE A FOLIO 12345", "CLASE: A").
+        // it is a Spanish word ("IVA Y PROPINA", "CARGO A HABITACION 204"):
+        // a vowel is a code only after a colon or a caption that takes a
+        // code, and before the end of the line, a number or the next
+        // caption ("SERIE A FOLIO 12345", "CLASE: A").
         final vowel = const {'a', 'e', 'o', 'u', 'y'}.contains(token.norm);
         final afterCaption = before != null &&
-            (before.kind == _Kind.label || before.kind == _Kind.name);
+            (before.kind == _Kind.name ||
+                (before.kind == _Kind.label && before.closed));
         if (token.norm.length == 1 &&
             (!vowel ||
                 (token.norm != 'y' &&
