@@ -247,12 +247,15 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
   }
 
   static IconData _noteIcon(ReceiptNoteKind kind) => switch (kind) {
+        ReceiptNoteKind.preBill => Icons.report_gmailerrorred_outlined,
         ReceiptNoteKind.invoice => Icons.receipt_long_outlined,
         ReceiptNoteKind.tip => Icons.payments_outlined,
         ReceiptNoteKind.discount => Icons.percent,
+        ReceiptNoteKind.exchangeRate => Icons.currency_exchange,
         ReceiptNoteKind.offer => Icons.local_offer_outlined,
         ReceiptNoteKind.wifi => Icons.wifi,
         ReceiptNoteKind.toilet => Icons.wc,
+        ReceiptNoteKind.parking => Icons.local_parking,
         ReceiptNoteKind.returns => Icons.assignment_return_outlined,
       };
 
