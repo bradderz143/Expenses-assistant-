@@ -179,6 +179,8 @@ class ItemLexicon {
     'cafe negro': 'black coffee',
     'cafe helado': 'iced coffee',
     'cafe tinto': 'black coffee',
+    'cafe molido': 'ground coffee',
+    'cafe en grano': 'coffee beans',
     'cafe lechero': 'café lechero (milky coffee)',
     'te': 'tea',
     'te chai': 'chai tea',
@@ -664,6 +666,11 @@ class ItemLexicon {
     'dip': 'dip',
     'ice cream': 'ice cream',
     'rib eye': 'rib-eye steak',
+    'rib eye steak': 'rib-eye steak',
+    'ribeye steak': 'rib-eye steak',
+    'new york steak': 'New York strip steak',
+    'sirloin steak': 'sirloin steak',
+    't bone steak': 'T-bone steak',
     'ribeye': 'rib-eye steak',
     't bone': 'T-bone steak',
     'tbone': 'T-bone steak',
@@ -991,7 +998,12 @@ class ItemLexicon {
     'tecate': 'Tecate',
     'indio': 'Indio',
     'dos equis': 'Dos Equis',
-    'xx': 'Dos Equis',
+    // Not "XX" alone: masked card digits are printed that way.
+    'xx lager': 'Dos Equis lager',
+    'xx ambar': 'Dos Equis amber',
+    'cerveza xx': 'Dos Equis beer',
+    'cerveza xx lager': 'Dos Equis lager beer',
+    'cerveza xx ambar': 'Dos Equis amber beer',
     'bohemia': 'Bohemia',
     'heineken': 'Heineken',
     'stella artois': 'Stella Artois',
@@ -1115,7 +1127,7 @@ class ItemLexicon {
     'marinado': 'marinated',
     'desmenuzado': 'shredded',
     'deshebrado': 'shredded',
-    'molido': 'minced',
+    'molido': 'ground',
     'rebanado': 'sliced',
     'picado': 'chopped',
     'batido': 'whipped',
@@ -1422,12 +1434,36 @@ class ItemLexicon {
   /// phrases are translated.
   static const Set<String> _onlyListedWithDe = {'crema', 'cola'};
 
+  /// Describing words that say nothing about how a thing is cooked.
+  static const Set<String> _notCooking = {
+    'extra', 'adicional', 'doble', 'triple', 'sencillo', 'especial', //
+    'clasico', 'tradicional', 'original', 'gratis', 'cortesia',
+    'de cortesia', 'mini', 'junior', 'infantil', 'premium', 'de la casa',
+  };
+
+  /// Things Spanish names in the singular and English counts ("FRIJOL",
+  /// "LENTEJA"), when they are the thing sold and not a filling.
+  static const Set<String> _countedInEnglish = {
+    'frijol', 'lenteja', 'garbanzo', 'fideo', 'chicharo', 'ejote',
+  };
+
   /// Flavours that make a "torta" a cake; otherwise it is Mexico's
   /// sandwich.
   static const Set<String> _sweetFlavours = {
     'chocolate', 'vainilla', 'fresa', 'zanahoria', 'pina', 'tres leches', //
     'nuez', 'limon', 'coco', 'manzana', 'durazno', 'cajeta', 'moka', 'mango',
     'naranja', 'almendra', 'caramelo', 'dulce de leche',
+  };
+
+  /// What tills let a customer leave out: the only words a "S/" inside an
+  /// item name is read as "sin" in front of.
+  static const Set<String> _leftOut = {
+    'hielo', 'azucar', 'cebolla', 'queso', 'crema', 'crema batida', 'sal', //
+    'chile', 'picante', 'gluten', 'alcohol', 'cafeina', 'gas', 'tocino',
+    'mayonesa', 'mayo', 'mostaza', 'catsup', 'ketchup', 'jitomate', 'tomate',
+    'lechuga', 'aguacate', 'cilantro', 'frijol', 'salsa', 'aderezo', 'leche',
+    'huevo', 'carne', 'verdura', 'ajo', 'mantequilla', 'jamon', 'pina',
+    'espuma', 'popote', 'tapa', 'chamoy', 'limon', 'canela',
   };
 
   /// Milk types: what an "L." in front of them stands for is "leche".
@@ -1725,7 +1761,9 @@ class ItemLexicon {
       final w = words.first;
       forms.add((['${w.substring(0, w.length - 1)}a'], false));
     }
-    final inflects = entry.role != _Role.brand &&
+    // "LITROS: 35.214" on a fuel ticket is not the size "1 litre".
+    final inflects = !RegExp(r'^\d').hasMatch(entry.english) &&
+        entry.role != _Role.brand &&
         entry.role != _Role.after &&
         entry.role != _Role.lead;
     if (inflects) {
@@ -1902,6 +1940,8 @@ class ItemLexicon {
     r'|(?<prep>(?<![a-z0-9])[csp])\s?/\s?(?=[a-z])'
     // "2x1"
     r'|(?<promo>(?<![a-z0-9])\d+\s?x\s?\d+(?![a-z0-9]))'
+    // "TACO AL PASTOR x2"
+    r'|(?<times>(?<![a-z0-9])x\s?\d+(?![a-z0-9]))'
     // "887 ML", "20GR", "1/2 L", "1.5LT"
     r'|(?<![a-z0-9/.,])(?<qty>\d+/\d+|\d+(?:[.,]\d+)?)\s*'
     '(?<unit>$_units)'
@@ -1938,6 +1978,9 @@ class ItemLexicon {
       } else if (m.namedGroup('promo') != null) {
         tokens.add(_Token(
             _T.number, m.namedGroup('promo')!.replaceAll(' ', ''), raw));
+      } else if (m.namedGroup('times') != null) {
+        tokens.add(_Token(
+            _T.number, m.namedGroup('times')!.replaceAll(' ', ''), raw));
       } else if (m.namedGroup('qty') != null) {
         final number = m.namedGroup('qty')!.replaceAll(',', '.');
         final unit = m.namedGroup('unit')!;
@@ -1957,7 +2000,9 @@ class ItemLexicon {
       } else if (m.namedGroup('num') != null) {
         tokens.add(_Token(_T.number, m.namedGroup('num')!, raw));
       } else if (m.namedGroup('and') != null) {
-        tokens.add(_Token(_T.word, 'y', raw));
+        // "+ TOCINO EXTRA": a "+" that opens the line is the till's mark
+        // for an extra, not an "and".
+        if (tokens.isNotEmpty) tokens.add(_Token(_T.word, 'y', raw));
       } else {
         tokens.add(_Token(_T.slash, '/', raw));
       }
@@ -2100,12 +2145,37 @@ class ItemLexicon {
             : null;
     for (var i = 0; i < tokens.length; i++) {
       final t = tokens[i];
-      if (t.type != _T.word || _vocabulary.contains(t.text)) continue;
-      String? full;
+      if (t.type != _T.word) continue;
       final next = wordAt(i + 1);
       final before = wordAt(i - 1);
+      // "S/CEBOLLA" under an item is "sin cebolla", and so is "LIMONADA
+      // S/HIELO". Inside a dish name the stroke is only read as "sin"
+      // before something tills let you leave out: "SALMON S/MANGO" is more
+      // likely a mango sauce than a salmon without mango.
+      if (t.changed &&
+          t.text == 'sin' &&
+          t.raw.contains('/') &&
+          tokens.take(i).any((o) => o.type == _T.word)) {
+        final what = _abbreviations[next] ?? next;
+        if (!_leftOut.contains(_index[what]?.entry.key ?? what)) {
+          t
+            ..text = 's/'
+            ..changed = false;
+        }
+        continue;
+      }
+      if (_vocabulary.contains(t.text)) continue;
+      String? full;
       if (t.text == 'c') {
         if (next != null && !_isLetter(next)) full = 'con';
+      } else if (t.text == 'q') {
+        // "TACO PASTOR C/Q": with cheese.
+        if (before == 'con' || before == 'sin') full = 'queso';
+      } else if (t.text == 'ref' || t.text == 'refr') {
+        // "REF 600ML", "REF. LATA"; but "REF 004512" is a reference number.
+        final company = tokens.any((o) =>
+            o != t && (o.type == _T.word || o.type == _T.quantity));
+        if (company) full = 'refresco';
       } else if (t.text == 'l') {
         final after = next == 'de' ? wordAt(i + 2) : next;
         if (after != null &&
@@ -2226,7 +2296,8 @@ class ItemLexicon {
       for (final t in tokens)
         if (t.type == _T.word || t.type == _T.number) t.text,
     ].join(' ');
-    if (_noSettledEnglish.contains(spoken)) {
+    // Also inside a longer line: "PAN DE ELOTE GDE".
+    if (_noSettledEnglish.any((name) => ' $spoken '.contains(' $name '))) {
       return [_Unit(_U.unknown, spoken)];
     }
     final units = <_Unit>[];
@@ -2374,12 +2445,23 @@ class ItemLexicon {
     if (letters > 1 || (letters == 1 && all.first.type == _U.letter)) {
       return null;
     }
+    // Nor does one stand for a name: "TACO C/X".
+    for (var i = 1; i < all.length; i++) {
+      if (all[i].type == _U.letter && all[i - 1].type == _U.connector) {
+        return null;
+      }
+    }
+    // Sizes and numbers with nothing named ("LITRO 35.214", "CH 2").
+    if (all.every((u) => u.role == _Role.size || u.isNumber) &&
+        all.any((u) => u.isNumber)) {
+      return null;
+    }
     final sizes = <String>[];
     final rest = <_Unit>[];
     for (final u in all) {
       if (u.role == _Role.size) {
         if (u.needsDrink && _kindOf(all) != ItemKind.drink) return null;
-        sizes.add(u.english);
+        sizes.add(u.singular);
       } else {
         rest.add(u);
       }
@@ -2501,6 +2583,8 @@ class ItemLexicon {
     final inside = body.sublist(k);
     if (inside.isEmpty) return words;
     if (inside.every((u) => u.isNumber)) {
+      // "ORDEN 3" is an order; "CAJA 19" is the till the ticket came from.
+      if (measure.entry!.key != 'orden') return null;
       return '$words ${inside.map((u) => u.text).join(' ')}';
     }
     if (_drinkContainers.contains(measure.entry!.key) &&
@@ -2648,13 +2732,20 @@ class ItemLexicon {
       for (var i = h; i < end; i++)
         i == end - 1 ? words[i].english : words[i].singular,
     ].join(' ');
-    final alone = front.isEmpty &&
-        describing.isEmpty &&
-        groups.isEmpty &&
-        behind.isEmpty;
-    if (head.entry!.key == 'papa' && head.plural && alone) {
-      // At a till, "PAPAS" with nothing said about them are fries.
+    // At a till, "PAPAS" are fries ("PAPAS GDE", "PAPAS CHICAS GRATIS")
+    // unless the line says what they come with or how they are cooked
+    // ("PAPAS AL HORNO", "PAPAS CON CHORIZO").
+    final plain = groups.isEmpty &&
+        words.every((u) =>
+            u == head ||
+            u.role == _Role.after ||
+            u.role == _Role.measure ||
+            (u.role == _Role.adjective && _notCooking.contains(u.entry!.key)));
+    if (head.entry!.key == 'papa' && head.plural && plain) {
       thing = 'fries';
+    } else if (_countedInEnglish.contains(head.entry!.key)) {
+      // "FRIJOL NEGRO 1KG" is a bag of black beans.
+      thing = _pluralOf(head.entry!);
     } else if (head.entry!.key == 'torta') {
       final sweet = groups
           .expand((g) => g)

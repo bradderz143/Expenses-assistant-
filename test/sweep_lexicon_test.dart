@@ -391,8 +391,25 @@ void main() {
         'PAPAS A LA FRANCESA GDE': 'French fries, large',
         'PAPAS GDE': 'Fries, large',
         'PAPAS MED': 'Fries, medium',
+        'PAPAS MEDIANAS': 'Fries, medium',
+        'PAPAS GRANDES': 'Fries, large',
+        'Papas Chicas gratis': 'Free fries, small',
+        'EXTRA PAPAS': 'Extra fries',
         'ORDEN DE PAPAS': 'Order of fries',
         'PAPA AL HORNO': 'Baked potato',
+        'PAPAS AL HORNO': 'Baked potatoes',
+      });
+    });
+
+    test('the marks tills put in front of extras and counts', () {
+      expectEnglish({
+        '+ TOCINO EXTRA': 'Extra bacon',
+        '- SIN CEBOLLA': 'Without onion',
+        '* CON LECHE': 'With milk',
+        'TACO AL PASTOR x2': 'Taco al pastor x2',
+        'TACO PASTOR C/Q': 'Taco al pastor with cheese',
+        'HAMBURGUESA S/CEBOLLA': 'Burger without onion',
+        'LIMONADA S/HIELO': 'Lemonade without ice',
       });
     });
   });
@@ -461,6 +478,7 @@ void main() {
         'FILETE DE SALMON': 'Salmon fillet',
         'SALMON A LA PLANCHA': 'Grilled salmon',
         'RIB EYE 400 GR': 'Rib-eye steak 400 g',
+        'RIBEYE STEAK': 'Rib-eye steak',
         'NEW YORK 350GR': 'New York strip steak 350 g',
         'NEW YORK CHEESECAKE': 'New York cheesecake',
         'ENSALADA DE FRUTAS': 'Fruit salad',
@@ -490,6 +508,11 @@ void main() {
         'HIELO 5KG': 'Ice 5 kg',
         'BOLSA DE HIELO': 'Bag of ice',
         'BOLSA': 'Bag',
+        'LECHE LALA 1L': 'Lala milk 1 L',
+        'CAFE MOLIDO 400G': 'Ground coffee 400 g',
+        'ARROZ 1KG': 'Rice 1 kg',
+        'FRIJOL NEGRO 1KG': 'Black beans 1 kg',
+        'JAMON DE PAVO 250G': 'Turkey ham 250 g',
       });
     });
 
@@ -663,6 +686,8 @@ void main() {
     test('names with no settled English are left to the user', () {
       expectNotRead([
         'PAN DE ELOTE',
+        'PAN DE ELOTE GDE',
+        'REBANADA PAN DE ELOTE',
         'PAN FRANCES',
         'CREMA DE WHISKY',
         'PURE DE CAMOTE AL TEQUILA REPOSADO DON NACHO',
@@ -706,6 +731,25 @@ void main() {
         'ENTRADA GENERAL',
         '123456',
         '',
+      ]);
+    });
+
+    test('a stroke or a letter that could stand for something else', () {
+      // "S/" inside a dish name: a mango sauce, not a salmon without mango.
+      expectNotRead(['Salmon S/Mango', 'TACO C/X', 'CAFE A']);
+      // On its own line under the item it is a choice.
+      expectEnglish({'S/MANGO': 'Without mango'});
+    });
+
+    test('numbers and codes that only look like items', () {
+      expectNotRead([
+        'CAJA: 19',
+        'REF 004512',
+        'REF',
+        'XX 1234',
+        'XX*** X*****',
+        'LITROS: 35.214',
+        'CH 2',
       ]);
     });
 
