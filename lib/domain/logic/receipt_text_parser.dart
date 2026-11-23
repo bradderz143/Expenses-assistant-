@@ -98,9 +98,18 @@ class ReceiptTextParser {
               (foldStrayAccents(TextNormaliser.collapseSpaces(t)), h),
       ]);
     }
-    final (currency, detected) = _detectCurrency(rows);
+    // The amount and the currency are read from rows tidied for money; the
+    // name, date and time from the rows as they are.
+    final money = [for (final row in rows) _tidyMoneyRow(row)];
+    final ((currency, detected), otherCurrencies) = _detectCurrency(money);
     final exponent = Currencies.exponentOf(currency);
-    final (amount, doubtful) = _checkedTotal(rows, exponent);
+    final (amount, doubtful) = _checkedTotal(
+      _pairLabelBlocks(
+        _ownCurrencyRows(money, currency, otherCurrencies),
+        exponent,
+      ),
+      exponent,
+    );
     final (date, dateDoubtful) = _date(rows);
     return ParsedReceipt(
       merchant: _merchant(rows, heights, pieces),
@@ -177,6 +186,41 @@ class ReceiptTextParser {
         }
         return buffer.toString();
       });
+
+  /// Dots, dashes or underscores leading from a label to its amount:
+  /// "TOTAL..........475.00", "TOTAL ____ 475.00".
+  static final RegExp _leaders = RegExp(r'(?:\s?\.){2,}\s?|[-_]{2,}');
+
+  /// "Q.125.00", "Bs.1.295,60", "B/.19.80", "L.350.00": the full stop ends
+  /// the abbreviation, it is not part of the number. Not after a lone O, I
+  /// or l, which are more often a misread 0 or 1 ("1O.50").
+  static final RegExp _abbreviationDot =
+      RegExp(r'(?<=[A-HJ-NP-Za-km-np-z/])\.(?=\d)');
+
+  /// "T O T A L": a word printed with a space between its letters.
+  static final RegExp _spacedWord =
+      RegExp(r'(?<![A-Za-z])(?:[A-Za-z] ){3,}[A-Za-z](?![A-Za-z])');
+
+  /// "$475 00": the decimal point read as a space, after a currency sign.
+  static final RegExp _spaceForPoint = RegExp(
+    r'([$£€]\s?\d[\d,]*) (\d{2})(?![\d.,:/%-])(?!\s+\d)',
+  );
+
+  /// A row made ready for reading money: leaders dropped, an abbreviation's
+  /// full stop parted from the figures, spaced-out words closed up.
+  static String _tidyMoneyRow(String row) {
+    var text = row.replaceAll(_leaders, ' ').replaceAll(_abbreviationDot, '. ');
+    text = text.replaceAllMapped(_spacedWord, (m) {
+      final word = m[0]!.replaceAll(' ', '');
+      // "T O T A L A P A G A R": the spaces between words are lost too.
+      return word.replaceFirstMapped(
+        RegExp(r'^(sub)?total(?=[a-z])', caseSensitive: false),
+        (t) => '${t[0]} ',
+      );
+    });
+    text = text.replaceAllMapped(_spaceForPoint, (m) => '${m[1]}.${m[2]}');
+    return TextNormaliser.collapseSpaces(text);
+  }
 
   // ---------------------------------------------------------------- merchant
 
@@ -1615,6 +1659,44 @@ class ReceiptTextParser {
   static final RegExp _notTotal =
       RegExp(r'sub\s*-?\s*t(o)?t(a)?l|%', caseSensitive: false);
 
+  /// "TOTAL (IVA 16% INCLUIDO) $240.00": the percentage is a note that the
+  /// tax is in the total, not a suggested tip or a tax row.
+  static final RegExp _includedNote =
+      RegExp(r'\binc(?:l\w*|\b)', caseSensitive: false);
+
+  /// Whether [row] cannot be the bill's total: a subtotal, or a row with a
+  /// percentage (a tax, or a tip suggestion such as "15% $71.25 TOTAL
+  /// $546.25") unless that percentage is only the tax-included note.
+  bool _isNotTotal(String row) {
+    if (_subtotalRow.hasMatch(row)) return true;
+    if (!_notTotal.hasMatch(row)) return false;
+    return !(_taxRow.hasMatch(row) &&
+        _includedNote.hasMatch(row) &&
+        !_tipOnly.hasMatch(row) &&
+        _decimalAmounts([row], 2).length == 1);
+  }
+
+  /// The total of one part of the bill, not the bill: "TOTAL AHORRO
+  /// $324.60", "TOTAL DESCUENTOS", "TOTAL IVA 41.66", "TAX TOTAL", "TOTAL
+  /// SAVINGS". ("TOTAL IVA INCLUIDO" is the bill.)
+  static final RegExp _partTotal = RegExp(
+    r'total\s*(?:de\s*|del\s*|en\s*|of\s*)?(?:los\s*|sus?\s*|tu\s*)?'
+    r'(?:ahorr\w*|descuentos?|dsctos?|savings?|saved|discounts?|iva|'
+    r'i\.v\.a\.?|impuestos?|tax(?:es)?|vat|igv|itbms|isv|ieps|exento|'
+    r'gravad[oa]s?)\b(?!\s*inc)|'
+    r'\b(?:ahorro|descuentos?|savings?|discounts?|iva|tax|vat|impuestos?)'
+    r'\s*total(?:es)?\b',
+    caseSensitive: false,
+  );
+
+  /// A balance or a points count: money on a card, not money paid with it
+  /// ("SALDO EN TARJETA DE PUNTOS: 185.00").
+  static final RegExp _balanceRow = RegExp(
+    r'\bsaldo\b|\bbalance\b(?!\s*due)|\bpuntos\b|\bpoints\b|disponible|'
+    r'available|acumulad',
+    caseSensitive: false,
+  );
+
   /// A row that counts things instead of pricing them: "Total de productos:
   /// 24", "No. de articulos 3", "ITEMS SOLD 6", "TOTAL PUNTOS 120". Matched
   /// on word stems, with the letters OCR swaps, so "PRODUCTCS" and "ART1CULOS"
@@ -1716,6 +1798,12 @@ class ReceiptTextParser {
       value,
       bare: decimalToken == null,
       signless: decimalToken == null ? null : _signless(row, token, exponent),
+      // "47500" for 475.00: a faint decimal point is easily lost.
+      pointless: decimalToken == null &&
+              exponent == 2 &&
+              RegExp(r'^\d{3,7}$').hasMatch(token[0]!)
+          ? int.parse(token[0]!)
+          : null,
     );
   }
 
@@ -1822,7 +1910,7 @@ class ReceiptTextParser {
     final slip = _cardSlip.hasMatch(rows.join('\n'));
     int? charged;
     for (final row in rows) {
-      if (_cashRow.hasMatch(row)) continue;
+      if (_cashRow.hasMatch(row) || _balanceRow.hasMatch(row)) continue;
       final isCharge = (slip && _chargedRow.hasMatch(row)) ||
           _cardPaidRow.hasMatch(row);
       if (!isCharge) continue;
@@ -1859,6 +1947,7 @@ class ReceiptTextParser {
 
     var subtotal = 0;
     var tax = 0;
+    int? taxTotal;
     var sawTax = false;
     var change = 0;
     final paid = <int>[];
@@ -1868,14 +1957,20 @@ class ReceiptTextParser {
       if (_subtotalRow.hasMatch(row)) {
         if (v > subtotal) subtotal = v;
       } else if (_taxRow.hasMatch(row) && !_taxBase.hasMatch(row)) {
-        tax += v;
+        // "TOTAL IVA 41.66" restates the tax rows; it is not one more.
+        if (_partTotal.hasMatch(row)) {
+          taxTotal = v;
+        } else {
+          tax += v;
+        }
         sawTax = true;
       } else if (_changeRow.hasMatch(row)) {
         change = v;
-      } else if (_paidRow.hasMatch(row)) {
+      } else if (_paidRow.hasMatch(row) && !_balanceRow.hasMatch(row)) {
         paid.add(v);
       }
     }
+    if (taxTotal != null) tax = taxTotal;
     final computed = subtotal > 0 && sawTax ? subtotal + tax : null;
     final paidNet = [for (final p in paid) p - change];
 
@@ -1884,11 +1979,16 @@ class ReceiptTextParser {
     // Tips and service charges printed on their own rows: the gap between
     // the items (or the subtotal) and a total that includes them.
     var tips = 0;
-    for (final row in rows) {
+    final tipRows = <(int, int)>[];
+    for (var i = 0; i < rows.length; i++) {
+      final row = rows[i];
       if (!_tipOnly.hasMatch(row) || _tipIncluded.hasMatch(row)) continue;
       if (_totalPriority(row) >= 0 || _subtotalRow.hasMatch(row)) continue;
       final v = _lastDecimalAmount(row, exponent);
-      if (v != null && v > 0) tips += v;
+      if (v != null && v > 0) {
+        tips += v;
+        tipRows.add((i, v));
+      }
     }
 
     // What the item prices above a row add up to. The last one is left out
@@ -1911,6 +2011,10 @@ class ReceiptTextParser {
       return sum > 0 ? sum : null;
     }
 
+    final printed = _decimalAmounts(rows, exponent);
+    final computedPrinted =
+        computed != null && printed.any((a) => _near(a, computed));
+
     // Readings of the receipt independent of the item lines.
     bool backedByTotals(int amount) {
       if (_ladder(rows, exponent, amount)) return true;
@@ -1919,8 +2023,13 @@ class ReceiptTextParser {
               (tips > 0 && _near(computed + tips, amount)))) {
         return true;
       }
-      if (computed == null && subtotal > 0 && tips > 0) {
-        if (_near(subtotal + tips, amount)) return true;
+      // The subtotal already has the tax inside it (the tax row is for
+      // information), so the total repeats it or adds only the tip:
+      // "SUBTOTAL Q250.00 / IVA 12% Q26.79 / PROPINA Q25.00 / TOTAL
+      // Q275.00". Not when subtotal plus tax is itself printed.
+      if (subtotal > 0 && !computedPrinted) {
+        if (_near(subtotal, amount)) return true;
+        if (tips > 0 && _near(subtotal + tips, amount)) return true;
       }
       if (paidNet.any((p) => _near(p, amount))) return true;
       return inWords(amount);
@@ -1969,7 +2078,38 @@ class ReceiptTextParser {
       break;
     }
 
+    // A later total that is this one plus the tax rows, or plus the tip
+    // between them, is the bill: "TOTAL NETO 20,25 / IVA 0,81 / TOTAL
+    // 21,06", "TOTAL A PAGAR 475.00 / PROPINA 47.50 / TOTAL 522.50".
+    final first = pick;
+    if (first != null) {
+      for (final c in candidates) {
+        if (c.weak || c.row <= first.row || c.amount <= first.amount) continue;
+        final gap = c.amount - first.amount;
+        var tipsBetween = 0;
+        for (final (row, tip) in tipRows) {
+          if (row > first.row && row < c.row) tipsBetween += tip;
+        }
+        if ((sawTax && tax > 0 && _near(gap, tax)) ||
+            (tipsBetween > 0 && _near(gap, tipsBetween))) {
+          pick = c;
+          break;
+        }
+      }
+    }
+
     if (pick != null) {
+      // A tip printed under the total and paid in cash: what was handed
+      // over, less the change, is the total plus that tip ("TOTAL 428.50 /
+      // PROPINA 42.85 / EFECTIVO 500.00 / CAMBIO 28.65").
+      var tipsAfter = 0;
+      for (final (row, tip) in tipRows) {
+        if (row > pick.row) tipsAfter += tip;
+      }
+      if (tipsAfter > 0) {
+        final withTip = pick.amount + tipsAfter;
+        if (paidNet.any((p) => _near(p, withTip))) return (withTip, false);
+      }
       final signless = pick.signless;
       if (backedByTotals(pick.amount)) return (pick.amount, false);
       // "Total 53,760.00" where the 5 was the "$".
@@ -1983,6 +2123,14 @@ class ReceiptTextParser {
           !contradicted(signless) &&
           backedByItems(signless, pick.row)) {
         return (signless, false);
+      }
+      // "TOTAL 47500" where the items add up to 475.00.
+      final pointless = pick.pointless;
+      if (pointless != null &&
+          (backedByTotals(pointless) ||
+              (!contradicted(pointless) &&
+                  backedByItems(pointless, pick.row)))) {
+        return (pointless, false);
       }
       // The figure plus the printed tip is an amount further down: the total
       // with tip, its label lost ("IMPORTE 1,250.00 / PROPINA 187.50 /
@@ -2022,7 +2170,7 @@ class ReceiptTextParser {
       }
     }
     final itemsTotal = _itemsTotal(priced);
-    final printedAmounts = _decimalAmounts(rows, exponent);
+    final printedAmounts = printed;
     for (final w in formal) {
       if (itemsTotal != null && w.matches(itemsTotal, exponent)) {
         return (itemsTotal, false);
@@ -2091,6 +2239,112 @@ class ReceiptTextParser {
     );
   }
 
+  /// A label with nothing but its name on the row: "SUBTOTAL", "IVA 16%",
+  /// "TOTAL $", "CAMBIO:".
+  bool _isBareLabel(String row) {
+    final text = row.replaceAll(RegExp(r'\d+(?:[.,]\d+)?\s?%'), ' ');
+    if (RegExp(r'\d').hasMatch(text)) return false;
+    if (text.length > 36 || _itemsHeading.hasMatch(text)) return false;
+    return _subtotalRow.hasMatch(text) ||
+        _totalPriority(text) >= 0 ||
+        _taxRow.hasMatch(text) ||
+        _tipOnly.hasMatch(text) ||
+        _tenderLine.hasMatch(text) ||
+        _moneyOffRow.hasMatch(text);
+  }
+
+  /// A row that is one amount and nothing else: "$475.00", "11.46E".
+  bool _isBareAmount(String row, int exponent) {
+    if (TextNormaliser.letterCount(row) > 3) return false;
+    final tokens =
+        _amountToken.allMatches(row.replaceAll(_clockTime, ' ')).toList();
+    if (tokens.length != 1) return false;
+    final token = tokens.single[0]!;
+    return exponent == 0
+        ? token.length >= 3
+        : RegExp(r'[.,]\d{2}$').hasMatch(token);
+  }
+
+  /// Puts each amount back beside its label when the labels were read as
+  /// one block and the amounts as another ("SUBTOTAL / IVA / TOTAL" and
+  /// then "728.76 / 116.60 / 845.36"), or a label on one row and its
+  /// amount on the next. When the block of amounts is longer than the
+  /// block of labels the first amounts are the prices of the items above,
+  /// and the pairing is kept only if those add up to it.
+  List<String> _pairLabelBlocks(List<String> rows, int exponent) {
+    final out = <String>[];
+    var i = 0;
+    while (i < rows.length) {
+      if (!_isBareLabel(rows[i])) {
+        out.add(rows[i++]);
+        continue;
+      }
+      var j = i;
+      while (j < rows.length && _isBareLabel(rows[j])) {
+        j++;
+      }
+      var k = j;
+      while (k < rows.length && _isBareAmount(rows[k], exponent)) {
+        k++;
+      }
+      final labels = rows.sublist(i, j);
+      final spare = (k - j) - labels.length;
+      if (spare >= 0) {
+        final loose = rows.sublist(j, j + spare);
+        final paired = [
+          for (var n = 0; n < labels.length; n++)
+            '${labels[n]} ${rows[j + spare + n]}',
+        ];
+        if (_blockAddsUp(paired, loose, exponent)) {
+          out
+            ..addAll(loose)
+            ..addAll(paired);
+          i = k;
+          continue;
+        }
+      }
+      out.addAll(labels);
+      i = j;
+    }
+    return out;
+  }
+
+  /// Whether labels paired with amounts make sense as the foot of a bill.
+  /// [loose] are the amounts before them that got no label.
+  bool _blockAddsUp(List<String> paired, List<String> loose, int exponent) {
+    if (paired.length == 1 && loose.isEmpty) return true;
+    int? total;
+    int? subtotal;
+    var extras = 0;
+    var dearestPart = 0;
+    for (final row in paired) {
+      final v = _lastAmount(row, exponent);
+      if (v == null) return false;
+      if (_subtotalRow.hasMatch(row)) {
+        subtotal = v;
+      } else if (_tenderLine.hasMatch(row) || _moneyOffRow.hasMatch(row)) {
+        continue;
+      } else if (_taxRow.hasMatch(row) ||
+          (_tipOnly.hasMatch(row) && !_tipIncluded.hasMatch(row))) {
+        if (!_taxBase.hasMatch(row)) extras += v;
+      } else if (_totalPriority(row) >= 0) {
+        if (total == null || v > total) total = v;
+        continue;
+      }
+      if (v > dearestPart) dearestPart = v;
+    }
+    if (loose.isEmpty) return total == null || total >= dearestPart;
+    if (total == null) return false;
+    var items = 0;
+    for (final row in loose) {
+      items += _lastAmount(row, exponent) ?? 0;
+    }
+    return _near(items, total) ||
+        _near(items + extras, total) ||
+        (subtotal != null &&
+            (_near(items, subtotal) || _near(subtotal + extras, total)));
+  }
+
   /// Rows that state a total, best first.
   List<_Candidate> _keywordTotals(List<String> rows, int exponent, int floor) {
     // A bare whole number is suspect on a receipt that prints its money with
@@ -2107,7 +2361,8 @@ class ReceiptTextParser {
     final out = <_Candidate>[];
     for (var i = 0; i < rows.length; i++) {
       final row = rows[i];
-      if (_notTotal.hasMatch(row) || _tenderLine.hasMatch(row)) continue;
+      if (_isNotTotal(row) || _tenderLine.hasMatch(row)) continue;
+      if (_partTotal.hasMatch(row)) continue;
       if (_tipOnly.hasMatch(row) && !_tipIncluded.hasMatch(row)) continue;
       var priority = _totalPriority(row);
       // "T0TAL CON PROPINA": the tip-inclusive total, whatever OCR made of
@@ -2121,7 +2376,10 @@ class ReceiptTextParser {
         priority = _goodsTotalPriority;
       } else if (read == null &&
           i + 1 < rows.length &&
-          TextNormaliser.letterCount(rows[i + 1]) < 4) {
+          TextNormaliser.letterCount(rows[i + 1]) < 4 &&
+          // Several amounts under a label are a table ("TOTAL CON PROPINA"
+          // over "522.50 546.25 570.00"), not that label's amount.
+          _decimalAmounts([rows[i + 1]], exponent).length <= 1) {
         read = _lastAmountToken(rows[i + 1], exponent);
       }
       if (read == null) continue;
@@ -2131,6 +2389,7 @@ class ReceiptTextParser {
         priority: priority,
         amount: read.amount,
         signless: read.signless,
+        pointless: read.pointless,
         weak: read.bare &&
             exponent > 0 &&
             (decimalRows >= 2 || _oddTotalLabel(row)),
@@ -2359,45 +2618,278 @@ class ReceiptTextParser {
 
   // ---------------------------------------------------------------- currency
 
-  static final RegExp _codeNearAmount = RegExp(
-    '\\b(${Currencies.common.join('|')})\\b\\s?[:=]?\\s?\\\$?\\s?\\d|'
-    '\\d[.,]\\d{2}\\s?(${Currencies.common.join('|')})\\b',
+  /// A figure as money is printed: "1,234.50", "45.000", "125". Not the
+  /// start of a date ("CAD 12/2027" is an expiry, not Canadian dollars).
+  static const String _figure =
+      r'(?:\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?)'
+      r'(?![\d/]|-\d)';
+
+  /// A figure with two decimals after a point: "1,234.50".
+  static const String _figure2 = r'(?:\d{1,3}(?:,\d{3})+|\d+)\.\d{2}(?!\d)';
+
+  /// "MXN: 570.00", "USD$ 21.50", "Total (MXN) $5,361.24".
+  static final RegExp _codeBeforeAmount = RegExp(
+    '(?<![A-Za-z])(${Currencies.common.join('|')})(?![A-Za-z])'
+    '\\)?\\s?[:=]?\\s?\\\$?\\s?($_figure)',
   );
-  static final RegExp _bolivar = RegExp(r'\bBs\.?\s?S?\.?\s?\d');
+
+  /// "570.00 MXN".
+  static final RegExp _codeAfterAmount = RegExp(
+    '\\d[.,]\\d{2}\\s?(${Currencies.common.join('|')})(?![A-Za-z])',
+  );
+
+  /// Evidence a currency needs before it is believed, by how it is named.
+  /// A sign of its own ("£", "Bs", "R$") needs one sighting. Three capitals
+  /// need a total row or three other rows: "COMPRA USD 17.80" is an
+  /// exchange rate, "BIC PEN 1.99" a pen.
+  static const int _signEvidence = 1;
+  static const int _codeEvidence = 3;
+
+  /// A single letter counts only beside a total: "GRINGA Q 130.00" is a
+  /// dish with cheese and "VOLUMEN L 35.24" is litres.
+  static const int _letterEvidence = 3;
+
+  /// Signs and abbreviations that only one currency uses, beside a figure.
+  static final List<(RegExp, String, int)> _signs = [
+    (
+      RegExp('(?<![A-Za-z])U\\.?S\\.?\\s?\\\$\\s?$_figure'),
+      'USD',
+      _signEvidence,
+    ),
+    (RegExp('(?<![A-Za-z])U\\\$S\\s?$_figure'), 'USD', _signEvidence),
+    (RegExp('(?<![A-Za-z])MX\\s?\\\$\\s?$_figure'), 'MXN', _signEvidence),
+    (RegExp('(?<![A-Za-z])R\\\$\\s?$_figure'), 'BRL', _signEvidence),
+    (RegExp('(?<![A-Za-z])S/\\.?\\s?$_figure'), 'PEN', _signEvidence),
+    (RegExp('₡\\s?$_figure'), 'CRC', _signEvidence),
+    (RegExp('£\\s?$_figure'), 'GBP', _signEvidence),
+    (RegExp('€\\s?$_figure|\\d[.,]\\d{2}\\s?€'), 'EUR', _signEvidence),
+    (RegExp('[₹]\\s?$_figure'), 'INR', _signEvidence),
+    (RegExp('[₦]\\s?$_figure'), 'NGN', _signEvidence),
+    (RegExp('[₴]\\s?$_figure|\\d[.,]\\d{2}\\s?₴'), 'UAH', _signEvidence),
+    (RegExp('[₺]\\s?$_figure|\\d[.,]\\d{2}\\s?₺'), 'TRY', _signEvidence),
+    (RegExp('[₱]\\s?$_figure'), 'PHP', _signEvidence),
+    (RegExp('[฿]\\s?$_figure'), 'THB', _signEvidence),
+    (RegExp('[₩]\\s?$_figure'), 'KRW', _signEvidence),
+    (RegExp('[₫]\\s?$_figure|\\d\\s?₫'), 'VND', _signEvidence),
+    (RegExp('[₵]\\s?$_figure'), 'GHS', _signEvidence),
+    (RegExp('\\d[.,]\\d{2}\\s?zł'), 'PLN', _signEvidence),
+    // "Bs 52,40", "Bs.S 52,40", "Bs.D 52,40", "BS. 52,40".
+    (
+      RegExp('(?<![A-Za-z])B[sS]\\.?\\s?[SDF]?\\.?\\s?[:=]?\\s?$_figure'),
+      _bolivarSign,
+      _signEvidence,
+    ),
+    // Honduras: "Lps. 350.00", "L 350.00", "L. 350.00".
+    (
+      RegExp('(?<![A-Za-z0-9])L(?:ps|PS)\\.?\\s?$_figure'),
+      'HNL',
+      _signEvidence,
+    ),
+    (RegExp('(?<![A-Za-z0-9])L\\.?\\s?$_figure2'), 'HNL', _letterEvidence),
+    // Guatemala: "Q125.00", "Q 125.00", "Q. 125.00".
+    (RegExp('(?<![A-Za-z0-9])Q\\.?\\s?$_figure2'), 'GTQ', _letterEvidence),
+  ];
+
+  /// "Bs" is the bolivar, or the boliviano on a receipt from Bolivia.
+  static const String _bolivarSign = 'Bs';
+
   static final RegExp _monedaNacional = RegExp(r'\bM\.\s?N\.?');
 
-  (String, bool) _detectCurrency(List<String> rows) {
-    final scores = <String, int>{};
-    for (final row in rows) {
-      final weight = _totalPriority(row) >= 0 ? 3 : 1;
-      for (final m in _codeNearAmount.allMatches(row)) {
-        final code = m[1] ?? m[2];
-        if (code == null) continue;
-        scores[code] = (scores[code] ?? 0) + weight;
+  /// A bare "$" beside a figure (not "R$", "US$", "MX$").
+  static final RegExp _bareDollar =
+      RegExp('(?<![A-Za-z])\\\$\\s?$_figure');
+
+  /// Currencies that are never written with a "$": on their receipts a "$"
+  /// amount is a price in dollars for reference ("REF \$ 14,50").
+  static const Set<String> _noDollarSign = {
+    'VES', 'GTQ', 'HNL', 'CRC', 'PEN', 'GBP', 'EUR', 'BOB',
+  };
+
+  /// Every amount on [row] that names its currency: the code, where the
+  /// name and figure sit in the row, and the evidence that kind of name
+  /// needs.
+  List<_CurrencyMark> _currencyMarks(String row) {
+    final marks = <_CurrencyMark>[];
+    final totalRow = _totalPriority(row) >= 0;
+    for (final m in _codeBeforeAmount.allMatches(row)) {
+      // A whole number after three capitals is money only beside a word
+      // for the total: "TOTAL MXN 90", not "LOTE 12 CAD 122027".
+      if (!totalRow && !RegExp('[.,]').hasMatch(m[2]!)) continue;
+      marks.add(_CurrencyMark(m[1]!, m.start, m.end, _codeEvidence));
+    }
+    for (final m in _codeAfterAmount.allMatches(row)) {
+      marks.add(_CurrencyMark(m[1]!, m.start, m.end, _codeEvidence));
+    }
+    for (final (pattern, code, needed) in _signs) {
+      if (needed == _letterEvidence && !totalRow) continue;
+      for (final m in pattern.allMatches(row)) {
+        final currency = code != _bolivarSign
+            ? code
+            : defaultCurrency == 'BOB'
+                ? 'BOB'
+                : 'VES';
+        marks.add(_CurrencyMark(currency, m.start, m.end, needed));
       }
     }
-    if (scores.isNotEmpty) {
-      final best = scores.entries.reduce((a, b) => b.value > a.value ? b : a);
-      return (best.key, true);
+    return marks;
+  }
+
+  /// The receipt's currency, whether the receipt itself says so, and the
+  /// other currencies it also gives amounts in.
+  ///
+  /// Each row that names a currency beside an amount counts once, three
+  /// times on a total row; an amount in words that names its currency
+  /// ("QUETZALES") counts as a total row. The most named wins, the home
+  /// currency on a tie.
+  ((String, bool), Set<String>) _detectCurrency(List<String> rows) {
+    final scores = <String, int>{};
+    final needed = <String, int>{};
+    final firstRow = <String, int>{};
+    void count(String code, int weight, int needs, int row) {
+      scores[code] = (scores[code] ?? 0) + weight;
+      final least = needed[code];
+      if (least == null || needs < least) needed[code] = needs;
+      firstRow.putIfAbsent(code, () => row);
     }
-    final joined = rows.join('\n');
-    for (final entry in Currencies.unambiguousSymbols.entries) {
-      if (entry.key == 'S/') {
-        // Peruvian sol, but not "S/N" (sin número) in an address.
-        if (RegExp(r'\bS/\.?\s?\d').hasMatch(joined)) return ('PEN', true);
+
+    for (var i = 0; i < rows.length; i++) {
+      final weight = _totalPriority(rows[i]) >= 0 ? 3 : 1;
+      final onRow = <String, int>{};
+      for (final mark in _currencyMarks(rows[i])) {
+        final least = onRow[mark.code];
+        if (least == null || mark.needed < least) {
+          onRow[mark.code] = mark.needed;
+        }
+      }
+      onRow.forEach((code, needs) => count(code, weight, needs, i));
+    }
+    for (final words in AmountInWords.find(rows)) {
+      final code = words.currency;
+      if (words.formal && code != null) count(code, 3, 1, rows.length);
+    }
+    final named = [
+      for (final code in scores.keys)
+        if (scores[code]! >= needed[code]!) code,
+    ];
+    if (named.isEmpty) {
+      final joined = rows.join('\n');
+      if (_monedaNacional.hasMatch(joined)) {
+        return ((defaultCurrency, true), const {});
+      }
+      return ((defaultCurrency, false), const {});
+    }
+    named.sort((a, b) {
+      if (scores[a] != scores[b]) return scores[b]!.compareTo(scores[a]!);
+      if (a == defaultCurrency) return -1;
+      if (b == defaultCurrency) return 1;
+      return firstRow[a]!.compareTo(firstRow[b]!);
+    });
+    final best = named.first;
+    final others = {...named.skip(1)};
+    if (best != defaultCurrency && _isEquivalentOnly(rows, best)) {
+      return ((defaultCurrency, false), {best, ...others});
+    }
+    return ((best, true), others);
+  }
+
+  /// Whether [code] is only the bill restated in dollars or euros for the
+  /// visitor: named on total rows and nowhere else ("TOTAL USD 84.07"),
+  /// beside a total with no currency named that is more than twice or less
+  /// than half as much ("TOTAL \$1,530.00"). A tip or a tax never changes a
+  /// total that much; an exchange rate does.
+  bool _isEquivalentOnly(List<String> rows, String code) {
+    if (code != 'USD' && code != 'EUR') return false;
+    final named = <int>[];
+    final plain = <int>[];
+    for (final row in rows) {
+      final marks = _currencyMarks(row);
+      final inCode = marks.any((m) => m.code == code);
+      if (_totalPriority(row) < 60) {
+        if (inCode) return false;
         continue;
       }
-      if (joined.contains(entry.key)) return (entry.value, true);
+      if (_isNotTotal(row) || _tenderLine.hasMatch(row)) continue;
+      if (_partTotal.hasMatch(row)) continue;
+      final value = _lastDecimalAmount(row, 2);
+      if (value == null || value <= 0) continue;
+      if (marks.isEmpty) {
+        plain.add(value);
+      } else if (inCode) {
+        named.add(value);
+      }
     }
-    if (_bolivar.hasMatch(joined)) return ('VES', true);
-    if (_monedaNacional.hasMatch(joined)) return (defaultCurrency, true);
-    return (defaultCurrency, false);
+    return plain.any(
+      (p) => named.isNotEmpty && named.every((n) => p > n * 2 || p * 2 < n),
+    );
   }
+
+  /// The rows without the amounts given in a currency other than the
+  /// receipt's own: "TOTAL REF USD 14,50" under a total in bolivares,
+  /// "TOTAL USD 84.07" under a total in pesos. Those restate the bill; they
+  /// are not a second thing paid.
+  List<String> _ownCurrencyRows(
+    List<String> rows,
+    String currency,
+    Set<String> others,
+  ) {
+    final foreign = {...others}..remove(currency);
+    final ownSign = rows.any(
+      (row) => _currencyMarks(row).any((m) => m.code == currency),
+    );
+    final dollarsForeign = ownSign && _noDollarSign.contains(currency);
+    if (foreign.isEmpty && !dollarsForeign) return rows;
+    final out = <String>[];
+    for (final row in rows) {
+      final cuts = <(int, int)>[
+        for (final mark in _currencyMarks(row))
+          if (foreign.contains(mark.code)) (mark.start, mark.end),
+        if (dollarsForeign)
+          for (final m in _bareDollar.allMatches(row)) (m.start, m.end),
+      ];
+      if (cuts.isEmpty) {
+        out.add(row);
+        continue;
+      }
+      // From the end of the row backwards, so the places stay true; two
+      // names for one amount ("USD $ 21.50") are cut once.
+      cuts.sort((a, b) => b.$1.compareTo(a.$1));
+      var text = row;
+      var cutFrom = row.length;
+      for (final (from, to) in cuts) {
+        final end = to < cutFrom ? to : cutFrom;
+        if (from >= end) continue;
+        text = text.replaceRange(from, end, ' ');
+        cutFrom = from;
+      }
+      // Nothing but the label left: the whole row was the other currency.
+      out.add(RegExp(r'\d').hasMatch(text)
+          ? TextNormaliser.collapseSpaces(text)
+          : '');
+    }
+    return out;
+  }
+}
+
+/// An amount on a row that names its currency.
+class _CurrencyMark {
+  const _CurrencyMark(this.code, this.start, this.end, this.needed);
+
+  final String code;
+  final int start;
+  final int end;
+
+  /// The score a currency named only this way must reach to be believed.
+  final int needed;
 }
 
 /// An amount read from a row.
 class _Reading {
-  const _Reading(this.amount, {required this.bare, this.signless});
+  const _Reading(
+    this.amount, {
+    required this.bare,
+    this.signless,
+    this.pointless,
+  });
 
   final int amount;
 
@@ -2406,6 +2898,10 @@ class _Reading {
 
   /// The amount if its first digit was really a misread "$".
   final int? signless;
+
+  /// The amount if a whole number is really a price whose decimal point
+  /// was not read ("47500" for 475.00).
+  final int? pointless;
 }
 
 /// A row that carries a price.
@@ -2425,6 +2921,7 @@ class _Candidate {
     required this.amount,
     required this.weak,
     this.signless,
+    this.pointless,
   });
 
   final int row;
@@ -2436,4 +2933,7 @@ class _Candidate {
 
   /// The amount if its first digit was really a misread "$".
   final int? signless;
+
+  /// The amount if its decimal point was not read.
+  final int? pointless;
 }
