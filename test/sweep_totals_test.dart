@@ -1147,6 +1147,517 @@ void main() {
     });
   });
 
+  group('round 2: more kinds of receipt', () {
+    test('airline e-ticket: fare, airport tax, total with its code', () {
+      expectPaid(
+        read([
+          'AEROMEXICO',
+          'RECIBO DE BOLETO ELECTRONICO',
+          'FECHA DE EMISION 23NOV2026',
+          'MEX - GUA  AM 678  25NOV',
+          'TARIFA MXN 2,450.00',
+          'TUA MXN 620.48',
+          'IVA MXN 392.00',
+          'TOTAL MXN 3,462.48',
+          'FORMA DE PAGO: VISA ************1234',
+        ], home: 'USD'),
+        346248,
+        currency: 'MXN',
+      );
+    });
+
+    test('lodging booked by e-mail: the code in brackets after "Total"', () {
+      expectPaid(
+        read([
+          'Airbnb',
+          'Recibo',
+          '23 de noviembre de 2026',
+          r'$1,200.00 x 3 noches $3,600.00',
+          r'Tarifa de limpieza $450.00',
+          r'Tarifa por servicio $571.76',
+          r'Impuestos $739.48',
+          r'Total (MXN) $5,361.24',
+        ], home: 'USD'),
+        536124,
+        currency: 'MXN',
+      );
+    });
+
+    test('food delivery: delivery fee, service fee, tip, discount', () {
+      expectPaid(
+        read([
+          'Rappi',
+          'Resumen de tu pedido',
+          '23/11/2026 20:14',
+          r'2 Tacos al pastor $130.00',
+          r'1 Gringa $95.00',
+          r'1 Agua de horchata $60.00',
+          r'Subtotal $285.00',
+          r'Costo de envio $25.00',
+          r'Tarifa de servicio $28.50',
+          r'Propina $30.00',
+          r'Descuento -$50.00',
+          r'Total $318.50',
+        ]),
+        31850,
+      );
+    });
+
+    test('bill paid at a convenience store: amount, commission, total', () {
+      expectPaid(
+        read([
+          'OXXO',
+          'PAGO DE SERVICIOS',
+          '23/11/2026 18:40',
+          'CFE SUMINISTRADOR',
+          'REFERENCIA 012345678901',
+          r'IMPORTE $612.00',
+          r'COMISION $15.00',
+          r'TOTAL $627.00',
+          r'EFECTIVO $700.00',
+          r'CAMBIO $73.00',
+        ]),
+        62700,
+      );
+    });
+
+    test('bus ticket: one price, no word for the total', () {
+      expectPaid(
+        read([
+          'AUTOBUSES DE ORIENTE',
+          'MEXICO TAPO - PUEBLA CAPU',
+          'FECHA 23/11/2026 HORA 14:30',
+          'ASIENTO 12 ADULTO',
+          r'PRECIO $458.00',
+          'FORMA DE PAGO EFECTIVO',
+        ]),
+        45800,
+      );
+    });
+
+    test('part cash, part card, part wallet: the total, not a part', () {
+      expectPaid(
+        read([
+          'RESTAURANTE EJEMPLO',
+          '23/11/2026 15:40',
+          '4 MENU EJECUTIVO 720.00',
+          '4 LIMONADA 80.00',
+          'TOTAL 800.00',
+          'EFECTIVO 300.00',
+          'TARJETA 500.00',
+        ]),
+        80000,
+      );
+      expectPaid(
+        read([
+          'SUPER EJEMPLO',
+          '23/11/2026 18:22',
+          'LECHE 1L 28.50',
+          'PAN GDE 52.00',
+          'JAMON 250G 64.90',
+          'DETERGENTE 1KG 39.00',
+          'TOTAL 184.40',
+          'MONEDERO ELECTRONICO 50.00',
+          'EFECTIVO 150.00',
+          'CAMBIO 15.60',
+        ]),
+        18440,
+      );
+    });
+
+    test('invoice: table heading says IMPORTE, total also in words', () {
+      expectPaid(
+        read([
+          'HOTEL EJEMPLO SA DE CV',
+          'RFC XXX010101AB1',
+          'FACTURA A 1234',
+          'FECHA 23/11/2026',
+          'CANTIDAD UNIDAD DESCRIPCION VALOR UNITARIO IMPORTE',
+          '1 E48 SERVICIO DE HOSPEDAJE 1,000.00 1,000.00',
+          r'SUBTOTAL $1,000.00',
+          r'IVA 16% $160.00',
+          r'ISH 3% $30.00',
+          r'TOTAL $1,190.00',
+          'IMPORTE CON LETRA: UN MIL CIENTO NOVENTA PESOS 00/100 M.N.',
+          'MONEDA: MXN TIPO DE CAMBIO: 1',
+        ]),
+        119000,
+      );
+    });
+
+    test('whole column read apart: heading, names, then every amount', () {
+      expectPaid(
+        read([
+          'FONDA EJEMPLO',
+          '23/11/2026 14:35',
+          'CANT DESCRIPCION IMPORTE',
+          '2 ENCHILADAS SUIZAS',
+          '1 SOPA AZTECA',
+          '2 AGUA DE JAMAICA',
+          'TOTAL',
+          '290.00',
+          '95.00',
+          '90.00',
+          '475.00',
+        ]),
+        47500,
+      );
+      expectPaid(
+        read([
+          'FONDA EJEMPLO',
+          '23/11/2026 14:35',
+          '2 ENCHILADAS SUIZAS 290.00',
+          '1 SOPA AZTECA 95.00',
+          '2 AGUA DE JAMAICA 90.00',
+          'TOTAL',
+          'EFECTIVO',
+          'CAMBIO',
+          '475.00',
+          '500.00',
+          '25.00',
+        ]),
+        47500,
+      );
+    });
+
+    test('the word for the total misread, subtotal and tax still there', () {
+      for (final label in ['TOTAI', 'T0TAL', 'TOTA1', 'IOTAL', 'TDTAL']) {
+        final p = read([
+          'CAFETERIA EJEMPLO',
+          '23/11/2026 09:15',
+          '2 CHILAQUILES 290.00',
+          '1 JUGO VERDE 95.00',
+          '2 CAFE AMERICANO 90.00',
+          r'SUBTOTAL $409.48',
+          r'IVA 16% $65.52',
+          '$label \$475.00',
+          r'EFECTIVO $500.00',
+          r'CAMBIO $25.00',
+        ]);
+        expect(p.amountMinor, 47500, reason: label);
+        expect(p.amountDoubtful, isFalse, reason: label);
+      }
+    });
+
+    test('a comma read as a point in the thousands, and the reverse', () {
+      const head = ['MUEBLERIA EJEMPLO', '23/11/2026'];
+      expectPaid(read([...head, r'TOTAL $1.250.00']), 125000);
+      expectPaid(read([...head, r'TOTAL $1,250,00']), 125000);
+    });
+
+    test('net total, tax, total: the last one is the bill', () {
+      expectPaid(
+        read([
+          'LIBRERIA EJEMPLO',
+          'NIF B12345678',
+          '23/11/2026',
+          '1 GUIA DE VIAJE 21,06',
+          'TOTAL NETO 20,25',
+          'IVA 4% 0,81',
+          'TOTAL 21,06 €',
+        ]),
+        2106,
+        currency: 'EUR',
+      );
+      expectPaid(
+        read([
+          'FERRETERIA EJEMPLO LTDA',
+          'RUT 76.123.456-7',
+          'FACTURA ELECTRONICA 4521',
+          '23/11/2026',
+          '1 TALADRO PERCUTOR',
+          r'TOTAL NETO $ 42.008',
+          r'IVA 19% $ 7.982',
+          r'TOTAL $ 49.990',
+        ], home: 'CLP'),
+        49990,
+      );
+    });
+
+    test('UK: "to pay" is the total', () {
+      expectPaid(
+        read([
+          'THE CORNER PHARMACY',
+          '23/11/2026 16:02',
+          'PARACETAMOL 500MG 1.20',
+          'TOOTHPASTE 3.50',
+          'TRAVEL ADAPTOR 12.00',
+          '3 ITEMS',
+          'BALANCE TO PAY £16.70',
+          'VISA DEBIT £16.70',
+          'VAT RATE 20% NET 12.92 VAT 2.58',
+        ], home: 'USD'),
+        1670,
+        currency: 'GBP',
+      );
+    });
+
+    test('US pump: gallons with three decimals', () {
+      expectPaid(
+        read([
+          'QUICK FUEL #1234',
+          '11/20/2026 08:14 AM',
+          'PUMP 06 REGULAR',
+          'GALLONS 10.234',
+          r'PRICE/GAL $3.459',
+          r'FUEL TOTAL $35.40',
+          r'CREDIT $35.40',
+        ], home: 'USD', monthFirst: true),
+        3540,
+      );
+    });
+
+    test('US shop: savings above the bill; item names are not currencies', () {
+      expectPaid(
+        read([
+          'CITY DRUG STORE',
+          '11/20/2026 5:14 PM',
+          'BIC PEN 1.99',
+          'PAPER CUP 2.49',
+          'VITAMIN D3 22.98',
+          'SUBTOTAL 27.46',
+          'TAX 2.27',
+          'TOTAL 29.73',
+          'VISA CHARGE 29.73',
+          'TOTAL SAVINGS 31.50',
+        ], home: 'USD', monthFirst: true),
+        2973,
+        currency: 'USD',
+      );
+    });
+  });
+
+  group('round 2: Guatemala and its neighbours', () {
+    test('FEL factura: column headed TOTAL, IVA shown but already inside', () {
+      expectPaid(
+        read([
+          'CAFE EJEMPLO, S.A.',
+          'NIT: 1234567-8',
+          'FACTURA',
+          'DOCUMENTO TRIBUTARIO ELECTRONICO',
+          'SERIE: A1B2C3D4 NUMERO: 1234567890',
+          'FECHA DE EMISION: 23/11/2026',
+          'NIT: CF NOMBRE: CONSUMIDOR FINAL',
+          'CANT DESCRIPCION P.UNIT TOTAL',
+          '2 DESAYUNO CHAPIN 45.00 90.00',
+          '1 CAFE 15.00 15.00',
+          '1 JUGO DE NARANJA 20.00 20.00',
+          'TOTAL Q 125.00',
+          'IVA 12%: Q 13.39',
+          'SUJETO A PAGOS TRIMESTRALES ISR',
+          'CERTIFICADOR: EJEMPLO, S.A. NIT 1234567-8',
+        ]),
+        12500,
+        currency: 'GTQ',
+      );
+    });
+
+    test('subtotal with the tax inside, tax shown, then tip and total', () {
+      expectPaid(
+        read([
+          'RESTAURANTE EL PORTAL',
+          'NIT 1234567-8',
+          '23/11/2026 13:05',
+          '2 PEPIAN DE POLLO Q170.00',
+          '2 LIMONADA Q50.00',
+          '1 RELLENITOS Q30.00',
+          'SUBTOTAL Q250.00',
+          'IVA 12% Q26.79',
+          'PROPINA 10% Q25.00',
+          'TOTAL Q275.00',
+        ], home: 'GTQ'),
+        27500,
+      );
+      // No tip: subtotal and total say the same.
+      expectPaid(
+        read([
+          'LIBRERIA EJEMPLO',
+          'NIT 1234567-8',
+          '23/11/2026',
+          '1 CUADERNO Q35.00',
+          '1 MAPA DE CARRETERAS Q65.00',
+          'SUBTOTAL Q100.00',
+          'IVA 12% Q10.71',
+          'TOTAL Q100.00',
+        ], home: 'GTQ'),
+        10000,
+      );
+    });
+
+    test('hotel that also quotes dollars: amount and currency go together', () {
+      final p = read([
+        'HOTEL CASA EJEMPLO',
+        'NIT 1234567-8',
+        'ANTIGUA GUATEMALA',
+        '23/11/2026',
+        '1 NOCHE HABITACION DOBLE',
+        r'TOTAL US$ 150.00',
+        'TOTAL Q 1,165.50',
+        'TIPO DE CAMBIO 7.77',
+      ], home: 'GTQ');
+      expectPaid(p, 116550, currency: 'GTQ');
+    });
+
+    test('a "Q" in a dish name is not the quetzal', () {
+      expectPaid(
+        read([
+          'TAQUERIA EL GUERO',
+          '23/11/2026 21:10',
+          '3 TACO PASTOR C/Q 96.00',
+          '2 GRINGA Q 130.00',
+          '1 VOLCAN C/Q 45.00',
+          'TOTAL 271.00',
+        ]),
+        27100,
+        currency: 'MXN',
+      );
+    });
+
+    test('quantity x price on its own row above each item', () {
+      expectPaid(
+        read([
+          'SUPERMERCADO EJEMPLO',
+          'NIT 1234567-8',
+          '23/11/2026 17:20',
+          '2 x 12.50',
+          'FRIJOL NEGRO 1LB 25.00',
+          '1 x 10.00',
+          'TORTILLAS 10.00',
+          '3 x 8.75',
+          'AGUA PURA 600ML 26.25',
+          'TOTAL Q 61.25',
+          'TARJETA Q 61.25',
+        ], home: 'GTQ'),
+        6125,
+      );
+    });
+
+    test('Salvadoran credito fiscal: sums, IVA, sub-total, total', () {
+      expectPaid(
+        read([
+          'FERRETERIA EJEMPLO S.A. DE C.V.',
+          'NRC 123456-7 NIT 0614-123456-001-2',
+          'COMPROBANTE DE CREDITO FISCAL',
+          '23/11/2026',
+          '2 CANDADO 40MM 13.28',
+          '1 CINTA METRICA 5M 4.42',
+          'SUMAS 17.70',
+          'IVA 13% 2.30',
+          'SUB-TOTAL 20.00',
+          'VENTA TOTAL 20.00',
+          'SON: VEINTE 00/100 DOLARES',
+        ], home: 'USD'),
+        2000,
+        currency: 'USD',
+      );
+    });
+
+    test('Costa Rica: colones with the dollar price underneath', () {
+      expectPaid(
+        read([
+          'SODA TIPICA EJEMPLO',
+          'FACTURA ELECTRONICA',
+          '23/11/2026 12:30',
+          '2 CASADO CON POLLO ₡9,000.00',
+          '2 FRESCO NATURAL ₡3,000.00',
+          'SERVICIO 10% ₡1,200.00',
+          'IVA 13% ₡1,560.00',
+          'TOTAL ₡14,760.00',
+          r'TOTAL $28.94',
+          'TIPO DE CAMBIO 510.00',
+        ]),
+        1476000,
+        currency: 'CRC',
+      );
+    });
+
+    test('Venezuela: paid part in dollars cash, part by mobile payment', () {
+      expectPaid(
+        read([
+          'SENIAT',
+          'RIF J-00000001-1',
+          'RESTAURANT EJEMPLO, C.A.',
+          'FACTURA 00012345',
+          'FECHA 23/11/2026',
+          '2 PABELLON Bs 3.200,00',
+          '2 JUGO NATURAL Bs 1.295,19',
+          'SUBTTL Bs 4.495,19',
+          'IVA G (16,00%) Bs 719,23',
+          'IGTF 3,00% Bs 111,12',
+          'TOTAL Bs 5.325,54',
+          'EFECTIVO DIVISAS Bs 3.704,00',
+          'PAGO MOVIL Bs 1.621,54',
+        ], home: 'VES'),
+        532554,
+      );
+    });
+  });
+
+  group('round 2: what is not a currency', () {
+    test('expiry dates, exchange rates, a missing space', () {
+      // "CAD" is caducidad on a pharmacy ticket.
+      expectPaid(
+        read([
+          'FARMACIA EJEMPLO',
+          '23/11/2026 10:15',
+          '1 LOSARTAN 50MG 389.00',
+          'LOTE A1234 CAD 12/2027',
+          '1 OMEPRAZOL 20MG 152.00',
+          'LOTE B5678 CAD 06/2028',
+          'TOTAL 541.00',
+        ]),
+        54100,
+        currency: 'MXN',
+      );
+      // The rates a duty-free shop prints are not what was paid.
+      final rates = read([
+        'TIENDA EJEMPLO AEROPUERTO',
+        '23/11/2026 06:20',
+        '1 CHOCOLATE 380.00',
+        r'TOTAL $380.00',
+        'COMPRA USD 17.80',
+        'VENTA USD 18.60',
+      ]);
+      expectPaid(rates, 38000, currency: 'MXN');
+      expect(rates.currencyDetected, isFalse);
+      // "A PAGAR$" is not the Brazilian real.
+      expectPaid(
+        read([
+          'ESTACIONAMIENTO EJEMPLO',
+          '23/11/2026',
+          r'TOTAL A PAGAR$72.00',
+        ]),
+        7200,
+        currency: 'MXN',
+      );
+    });
+
+    test('litres written L are not lempiras', () {
+      expectPaid(
+        read([
+          'GASOLINERA EJEMPLO',
+          '23/11/2026 07:12',
+          'MAGNA',
+          'VOLUMEN L 35.24',
+          r'TOTAL $845.36',
+        ]),
+        84536,
+        currency: 'MXN',
+      );
+    });
+
+    test('pesos with the dollar equivalent, no code on the peso total', () {
+      final p = read([
+        'TIENDA LIBRE DE IMPUESTOS',
+        '23/11/2026 06:20',
+        '1 PERFUME 1,530.00',
+        r'TOTAL $1,530.00',
+        'TOTAL USD 84.07',
+      ]);
+      expectPaid(p, 153000, currency: 'MXN');
+    });
+  });
+
   group('amount in words', () {
     WordsAmount? words(String row) {
       final found = AmountInWords.find([row]);

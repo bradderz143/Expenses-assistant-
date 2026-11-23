@@ -1214,6 +1214,10 @@ class ReceiptTextParser {
       return sum > 0 ? sum : null;
     }
 
+    final printed = _decimalAmounts(rows, exponent);
+    final computedPrinted =
+        computed != null && printed.any((a) => _near(a, computed));
+
     // Readings of the receipt independent of the item lines.
     bool backedByTotals(int amount) {
       if (_ladder(rows, exponent, amount)) return true;
@@ -1222,8 +1226,13 @@ class ReceiptTextParser {
               (tips > 0 && _near(computed + tips, amount)))) {
         return true;
       }
-      if (computed == null && subtotal > 0 && tips > 0) {
-        if (_near(subtotal + tips, amount)) return true;
+      // The subtotal already has the tax inside it (the tax row is for
+      // information), so the total repeats it or adds only the tip:
+      // "SUBTOTAL Q250.00 / IVA 12% Q26.79 / PROPINA Q25.00 / TOTAL
+      // Q275.00". Not when subtotal plus tax is itself printed.
+      if (subtotal > 0 && !computedPrinted) {
+        if (_near(subtotal, amount)) return true;
+        if (tips > 0 && _near(subtotal + tips, amount)) return true;
       }
       if (paidNet.any((p) => _near(p, amount))) return true;
       return inWords(amount);
@@ -1270,6 +1279,26 @@ class ReceiptTextParser {
       }
       pick = c;
       break;
+    }
+
+    // A later total that is this one plus the tax rows, or plus the tip
+    // between them, is the bill: "TOTAL NETO 20,25 / IVA 0,81 / TOTAL
+    // 21,06", "TOTAL A PAGAR 475.00 / PROPINA 47.50 / TOTAL 522.50".
+    final first = pick;
+    if (first != null) {
+      for (final c in candidates) {
+        if (c.weak || c.row <= first.row || c.amount <= first.amount) continue;
+        final gap = c.amount - first.amount;
+        var tipsBetween = 0;
+        for (final (row, tip) in tipRows) {
+          if (row > first.row && row < c.row) tipsBetween += tip;
+        }
+        if ((sawTax && tax > 0 && _near(gap, tax)) ||
+            (tipsBetween > 0 && _near(gap, tipsBetween))) {
+          pick = c;
+          break;
+        }
+      }
     }
 
     if (pick != null) {
@@ -1344,7 +1373,7 @@ class ReceiptTextParser {
       }
     }
     final itemsTotal = _itemsTotal(priced);
-    final printedAmounts = _decimalAmounts(rows, exponent);
+    final printedAmounts = printed;
     for (final w in formal) {
       if (itemsTotal != null && w.matches(itemsTotal, exponent)) {
         return (itemsTotal, false);
@@ -1801,10 +1830,10 @@ class ReceiptTextParser {
   /// A figure with two decimals after a point: "1,234.50".
   static const String _figure2 = r'(?:\d{1,3}(?:,\d{3})+|\d+)\.\d{2}(?!\d)';
 
-  /// "MXN: 570.00", "USD$ 21.50".
+  /// "MXN: 570.00", "USD$ 21.50", "Total (MXN) $5,361.24".
   static final RegExp _codeBeforeAmount = RegExp(
     '(?<![A-Za-z])(${Currencies.common.join('|')})(?![A-Za-z])'
-    '\\s?[:=]?\\s?\\\$?\\s?($_figure)',
+    '\\)?\\s?[:=]?\\s?\\\$?\\s?($_figure)',
   );
 
   /// "570.00 MXN".
@@ -1812,40 +1841,56 @@ class ReceiptTextParser {
     '\\d[.,]\\d{2}\\s?(${Currencies.common.join('|')})(?![A-Za-z])',
   );
 
-  /// Signs and abbreviations that only one currency uses, beside a figure,
-  /// with how much evidence each needs before it is believed. A sign needs
-  /// one sighting. A single letter needs a total row or three item rows:
-  /// "Q 45.00" and "L 35.24" could be a size or litres.
+  /// Evidence a currency needs before it is believed, by how it is named.
+  /// A sign of its own ("£", "Bs", "R$") needs one sighting. Three capitals
+  /// need a total row or three other rows: "COMPRA USD 17.80" is an
+  /// exchange rate, "BIC PEN 1.99" a pen.
+  static const int _signEvidence = 1;
+  static const int _codeEvidence = 3;
+
+  /// A single letter counts only beside a total: "GRINGA Q 130.00" is a
+  /// dish with cheese and "VOLUMEN L 35.24" is litres.
+  static const int _letterEvidence = 3;
+
+  /// Signs and abbreviations that only one currency uses, beside a figure.
   static final List<(RegExp, String, int)> _signs = [
-    (RegExp('(?<![A-Za-z])U\\.?S\\.?\\s?\\\$\\s?$_figure'), 'USD', 1),
-    (RegExp('(?<![A-Za-z])U\\\$S\\s?$_figure'), 'USD', 1),
-    (RegExp('(?<![A-Za-z])MX\\s?\\\$\\s?$_figure'), 'MXN', 1),
-    (RegExp('(?<![A-Za-z])R\\\$\\s?$_figure'), 'BRL', 1),
-    (RegExp('(?<![A-Za-z])S/\\.?\\s?$_figure'), 'PEN', 1),
-    (RegExp('₡\\s?$_figure'), 'CRC', 1),
-    (RegExp('£\\s?$_figure'), 'GBP', 1),
-    (RegExp('€\\s?$_figure|\\d[.,]\\d{2}\\s?€'), 'EUR', 1),
-    (RegExp('[₹]\\s?$_figure'), 'INR', 1),
-    (RegExp('[₦]\\s?$_figure'), 'NGN', 1),
-    (RegExp('[₴]\\s?$_figure|\\d[.,]\\d{2}\\s?₴'), 'UAH', 1),
-    (RegExp('[₺]\\s?$_figure|\\d[.,]\\d{2}\\s?₺'), 'TRY', 1),
-    (RegExp('[₱]\\s?$_figure'), 'PHP', 1),
-    (RegExp('[฿]\\s?$_figure'), 'THB', 1),
-    (RegExp('[₩]\\s?$_figure'), 'KRW', 1),
-    (RegExp('[₫]\\s?$_figure|\\d\\s?₫'), 'VND', 1),
-    (RegExp('[₵]\\s?$_figure'), 'GHS', 1),
-    (RegExp('\\d[.,]\\d{2}\\s?zł'), 'PLN', 1),
+    (
+      RegExp('(?<![A-Za-z])U\\.?S\\.?\\s?\\\$\\s?$_figure'),
+      'USD',
+      _signEvidence,
+    ),
+    (RegExp('(?<![A-Za-z])U\\\$S\\s?$_figure'), 'USD', _signEvidence),
+    (RegExp('(?<![A-Za-z])MX\\s?\\\$\\s?$_figure'), 'MXN', _signEvidence),
+    (RegExp('(?<![A-Za-z])R\\\$\\s?$_figure'), 'BRL', _signEvidence),
+    (RegExp('(?<![A-Za-z])S/\\.?\\s?$_figure'), 'PEN', _signEvidence),
+    (RegExp('₡\\s?$_figure'), 'CRC', _signEvidence),
+    (RegExp('£\\s?$_figure'), 'GBP', _signEvidence),
+    (RegExp('€\\s?$_figure|\\d[.,]\\d{2}\\s?€'), 'EUR', _signEvidence),
+    (RegExp('[₹]\\s?$_figure'), 'INR', _signEvidence),
+    (RegExp('[₦]\\s?$_figure'), 'NGN', _signEvidence),
+    (RegExp('[₴]\\s?$_figure|\\d[.,]\\d{2}\\s?₴'), 'UAH', _signEvidence),
+    (RegExp('[₺]\\s?$_figure|\\d[.,]\\d{2}\\s?₺'), 'TRY', _signEvidence),
+    (RegExp('[₱]\\s?$_figure'), 'PHP', _signEvidence),
+    (RegExp('[฿]\\s?$_figure'), 'THB', _signEvidence),
+    (RegExp('[₩]\\s?$_figure'), 'KRW', _signEvidence),
+    (RegExp('[₫]\\s?$_figure|\\d\\s?₫'), 'VND', _signEvidence),
+    (RegExp('[₵]\\s?$_figure'), 'GHS', _signEvidence),
+    (RegExp('\\d[.,]\\d{2}\\s?zł'), 'PLN', _signEvidence),
     // "Bs 52,40", "Bs.S 52,40", "Bs.D 52,40", "BS. 52,40".
     (
       RegExp('(?<![A-Za-z])B[sS]\\.?\\s?[SDF]?\\.?\\s?[:=]?\\s?$_figure'),
       _bolivarSign,
-      1,
+      _signEvidence,
     ),
     // Honduras: "Lps. 350.00", "L 350.00", "L. 350.00".
-    (RegExp('(?<![A-Za-z0-9])L(?:ps|PS)\\.?\\s?$_figure'), 'HNL', 1),
-    (RegExp('(?<![A-Za-z0-9])L\\.?\\s?$_figure2'), 'HNL', 3),
+    (
+      RegExp('(?<![A-Za-z0-9])L(?:ps|PS)\\.?\\s?$_figure'),
+      'HNL',
+      _signEvidence,
+    ),
+    (RegExp('(?<![A-Za-z0-9])L\\.?\\s?$_figure2'), 'HNL', _letterEvidence),
     // Guatemala: "Q125.00", "Q 125.00", "Q. 125.00".
-    (RegExp('(?<![A-Za-z0-9])Q\\.?\\s?$_figure2'), 'GTQ', 3),
+    (RegExp('(?<![A-Za-z0-9])Q\\.?\\s?$_figure2'), 'GTQ', _letterEvidence),
   ];
 
   /// "Bs" is the bolivar, or the boliviano on a receipt from Bolivia.
@@ -1873,12 +1918,13 @@ class ReceiptTextParser {
       // A whole number after three capitals is money only beside a word
       // for the total: "TOTAL MXN 90", not "LOTE 12 CAD 122027".
       if (!totalRow && !RegExp('[.,]').hasMatch(m[2]!)) continue;
-      marks.add(_CurrencyMark(m[1]!, m.start, m.end, 2));
+      marks.add(_CurrencyMark(m[1]!, m.start, m.end, _codeEvidence));
     }
     for (final m in _codeAfterAmount.allMatches(row)) {
-      marks.add(_CurrencyMark(m[1]!, m.start, m.end, 2));
+      marks.add(_CurrencyMark(m[1]!, m.start, m.end, _codeEvidence));
     }
     for (final (pattern, code, needed) in _signs) {
+      if (needed == _letterEvidence && !totalRow) continue;
       for (final m in pattern.allMatches(row)) {
         final currency = code != _bolivarSign
             ? code
@@ -1949,23 +1995,29 @@ class ReceiptTextParser {
     return ((best, true), others);
   }
 
-  /// Whether [code] is only the bill restated in another currency: a total
-  /// in it ("TOTAL USD 84.07") beside a total with no currency named that
-  /// is more than twice or less than half as much ("TOTAL \$1,530.00"). A
-  /// tip or a tax never changes a total that much; an exchange rate does.
+  /// Whether [code] is only the bill restated in dollars or euros for the
+  /// visitor: named on total rows and nowhere else ("TOTAL USD 84.07"),
+  /// beside a total with no currency named that is more than twice or less
+  /// than half as much ("TOTAL \$1,530.00"). A tip or a tax never changes a
+  /// total that much; an exchange rate does.
   bool _isEquivalentOnly(List<String> rows, String code) {
+    if (code != 'USD' && code != 'EUR') return false;
     final named = <int>[];
     final plain = <int>[];
     for (final row in rows) {
-      if (_totalPriority(row) < 60) continue;
+      final marks = _currencyMarks(row);
+      final inCode = marks.any((m) => m.code == code);
+      if (_totalPriority(row) < 60) {
+        if (inCode) return false;
+        continue;
+      }
       if (_isNotTotal(row) || _tenderLine.hasMatch(row)) continue;
       if (_partTotal.hasMatch(row)) continue;
       final value = _lastDecimalAmount(row, 2);
       if (value == null || value <= 0) continue;
-      final marks = _currencyMarks(row);
       if (marks.isEmpty) {
         plain.add(value);
-      } else if (marks.any((m) => m.code == code)) {
+      } else if (inCode) {
         named.add(value);
       }
     }
