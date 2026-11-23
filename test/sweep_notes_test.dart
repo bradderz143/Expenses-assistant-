@@ -930,6 +930,364 @@ void main() {
     });
   });
 
+  group('whole receipts', () {
+    /// What the receipt said for the one note of [kind].
+    String printedOf(List<String> rows, String kind) =>
+        ReceiptNotes.find(rows)
+            .singleWhere((n) => n.kind.name == kind)
+            .printed ??
+        '';
+
+    test('the name or number of an invoice is not an offer of one', () {
+      for (final rows in [
+        ['FACTURA SERIE A No. 4521', 'FECHA: 23/11/2026'],
+        ['FACTURA CONSUMIDOR FINAL', 'No. 000123'],
+        ['FACTURA ELECTRONICA', 'TOTAL 250.00'],
+        [
+          'Factura de venta POS No. 12345',
+          'Resolucion DIAN 18764000000001',
+          'Autorizacion numeracion de facturacion',
+          'del POS 1 al POS 100000',
+        ],
+        ['TICKET FACTURADO', 'TOTAL 250.00'],
+        ['FACTURAR A: EMPRESA EJEMPLO SA DE CV', 'HABITACION 204'],
+      ]) {
+        expect(shown(rows), isEmpty, reason: '$rows');
+      }
+    });
+
+    test('a convenience-store ticket: the disclaimer wrapped over two rows, '
+        'then how to invoice', () {
+      const rows = [
+        'TIENDA EJEMPLO',
+        'RFC: XXX010101AB1',
+        '1 REFRESCO 600ML 18.00',
+        r'TOTAL $ 18.00',
+        r'EFECTIVO $ 20.00',
+        r'CAMBIO $ 2.00',
+        'ESTE TICKET NO ES UN',
+        'COMPROBANTE FISCAL',
+        'FACTURA EN LINEA EN:',
+        'www.tienda-example.com/facturacion',
+        'ATENCION A CLIENTES 800 000 0000',
+        'CONSULTA NUESTRO AVISO DE PRIVACIDAD EN',
+        'www.tienda-example.com/privacidad',
+      ];
+      expect(shown(rows), ['invoice: Tax invoice (factura) available']);
+      expect(detailOf(rows, 'invoice'),
+          contains('Online: www.tienda-example.com/facturacion'));
+      // Without the instructions, the disclaimer is the news.
+      expect(shown(rows.sublist(0, 8)),
+          ['invoice: This ticket is not a tax invoice']);
+      expect(printedOf(rows.sublist(0, 8), 'invoice'),
+          'ESTE TICKET NO ES UN COMPROBANTE FISCAL');
+      // "0" read for "O" in the one word that turns the sentence round.
+      expect(shown(['ESTE TICKET N0 ES UN COMPROBANTE FISCAL']),
+          ['invoice: This ticket is not a tax invoice']);
+    });
+
+    test('the tax authority\'s and the card terminal\'s sites are not where '
+        'the shop invoices', () {
+      const rows = [
+        'SOLICITA TU CFDI EN',
+        'www.tienda-example.mx',
+        'VERIFICA TU FACTURA EN www.sat.gob.mx',
+        'TIENES 30 DIAS NATURALES',
+      ];
+      expect(shown(rows),
+          ['invoice: Tax invoice (factura): request it within 30 days']);
+      expect(detailOf(rows, 'invoice'),
+          contains('Online: www.tienda-example.mx'));
+      expect(
+        detailOf(
+            ['SOLICITE SU FACTURA EN CAJA', 'COPIA CLIENTE', 'www.clip.mx'],
+            'invoice'),
+        isNot(contains('Online:')),
+      );
+    });
+
+    test('when the invoice is sent, and opening hours, are not deadlines', () {
+      const sent = [
+        'FACTURACION EN:',
+        'facturacion.gasolinera-example.com.mx',
+        'FOLIO: 1234567',
+        'SU FACTURA SE ENVIARA A SU CORREO',
+        'DENTRO DE LAS 24 HRS',
+      ];
+      expect(shown(sent), ['invoice: Tax invoice (factura) available']);
+      expect(detailOf(sent, 'invoice'),
+          contains('Invoice reference (folio): 1234567'));
+      expect(
+        shown(['FACTURACION EN SUCURSAL', 'ABIERTO 24 HRS']),
+        ['invoice: Tax invoice (factura) available'],
+      );
+      expect(
+        shown([
+          'PARA FACTURAR CUENTA CON 24 HRS',
+          'facturacion.gasolinera-example.com.mx',
+        ]),
+        ['invoice: Tax invoice (factura): request it within 24 hours'],
+      );
+    });
+
+    test('a Mexican restaurant bill: suggested tips, not fiscal, tip not '
+        'included', () {
+      expect(
+        shown([
+          'RESTAURANTE EJEMPLO',
+          'MESA: 12 PERSONAS: 2',
+          '1 ARRACHERA 320.00',
+          '2 CERVEZA 140.00',
+          'SUBTOTAL: 460.00',
+          r'TOTAL: $460.00',
+          'PROPINA SUGERIDA',
+          '10%: 46.00 15%: 69.00 20%: 92.00',
+          'ESTE NO ES UN COMPROBANTE FISCAL',
+          'PROPINA N0 INCLUIDA',
+          'GRACIAS POR SU VISITA',
+          'LO ESPERAMOS PRONTO',
+        ]),
+        [
+          'invoice: This ticket is not a tax invoice',
+          'tip: Tip not included in the total',
+        ],
+      );
+    });
+
+    test('a Guatemalan bill that is not the invoice, with the tip added', () {
+      expect(
+        shown([
+          'RESTAURANTE EJEMPLO',
+          'MESA 4',
+          '2 PEPIAN Q 130.00',
+          'SUBTOTAL Q 130.00',
+          'PROPINA 10% Q 13.00',
+          'TOTAL Q 143.00',
+          'ESTE DOCUMENTO NO ES UNA FACTURA',
+          'SOLICITE SU FACTURA EN CAJA',
+        ]),
+        [
+          'invoice: Tax invoice (factura) available',
+          'tip: Tip on this receipt: 13.00 (10%)',
+        ],
+      );
+    });
+
+    test('a US diner: the large-party gratuity rule is not part of the '
+        'survey, nor a tip paid', () {
+      const rows = [
+        'THE EXAMPLE DINER',
+        'Server: 12  Table 4',
+        '2 Burger 28.00',
+        'Subtotal 28.00',
+        'Tax 2.31',
+        'Total 30.31',
+        'Suggested Gratuity',
+        '18% 5.04  20% 5.60  22% 6.16',
+        'Tip ________',
+        'Total ________',
+        '18% gratuity added for parties of 6 or more',
+        'Tell us how we did at www.example-diner.com/survey',
+        r'for a chance to win a $500 gift card',
+        'Returns within 30 days with receipt',
+      ];
+      expect(shown(rows), [
+        'offer: Survey with a prize draw',
+        'returns: Returns or exchanges within 30 days',
+      ]);
+      expect(printedOf(rows, 'offer'), startsWith('Tell us how we did'));
+      expect(shown(['PROMO CERVEZA', 'BUY ONE GET ONE FREE']), isEmpty);
+    });
+
+    test('a note quotes its own sentence, not the rows that happen to be '
+        'above it', () {
+      const hotel = [
+        'HOTEL EJEMPLO',
+        'HABITACION 204',
+        'TARIFA NO REEMBOLSABLE',
+        'TOTAL USD 250.00',
+        'TIPO DE CAMBIO DEL DIA: 17.2500',
+        'TOTAL MXN 4,312.50',
+        'WIFI: HOTEL_EJEMPLO  PASSWORD: bienvenido',
+      ];
+      expect(shown(hotel), [
+        'exchangeRate: Exchange rate on the receipt: 17.2500',
+        'wifi: Wi-Fi password',
+        'returns: No returns or refunds',
+      ]);
+      expect(printedOf(hotel, 'returns'), 'TARIFA NO REEMBOLSABLE');
+      expect(detailOf(hotel, 'wifi'),
+          'Network: HOTEL_EJEMPLO\nPassword: bienvenido');
+      const cafe = [
+        'RED WIFI: CAFE_EJEMPLO',
+        'CLAVE: cafe2026',
+        'BAÑOS: CODIGO 1234',
+        'ESTACIONAMIENTO: SELLA TU BOLETO EN CAJA',
+      ];
+      expect(shown(cafe), [
+        'wifi: Wi-Fi password',
+        'toilet: Toilet code: 1234',
+        'parking: Parking validation available',
+      ]);
+      expect(detailOf(cafe, 'wifi'),
+          'Network: CAFE_EJEMPLO\nPassword: cafe2026');
+      expect(printedOf(cafe, 'parking'),
+          'ESTACIONAMIENTO: SELLA TU BOLETO EN CAJA');
+    });
+
+    test('a pharmacy: savings, points for this purchase, returns refused '
+        'only for some goods', () {
+      const rows = [
+        'FARMACIA EJEMPLO',
+        '1 PARACETAMOL 500MG 45.00',
+        'TOTAL 45.00',
+        r'USTED AHORRO $12.50',
+        'PUNTOS ACUMULADOS EN ESTA COMPRA: 4',
+        'NO HAY CAMBIOS NI DEVOLUCIONES EN MEDICAMENTOS',
+      ];
+      expect(shown(rows), [
+        'discount: Savings on this receipt: 12.50',
+        'offer: Rewards points',
+        'returns: Returns policy printed on the receipt',
+      ]);
+      expect(shown(['NO SE ACEPTAN DEVOLUCIONES SIN TICKET']),
+          ['returns: Returns policy printed on the receipt']);
+      expect(shown(['TIPO DE CAMBIO: 1.00', 'USTED AHORRO 0.00']), isEmpty);
+    });
+
+    test('a card slip and a toll ticket', () {
+      expect(
+        shown([
+          'VENTA',
+          'TARJETA ************0000',
+          'AUTORIZACION: 123456',
+          r'IMPORTE: $ 500.00',
+          r'PROPINA: $ 0.00',
+          r'TOTAL: $ 500.00',
+          'FIRMA ____________',
+          'www.clip.mx',
+          'COPIA CLIENTE',
+        ]),
+        isEmpty,
+      );
+      const toll = [
+        'AUTOPISTA EJEMPLO',
+        'CASETA EJEMPLO',
+        r'IMPORTE $ 98.00',
+        'FOLIO 1234567',
+        'FACTURE EN www.autopista-example.mx',
+        'CONSERVE ESTE COMPROBANTE',
+      ];
+      expect(shown(toll), ['invoice: Tax invoice (factura) available']);
+      expect(detailOf(toll, 'invoice'),
+          contains('Online: www.autopista-example.mx'));
+    });
+  });
+
+  group('wording and misreadings that turn up', () {
+    test('an electronic invoice read badly is still one', () {
+      expect(
+        shown([
+          'FACTURA',
+          'F0LIO FlSCAL:',
+          '0A1B2C3D-1111-4222-8333-444455556666',
+          'RECEPTOR: PUBLlCO EN GENERAL',
+          'TOTAL 500.00',
+        ]),
+        ['invoice: Tax invoice without a company tax ID'],
+      );
+      expect(
+        shown([
+          'DOCUMENTO TRIBUTARIO ELECTRONIC0',
+          'NUMERO DE AUTORIZACI0N:',
+          '1A2B3C4D-5E6F-4A8B-9C0D-1E2F3A4B5C6D',
+          'NIT: 9876543-2',
+          'TOTAL Q 60.00',
+        ]),
+        ['invoice: This is already a tax invoice'],
+      );
+    });
+
+    test('a shop\'s own site under the title "FACTURA" is its letterhead', () {
+      expect(
+        shown([
+          'RESTAURANTE EJEMPLO',
+          'FACTURA',
+          'www.restaurante-example.com.gt',
+          'NIT: 1234567-8',
+          'TOTAL Q 60.00',
+        ]),
+        isEmpty,
+      );
+    });
+
+    test('"autofacturacion", and the month of the purchase', () {
+      const rows = [
+        'AUTOFACTURACION EN',
+        'www.tienda-example.mx',
+        'DENTRO DEL MES DE COMPRA',
+      ];
+      expect(shown(rows),
+          ['invoice: Tax invoice (factura): request it within the same month']);
+      expect(detailOf(rows, 'invoice'),
+          contains('Online: www.tienda-example.mx'));
+    });
+
+    test('"cargo por servicio": a percentage that adds up is the service '
+        'charge, a bare fee is not a tip', () {
+      expect(
+        shown([
+          'SUBTOTAL 980.00',
+          'CARGO POR SERVICIO 10% 98.00',
+          'TOTAL 1,078.00',
+        ]),
+        ['tip: Service charge on this receipt: 98.00 (10%)'],
+      );
+      expect(
+        shown(['BOLETO 450.00', 'CARGO POR SERVICIO 35.00', 'TOTAL 485.00']),
+        isEmpty,
+      );
+    });
+
+    test('a zero that is part of an amount stays a zero', () {
+      expect(
+        shown(['Subtotal USD9.00', 'Tip USD0.90', 'Total USD9.90']),
+        ['tip: Tip on this receipt: 0.90'],
+      );
+    });
+
+    test('junk never breaks the notes, and never makes a long list', () {
+      const bits = [
+        'FACTURA', 'FACTURACION', 'PROPINA', 'SERVICIO', '%', '10%', r'$',
+        '0.00', '45.00', '-41.50', '1,234.56', '8.500', 'Bs.S', 'WIFI', ':',
+        'CLAVE', 'PASSWORD:', '', ' ', 'www.', '.com', '.com.mx', '@',
+        'TOTAL', 'SUBTOTAL', '-', '2X1', 'DIAS', '30', '24', 'HRS',
+        'GARANTIA', 'CAMBIOS', 'DEVOLUCIONES', 'NO', 'TIPO DE CAMBIO',
+        'ESTACIONAMIENTO', 'BAÑO', 'CODIGO', '#', 'PUNTOS', 'GRATIS',
+        'PROXIMA VISITA', 'ENCUESTA', 'DESCUENTO', 'CUPON', 'PRECUENTA',
+        'SENIAT', 'NIT: CF', 'FOLIO', 'ñ', 'é', '́', '////', '....',
+        '()', '[', '*', '+', '?', r'\', '=', '1 USD = ', 'N0', 'l', 'O0O',
+      ];
+      var seed = 7;
+      int next(int n) {
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        return seed % n;
+      }
+
+      for (var receipt = 0; receipt < 600; receipt++) {
+        final rows = [
+          for (var r = next(12); r >= 0; r--)
+            [for (var b = next(7); b > 0; b--) bits[next(bits.length)]]
+                .join(next(4) == 0 ? '' : ' '),
+        ];
+        final notes = ReceiptNotes.find(rows);
+        expect(notes.length, lessThanOrEqualTo(5), reason: '$rows');
+        expect({for (final n in notes) n.kind}.length, notes.length,
+            reason: '$rows');
+      }
+    });
+  });
+
   test('the most important first, and never a long list', () {
     final notes = shown([
       'RESTAURANTE EJEMPLO',

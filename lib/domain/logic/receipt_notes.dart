@@ -109,13 +109,22 @@ class ReceiptNotes {
   static final RegExp _capitalsWithL = RegExp(r'^(?=(?:.*[A-Z]){2})[A-Zl]+$');
   static final RegExp _lettersWith01 = RegExp(r'^[A-Za-z]+(?:[01][A-Za-z]+)+$');
   static final RegExp _digitInside = RegExp(r'(?<=[A-Za-z])[01](?=[A-Za-z])');
+  static final RegExp _zeroAtEdge = RegExp(r'^(?:0[A-Za-z]{3,}|[A-Za-z]{3,}0)$');
 
   /// The words as the till printed them, where that is certain:
   /// "FACTURAClON" is "FACTURACION" (a small L among capitals is a capital
-  /// I), "F0LIO" is "FOLIO", and "3O DIAS" is "30 DIAS".
+  /// I), "F0LIO" and "FOLI0" are "FOLIO", "N0 INCLUIDA" is "NO INCLUIDA",
+  /// and "3O DIAS" is "30 DIAS". "USD0.90" keeps its zero: it is an amount.
   static String _repair(String row) => row.replaceAllMapped(_word, (m) {
         var w = m[0]!;
+        if (w == 'N0') return 'NO';
         if (_digitsWithO.hasMatch(w)) return w.replaceAll('O', '0');
+        if (_zeroAtEdge.hasMatch(w)) {
+          final beside = w.startsWith('0')
+              ? (m.start > 0 ? row[m.start - 1] : '')
+              : (m.end < row.length ? row[m.end] : '');
+          return beside == '.' || beside == ',' ? w : w.replaceAll('0', 'O');
+        }
         if (w.contains('l') && _capitalsWithL.hasMatch(w)) {
           w = w.replaceAll('l', 'I');
         }
@@ -161,6 +170,27 @@ class ReceiptNotes {
     return null;
   }
 
+  static final RegExp _runsOn = _re(
+    r'(\b(de|del|al|a|en|y|o|e|u|ni|que|con|sin|por|para|los|las|el|la|un|'
+    r'una|su|tu|sus|tus|este|esta|dentro|hasta|the|of|to|for|in|on|at|by|'
+    r'and|or|with|your|our|an)|[,:])$',
+  );
+  static final RegExp _carriesOn = _re(
+    r'^(de|del|al|en|y|o|e|ni|que|con|sin|por|para|dentro|hasta|antes|'
+    r'despues|durante|and|or|with|within|for|of|to|on|at|by|from)\b',
+  );
+  static final RegExp _startsSmall = RegExp(r'^[a-z]');
+
+  /// Whether the row under [upper] carries its sentence on: "OBTEN 10% DE" /
+  /// "DESCUENTO", "Returns accepted within 90 days" / "with original
+  /// receipt". "HABITACION 204" / "TARIFA NO REEMBOLSABLE" are two things.
+  static bool _linked(_Rows t, int upper) {
+    final next = t.text[upper + 1];
+    return _runsOn.hasMatch(t.text[upper]) ||
+        (!_hasAddress(t.plain[upper + 1]) &&
+            (_startsSmall.hasMatch(next) || _carriesOn.hasMatch(next)));
+  }
+
   /// The row at [i] and the running text round it about the same [topic]
   /// (a sentence the printer wrapped over several lines). Rows that lead
   /// back to another subject belong to that one.
@@ -172,10 +202,18 @@ class ReceiptNotes {
     int reach = 3,
   }) {
     bool same(int j) => topics[j] == null || topics[j] == topic;
+    // [far] joins the paragraph across the break under [upper].
+    bool joins(int far, int upper) =>
+        topics[far] == topic || _linked(t, upper) || _hasAddress(t.plain[far]);
     var start = i;
     var j = i - 1;
     for (; j >= 0 && i - j <= reach; j--) {
-      if (!_prose(t.text[j]) || t.text[j].endsWith('.') || !same(j)) break;
+      if (!_prose(t.text[j]) ||
+          t.text[j].endsWith('.') ||
+          !same(j) ||
+          !joins(j, j)) {
+        break;
+      }
       start = j;
     }
     if (j >= 0 && i - j <= reach && !same(j)) {
@@ -188,7 +226,8 @@ class ReceiptNotes {
         end - i < reach &&
         _prose(t.text[end + 1]) &&
         !t.text[end].endsWith('.') &&
-        same(end + 1)) {
+        same(end + 1) &&
+        joins(end + 1, end)) {
       end++;
     }
     return [for (var k = start; k <= end; k++) k];
@@ -232,6 +271,13 @@ class ReceiptNotes {
     r'^\s*(habiles\s+|naturales\s+)?(despues|posterior(es)?|after|later)',
   );
   static final RegExp _becomes = _re(r'disponible|available|podra');
+
+  /// "SU FACTURA SE ENVIARA DENTRO DE LAS 24 HRS": when it comes, not a
+  /// limit on asking.
+  static final RegExp _comes = _re(
+    r'\b(generara|enviara|recibira|llegara|estara|will\s+be\s+sent)\b'
+    r'[^.]{0,40}$',
+  );
   static final RegExp _ofTheMonth = _re(
     r'^\s*(habiles\s+|naturales\s+)?del\s+(mes|siguiente|proximo)',
   );
@@ -260,6 +306,7 @@ class ReceiptNotes {
       final rest = text.substring(m.end);
       final later = _waitBefore.hasMatch(before) ||
           (_waitAfter.hasMatch(rest) && _becomes.hasMatch(text));
+      if (!later && _comes.hasMatch(before)) continue;
       if (!later) {
         // "LOS PRIMEROS 5 DIAS DEL MES SIGUIENTE" is a date, not a length.
         if (_ofTheMonth.hasMatch(rest)) continue;
@@ -279,8 +326,8 @@ class ReceiptNotes {
   // Web and e-mail addresses
   // ---------------------------------------------------------------------
 
-  static const String _tlds = 'com|mx|net|org|cloud|app|co|ve|sv|es|br|gt|uk|'
-      'io|info|pe|cl|ar|cr|pa|hn|ni|do|ec|gob|gov';
+  static const String _tlds =
+      'com|mx|net|org|cloud|app|co|ve|sv|es|br|gt|uk|io|info|gob|gov';
 
   static final RegExp _web = _re(
     r'(https?://\S+|www\.\S+|\b[a-z0-9-]{3,}(\.[a-z0-9-]+)*\.(' +
@@ -375,10 +422,11 @@ class ReceiptNotes {
   // Tax invoice
   // ---------------------------------------------------------------------
 
-  /// "factura", "facturar", "facturacion", also read as "factua" and
-  /// "Factuar"; a CFDI or an invoice only when it is being offered.
+  /// "factura", "facturar", "facturacion", "autofactura", also read as
+  /// "factua" and "Factuar"; a CFDI or an invoice only when it is being
+  /// offered.
   static final RegExp _invoiceWord = _re(
-    r'\bfactu[ra]|'
+    r'\b(auto)?factu[ra]|'
     r'\b(solicit|obten|gener|descarg|requier)\w*\s+(tu\s+|su\s+|el\s+|un\s+)?'
     r'cfdi\b|'
     r'\b(request|need|require|obtain|get)\s+(an?\s+|your\s+|a\s+full\s+)?'
@@ -388,33 +436,46 @@ class ReceiptNotes {
 
   /// "factura" that is not about getting one: "ESTE TICKET NO ES FACTURA",
   /// the slogan "EXIJA SU FACTURA", "No. de factura", "TICKET FACTURADO",
-  /// "CAMBIOS CON TICKET O FACTURA", a survey asking for its number.
+  /// "Autorizacion numeracion de facturacion 18764...", "CAMBIOS CON TICKET
+  /// O FACTURA" (what to bring), a survey asking for its number.
   static final RegExp _notAboutInvoicing = _re(
     r'\bno\s+(es|constituye|representa)\s+(una?\s+)?factura|'
     r'no\s+(es\s+)?valid[oa]\s+como\s+factura|no\s+sustituye|\bexij[ae]|'
     r'factura\s+global|facturad[oa]s?\b|factura(r|do)?\s+a\s*:|'
+    r'(numeracion|resolucion|autorizacion|rango|prefijo)\s+(de\s+)?factura|'
+    r'\bdian\b|'
     r'(numero|n[°ºo]\.|num\.?|nro\.?|#)\s*(de\s+)?(tu\s+|su\s+|la\s+)?'
     r'factura\b|\bno\s+de\s+factura\b|'
-    r'devoluci|\bcambios\b|reembols|garantia|encuesta|survey',
+    r'\b(ticket|nota|comprobante|recibo)\s+[ouy]\s+factura\b|'
+    r'\b(con|presenta\w*|mostrando)\s+(su\s+|la\s+|el\s+|tu\s+)?factura\b|'
+    r'encuesta|survey',
   );
 
-  /// "FACTURA", "FACTURA: A 1234", "FACTURA ELECTRONICA DE VENTA", "FACTURA
-  /// PROFORMA": the name of the document or its number, not an offer of one.
+  /// "FACTURA", "FACTURA: A 1234", "FACTURA SERIE A No. 4521", "FACTURA DE
+  /// VENTA POS No. 12345", "FACTURA CONSUMIDOR FINAL", "FACTURA PROFORMA":
+  /// a row that opens with the noun names the document or gives its number.
+  /// "FACTURA TU TICKET EN:" and "Factura en linea" tell how to get one.
   static final RegExp _invoiceHeading = _re(
-    r'^\W*(copia\s+(de\s+)?)?factura\b(\s+electronica)?(\s+de\s+venta)?'
-    r'(\s+simplificada)?(\s+pro\s?-?\s?forma)?(\s+original)?\W*'
-    r'(serie|no|num|numero|nro|folio)?\W*([A-Z]{1,3}\b)?[\W\d]*$',
+    r'^\W*(copia\s+(de\s+)?|original\s+)?factura\b'
+    r'(?!\s+(tu|su|aqui|en|ya|ahora|desde)\b)',
   );
 
-  /// Whether the row at [i] tells how to get a tax invoice. A bare heading
-  /// ("Factura electronica:") does only with an address under it.
+  static final RegExp _leadsToAddress =
+      _re(r'electronica|linea|online|internet|web|:\s*$');
+
+  /// Whether the row at [i] tells how to get a tax invoice. A heading does
+  /// only with an address: on the row, or under "Factura electronica:". A
+  /// shop's own site under the title "FACTURA" is just its letterhead.
   static bool _asksForInvoice(_Rows t, int i) {
     final l = t.text[i];
     if (!_invoiceWord.hasMatch(l) || _notAboutInvoicing.hasMatch(l)) {
       return false;
     }
     if (_invoiceHeading.hasMatch(l)) {
-      return i + 1 < t.length && _hasAddress(t.plain[i + 1]);
+      return _hasAddress(t.plain[i]) ||
+          (_leadsToAddress.hasMatch(l) &&
+              i + 1 < t.length &&
+              _hasAddress(t.plain[i + 1]));
     }
     return true;
   }
@@ -496,15 +557,15 @@ class ReceiptNotes {
     );
   }
 
-  static int _indexOfWrapped(_Rows t, RegExp pattern) {
-    for (var i = 0; i < t.length; i++) {
-      if (pattern.hasMatch(t.text[i])) return i;
-      if (i + 1 < t.length &&
-          pattern.hasMatch('${t.text[i]} ${t.text[i + 1]}')) {
-        return i;
-      }
+  /// The rows where [pattern] is found, on one row or wrapped over two
+  /// ("ESTE TICKET NO ES UN" / "COMPROBANTE FISCAL"); empty when it is not.
+  static List<int> _rowsWith(_Rows t, RegExp pattern) {
+    final whole = t.text.indexWhere(pattern.hasMatch);
+    if (whole >= 0) return [whole];
+    for (var i = 0; i + 1 < t.length; i++) {
+      if (pattern.hasMatch('${t.text[i]} ${t.text[i + 1]}')) return [i, i + 1];
     }
-    return -1;
+    return const [];
   }
 
   static ReceiptNote? _invoiceNote(
@@ -512,9 +573,9 @@ class ReceiptNotes {
     List<_Topic?> topics, {
     required bool preBill,
   }) {
-    final disclaimer = _indexOfWrapped(t, _notTaxInvoice);
+    final disclaimer = _rowsWith(t, _notTaxInvoice);
     // A document that says it is not one is never called a tax invoice.
-    if (!preBill && disclaimer < 0) {
+    if (!preBill && disclaimer.isEmpty) {
       final already = _alreadyInvoice(t);
       if (already != null) return already;
     }
@@ -523,13 +584,13 @@ class ReceiptNotes {
         if (topics[i] == _Topic.invoice) i,
     ];
     if (cues.isNotEmpty) return _howToInvoice(t, topics, cues);
-    if (disclaimer < 0 || preBill) return null;
+    if (disclaimer.isEmpty || preBill) return null;
     return ReceiptNote(
       ReceiptNoteKind.invoice,
       'This ticket is not a tax invoice',
       detail: 'Ask the shop for a tax invoice (factura) if your company '
           'needs one.',
-      printed: t.raw[disclaimer],
+      printed: _join(t.raw, disclaimer),
     );
   }
 
@@ -545,7 +606,9 @@ class ReceiptNotes {
   );
   static final RegExp _sameMonth = _re(
     r'(mismo|dentro\s+del?|ultimo\s+dia\s+del?|fin(al)?\s+del?)\s+mes|'
-    r'mes\s+en\s+curso|same\s+month|end\s+of\s+the\s+month',
+    r'mes\s+(en\s+curso|corriente|actual)|'
+    r'mes\s+de\s+(la\s+|su\s+|tu\s+)?(compra|consumo|emision)|'
+    r'same\s+month|end\s+of\s+the\s+month',
   );
 
   /// The rows just above the first one about invoices that lead into it
@@ -556,6 +619,7 @@ class ReceiptNotes {
     for (var j = first - 1; j >= 0 && first - j <= 4; j--) {
       if (topics[j] != null) return const [];
       if (!_prose(t.text[j]) || t.text[j].endsWith('.')) break;
+      if (!_linked(t, j) && !_count.hasMatch(t.text[j])) break;
       if (first - j <= 2) rows.insert(0, j);
     }
     return rows;
@@ -728,21 +792,21 @@ class ReceiptNotes {
   static ReceiptNote? _tipNote(_Rows t) {
     final paid = _tipPaid(t);
     if (paid != null) return paid;
-    final notIncluded = _indexOfWrapped(t, _tipNotIncluded);
-    if (notIncluded >= 0) {
+    final notIncluded = _rowsWith(t, _tipNotIncluded);
+    if (notIncluded.isNotEmpty) {
       return ReceiptNote(
         ReceiptNoteKind.tip,
         'Tip not included in the total',
-        printed: t.raw[notIncluded],
+        printed: _join(t.raw, notIncluded),
       );
     }
-    final included = _indexOfWrapped(t, _tipIncluded);
-    if (included >= 0) {
+    final included = _rowsWith(t, _tipIncluded);
+    if (included.isNotEmpty) {
       return ReceiptNote(
         ReceiptNoteKind.tip,
         'Tip or service already included',
         detail: 'No need to tip again.',
-        printed: t.raw[included],
+        printed: _join(t.raw, included),
       );
     }
     final voluntary = t.text.indexWhere(_tipVoluntary.hasMatch);
@@ -760,9 +824,10 @@ class ReceiptNotes {
   /// charge with its amount.
   static final RegExp _tipLine = _re(
     r'^\W*(?:\d{1,2}(?:[.,]\d)?\s?%\s+(?:de\s+)?)?'
-    r'(propina|tips?|gratuity|gratificacion|service\s+charge|servicio)\b',
+    r'(propina|tips?|gratuity|gratificacion|service\s+charge|'
+    r'cargo\s+(?:por|de|x)\s+servicio|servicio)\b',
   );
-  static final RegExp _tipHint = _re(r'sugerid|suggest|recomend');
+  static final RegExp _tipHint = _re(r'sugerid|suggest|recomend|guide|guia');
   static final RegExp _otherService = _re(r'servicio\s+(a|al|de|por|para)\b');
   static final RegExp _percent = RegExp(r'(\d{1,2}(?:[.,]\d)?)\s?%');
   static final RegExp _totalRow = _re(
@@ -783,15 +848,17 @@ class ReceiptNotes {
       if (amount == null || amount.negative || amount.minor == 0) continue;
       final percent = _percent.firstMatch(l)?[1];
       final word = m[1]!.toLowerCase();
-      // "SERVICIO 150.00" is something sold; "10% SERVICIO" is the charge.
-      if (word == 'servicio' &&
-          (percent == null || _otherService.hasMatch(l))) {
+      // "SERVICIO 150.00" is something sold and "CARGO POR SERVICIO" may
+      // be a booking fee; with a percentage that adds up it is the charge.
+      final service = word.endsWith('servicio');
+      if (service &&
+          (percent == null || (word == 'servicio' && _otherService.hasMatch(l)))) {
         continue;
       }
       if (percent != null && !_wentIntoTotal(t, i, amount.minor)) continue;
       return ReceiptNote(
         ReceiptNoteKind.tip,
-        '${word.startsWith('serv') ? 'Service charge' : 'Tip'} on this '
+        '${service || word.startsWith('serv') ? 'Service charge' : 'Tip'} on this '
             'receipt: ${amount.text}${percent == null ? '' : ' ($percent%)'}',
         detail: 'Check whether your company wants tips claimed separately.',
         printed: t.raw[i],
@@ -905,7 +972,7 @@ class ReceiptNotes {
   static final RegExp _rateEquation =
       RegExp(r'^1\s*[A-Z]{3}\s*=\s*\d[\d.,]*\s*[A-Z]{3}\b');
   static final RegExp _rateNumber =
-      RegExp(r'^(?:[A-Za-z$.]{1,5}\s?)?(\d{1,7}[.,]\d{2,6})(?!\d)');
+      RegExp(r'(?<![\d.,/-])(\d{1,7}[.,]\d{2,6})(?![\d/-])');
 
   static ReceiptNote? _exchangeRateNote(_Rows t) {
     for (var i = 0; i < t.length; i++) {
@@ -962,14 +1029,14 @@ class ReceiptNotes {
     r'[^.]{0,30}?(proxim[ao]|siguiente|next|pronto)',
   );
 
-  /// "PRESENTA ESTE TICKET Y OBTEN", "CUPON VALIDO POR", "get", "redeem":
-  /// the wording of something being given.
+  /// "PRESENTA ESTE TICKET Y OBTEN", "CUPON VALIDO POR", "redeem", "with
+  /// this receipt": the wording of something being given. "BUY ONE GET ONE
+  /// FREE" on an item is how it was sold, not an offer.
   static final RegExp _offerCue = _re(
     r'\bobten\w*|\brecib[ae]\b|llevate|canje\w+|valido\s+por|\bcupon\b|'
     r'coupon|presenta\w*\s+(este|tu|su)\s+(ticket|cupon|recibo|comprobante)|'
     r'con\s+este\s+(ticket|cupon)|\bredeem|bring\s+this|present\s+this|'
-    r'with\s+this\s+(receipt|coupon)|\bget\b|\breceive\b|\benjoy\b|'
-    r'disfruta|te\s+regalamos',
+    r'with\s+this\s+(receipt|coupon)|disfruta|te\s+regalamos',
   );
 
   /// An advert says when ("MARTES 2X1 EN PIZZAS"); an item sold two for one
@@ -983,7 +1050,7 @@ class ReceiptNotes {
   /// A row that could start an offer.
   static final RegExp _benefit = _re(
     r'descuento|\bdesc\b|discount|\bgratis\b|\bfree\b|\b2\s?x\s?1\b|sorteo|'
-    r'\brifa\b|premio|prize|sweepstake|\bgana\b|\d{1,2}\s?%',
+    r'\brifa\b|premio|prize|sweepstake|\bgana\b|\bwin\b|\d{1,2}\s?%',
   );
 
   static final RegExp _validUntil = _re(
@@ -1030,8 +1097,10 @@ class ReceiptNotes {
   static ReceiptNote? _offerNote(_Rows t, List<_Topic?> topics) {
     for (var i = 0; i < t.length; i++) {
       final l = t.text[i];
-      // A discount already taken off this bill is in the amounts.
+      // A discount already taken off this bill is in the amounts, and a
+      // percentage in a row about the tip is the tip's.
       if (!_benefit.hasMatch(l) || _isDiscountLine(l)) continue;
+      if (topics[i] != null && topics[i] != _Topic.promo) continue;
       final paragraph = _paragraph(t, topics, i, _Topic.promo);
       final title = _offerTitle(_join(t.text, paragraph));
       if (title == null) continue;
@@ -1061,7 +1130,11 @@ class ReceiptNotes {
 
   static const String _number = r'(\d[\d.,]*\d|\d)';
   static final Map<String, RegExp> _pointsLines = {
-    'Accumulated': _re(r'(?:puntos|pts)\s+acumulados\s*:?\s*' + _number),
+    'Accumulated': _re(
+      r'(?:puntos|pts)\s+acumulados(?:\s+(?:en|de|por)\s+(?:esta|tu|su)\s+'
+              r'compra)?\s*:?\s*' +
+          _number,
+    ),
     'Earned': _re(
       r'(?:puntos|pts)\s+(?:ganados|obtenidos|generados|(?:de\s+)?esta\s+'
               r'compra)\s*:?\s*' +
@@ -1265,16 +1338,27 @@ class ReceiptNotes {
   static ReceiptNote? _parkingNote(_Rows t) {
     for (var i = 0; i < t.length; i++) {
       if (!_parkingWord.hasMatch(t.text[i])) continue;
-      final rows = [
-        if (i > 0 && _prose(t.text[i - 1])) i - 1,
-        i,
-        if (i + 1 < t.length && _prose(t.text[i + 1])) i + 1,
-      ];
-      final text = _join(t.text, rows);
-      final stamp = _stamp.hasMatch(text);
-      final hours =
-          _freeOfCharge.hasMatch(text) ? _hours.firstMatch(text)?.group(1) : null;
-      if (!stamp && hours == null) continue;
+      // The row itself, then with the row its sentence wraps onto or from;
+      // the reading that gives both the hours and the stamp is the best.
+      ({List<int> rows, bool stamp, String? hours})? best;
+      for (final rows in [
+        [i],
+        if (i + 1 < t.length && _prose(t.text[i + 1])) [i, i + 1],
+        if (i > 0 && _prose(t.text[i - 1])) [i - 1, i],
+      ]) {
+        final text = _join(t.text, rows);
+        final stamp = _stamp.hasMatch(text);
+        final hours = _freeOfCharge.hasMatch(text)
+            ? _hours.firstMatch(text)?.group(1)
+            : null;
+        if (!stamp && hours == null) continue;
+        if (best == null || (stamp && hours != null)) {
+          best = (rows: rows, stamp: stamp, hours: hours);
+        }
+        if (stamp && hours != null) break;
+      }
+      if (best == null) continue;
+      final (:rows, :stamp, :hours) = best;
       final free = hours == null
           ? null
           : '$hours ${hours == '1' ? 'hour' : 'hours'} free';
@@ -1306,10 +1390,13 @@ class ReceiptNotes {
     r'no\s+reembolsable|non-?\s?refundable|all\s+sales\s+(are\s+)?final',
   );
 
-  /// "NO SE ACEPTAN DEVOLUCIONES SIN TICKET": a condition, not a refusal.
+  /// "NO SE ACEPTAN DEVOLUCIONES SIN TICKET", "NO HAY CAMBIOS EN MERCANCIA
+  /// DE OFERTA": a condition, not a refusal of all returns.
   static final RegExp _unless = _re(
     r'\bsin\s+(su\s+|el\s+|tu\s+)?(ticket|comprobante|recibo|nota|etiqueta|'
-    r'empaque)|without\s+(a\s+|the\s+)?receipt|despues\s+de|\bafter\b',
+    r'empaque)|without\s+(a\s+|the\s+)?receipt|despues\s+de|\bafter\b|'
+    r'(cambios|devoluciones|reembolsos|refunds|returns|exchanges)\s+'
+    r'(en|de|para|sobre|on|for)\s+\w{4,}',
   );
   static final RegExp _warrantyWord = _re(r'garantia|warranty');
   static final RegExp _warranty = _re(
