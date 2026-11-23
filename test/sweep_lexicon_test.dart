@@ -76,6 +76,30 @@ void main() {
     test('a line with a word nobody could know is left alone', () {
       expectNotRead(['Desc. 10% AICM']);
     });
+
+    test('restaurant bill with names cut to the column', () {
+      expectEnglish({
+        'Lengua al Gusto': 'Tongue any style',
+        'Agua Topo Chico': 'Topo Chico water',
+        'Naranjada': 'Orangeade',
+        'Clamato Natural': 'Clamato natural',
+        'Cuervo Reposado': 'Cuervo reposado',
+        'Pastel 3 Leches': 'Tres leches cake',
+        'Mousse Guanaban': 'Soursop mousse',
+        'Espres Dob Regu': 'Double espresso, regular',
+        'Espres Regular': 'Espresso, regular',
+        'Cafe de Olla': 'Café de olla (spiced coffee)',
+      });
+      // Too little left of the words to be sure.
+      expectNotRead(['F Res Sal Q/Cab', 'Pechu Mol Verde', 'Paste 3 Leches']);
+    });
+
+    test('coffee-shop ticket read with damage', () {
+      expectEnglish({
+        'Caramel Iced WVhip L Media': 'Caramel iced whip L, medium',
+        'Chocolate Frappe Grandę': 'Chocolate frappe, large',
+      });
+    });
   });
 
   group('cafes', () {
@@ -460,6 +484,21 @@ void main() {
         'RON CON COCA': 'Rum with Coca-Cola',
         'WHISKY': 'Whisky',
         'SANGRIA': 'Sangria',
+      });
+    });
+
+    test('brand names are kept, not translated ("rested raven")', () {
+      expectEnglish({
+        'HERRADURA REPOSADO': 'Herradura reposado',
+        'CENTENARIO PLATA': 'Centenario silver',
+        'CERVEZA SOL': 'Sol beer',
+        'CARTA BLANCA': 'Carta Blanca',
+        'RON CACIQUE': 'Cacique rum',
+        'AGUARDIENTE ANTIOQUEÑO': 'Antioqueño aguardiente',
+        'AGUA SALVAVIDAS': 'Salvavidas water',
+        'AGUA SANTA MARIA 600ML': 'Santa María water 600 ml',
+        'CHOCOLATE ABUELITA': 'Abuelita chocolate',
+        'SANGRIA SEÑORIAL': 'Sangría Señorial',
       });
     });
   });
@@ -1110,6 +1149,8 @@ void main() {
       expect(ItemWording.sentenceCase('Pay de Queso Doña Tota'),
           'Pay de Queso Doña Tota');
       expect(ItemWording.sentenceCase('McPollo CON QUESO'), 'McPollo con queso');
+      expect(ItemWording.forModel('Salmon S/Mango', 'es'), 'Salmon S/Mango');
+      expect(ItemWording.forModel('Pechu Mol Verde', 'es'), 'Pechu Mol Verde');
     });
 
     test('other text is not read as an item: a street stays a street', () {

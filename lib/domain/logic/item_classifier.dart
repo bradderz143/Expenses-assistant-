@@ -160,10 +160,11 @@ class ItemWording {
 
   /// Words printed all in capitals in lower case, and a capital to open
   /// the line: "PAN DE ELOTE" -> "Pan de elote". Words the till printed in
-  /// mixed case ("Doña Tota", "McPollo") keep their capitals.
+  /// mixed case ("Doña Tota", "McPollo") and single letters ("Salmon
+  /// S/Mango") stay as they are.
   static String sentenceCase(String text) {
     final lowered = text.replaceAllMapped(
-      RegExp(r'[A-Za-zÀ-ÿ]+'),
+      RegExp(r'[A-Za-zÀ-ÿ]{2,}'),
       (m) {
         final word = m.group(0)!;
         return word == word.toUpperCase() ? word.toLowerCase() : word;
