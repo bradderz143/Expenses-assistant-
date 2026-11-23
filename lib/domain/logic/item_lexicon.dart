@@ -370,6 +370,8 @@ class ItemLexicon {
     'pan': 'bread',
     'pan dulce': 'sweet bread',
     'pan tostado': 'toast',
+    'tostadas francesas': 'French toast',
+    'tostada francesa': 'French toast',
     'pan de ajo': 'garlic bread',
     'pan con ajo': 'garlic bread',
     'pan de caja': 'sliced bread',
@@ -1490,7 +1492,8 @@ class ItemLexicon {
 
   /// What a word means when it is the whole line: a flavour ordered on its
   /// own is the drink ("JAMAICA"), and "TINTO" alone is Colombia's black
-  /// coffee (next to "vino" or "copa" it is red wine, see [_drinks]).
+  /// coffee (next to "vino" or "copa" it is red wine, see [_drinks]; alone
+  /// on a receipt from another country too).
   static const Map<String, (String, ItemKind)> _alone = {
     'tinto': ('black coffee (tinto)', ItemKind.drink),
     'jamaica': ('hibiscus drink', ItemKind.drink),
@@ -1927,12 +1930,35 @@ class ItemLexicon {
   /// The English for an item line, or null unless every word of it is
   /// understood: "MALTEADA C CHOCOLATE CH" -> "Milkshake with chocolate,
   /// small"; "MALTEADA DOÑA TOTA" -> null.
-  static String? translate(String text, String language) {
+  ///
+  /// [country] is where the receipt is from, as the app names it
+  /// ("Mexico", "Colombia"). A few words change with it: "PORCION DE
+  /// TORTA" is a sandwich in Mexico and a slice of cake in Colombia, a
+  /// lone "TINTO" a coffee in Colombia and a red wine elsewhere. With no
+  /// country a torta is the Mexican sandwich and a tinto the coffee.
+  static String? translate(String text, String language, {String? country}) {
     if (language != 'es') return null;
-    final units = _read(text);
-    if (units == null) return null;
-    return _assemble(units);
+    _country = country == null || country.isEmpty ? null : country;
+    try {
+      final units = _read(text);
+      if (units == null) return null;
+      return _assemble(units);
+    } finally {
+      _country = null;
+    }
   }
+
+  /// The country of the line being translated; null outside [translate].
+  static String? _country;
+
+  /// Where a "torta" is the Mexican sandwich and a "tostada" the crisp
+  /// tortilla. Further south a torta is a cake and tostadas are toast.
+  static const Set<String> _mexicanTable = {
+    'Mexico', 'Guatemala', 'El Salvador', 'United States',
+  };
+
+  static bool get _southern =>
+      _country != null && !_mexicanTable.contains(_country);
 
   /// Drink, food or neither, from the thing the line names ("PASTEL DE
   /// CAFE" is a cake, "VASO DE AGUA" a drink). Null when the dictionary
@@ -2493,7 +2519,11 @@ class ItemLexicon {
     if (core.length == 1) {
       final only = core.single;
       final key = only.entry?.key ?? only.text;
-      final alone = _alone[key];
+      // "TINTO" on its own is a black coffee in Colombia and a red wine
+      // anywhere else that is known.
+      final alone = key == 'tinto' && _country != null && _country != 'Colombia'
+          ? const ('red wine', ItemKind.drink)
+          : _alone[key];
       if (alone != null) {
         final at = units.indexOf(only);
         units[at] = _Unit(
@@ -2833,7 +2863,9 @@ class ItemLexicon {
       final sweet = groups
           .expand((g) => g)
           .any((u) => _sweetFlavours.contains(u.entry!.key));
-      if (sweet) thing = head.plural ? 'cakes' : 'cake';
+      if (sweet || _southern) thing = head.plural ? 'cakes' : 'cake';
+    } else if (head.entry!.key == 'tostada' && _southern) {
+      thing = 'toast';
     }
     String said(_Unit u) => '${u.singular}${variety[u] ?? ''}';
     final fillings = [

@@ -673,6 +673,30 @@ void main() {
       });
     });
 
+    test('the country of the receipt decides', () {
+      String? inCountry(String line, String country) =>
+          ItemLexicon.translate(line, 'es', country: country);
+      // A torta is a sandwich at the Mexican table, a cake further south.
+      expect(inCountry('TORTA DE JAMON', 'Mexico'), 'Ham sandwich');
+      expect(inCountry('TORTA', 'Guatemala'), 'Sandwich');
+      expect(inCountry('TORTA ESPECIAL', 'El Salvador'), 'Special sandwich');
+      expect(inCountry('TORTA', 'Venezuela'), 'Cake');
+      expect(inCountry('PORCION DE TORTA', 'Colombia'), 'Portion of cake');
+      expect(inCountry('TORTA DE BANANO', 'Colombia'), 'Banana cake');
+      expect(inCountry('TORTA DE CHOCOLATE', 'Mexico'), 'Chocolate cake');
+      // Tostadas are crisp tortillas there, toast here.
+      expect(inCountry('TOSTADA DE CEVICHE', 'Mexico'), 'Ceviche tostada');
+      expect(inCountry('TOSTADAS', 'Colombia'), 'Toast');
+      expect(inCountry('TOSTADAS FRANCESAS', 'Colombia'), 'French toast');
+      // A tinto on its own.
+      expect(inCountry('TINTO', 'Colombia'), 'Black coffee (tinto)');
+      expect(inCountry('TINTO', 'Mexico'), 'Red wine');
+      expect(inCountry('COPA DE TINTO', 'Colombia'), 'Glass of red wine');
+      // Everything else reads the same everywhere.
+      expect(inCountry('MALTEADA C CHOCOLATE CH', 'Venezuela'),
+          'Milkshake with chocolate, small');
+    });
+
     test('tinto is wine next to wine and coffee on its own', () {
       expectEnglish({
         'VINO TINTO': 'Red wine',
@@ -1082,6 +1106,17 @@ void main() {
       // What the till printed is still what the user sees as the original.
       expect(draft.lines.first.originalText,
           'MALTEADA C CHOCOLATE CH DOÑA TOTA');
+    });
+
+    test('the receipt\'s country reaches the dictionary', () async {
+      receipt = receipt.copyWith(country: 'Colombia');
+      await receipts.upsert(receipt);
+      final draft = await read([
+        '1 PORCION DE TORTA 12.00',
+        '1 TINTO 3.00',
+      ]);
+      expect(draft.lines.map((l) => l.translatedText).toList(),
+          ['Portion of cake', 'Black coffee (tinto)']);
     });
 
     test('a choice goes with the item above it, priced or not', () async {

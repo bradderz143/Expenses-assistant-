@@ -217,7 +217,11 @@ class TranslateItemsUseCase {
     // above, still wins.
     if (!wholeText) {
       for (var i = 0; i < items.length; i++) {
-        final known = ItemLexicon.translate(items[i].description, language);
+        final known = ItemLexicon.translate(
+          items[i].description,
+          language,
+          country: current.country,
+        );
         if (known != null) glossary.putIfAbsent(keys[i], () => known);
       }
     }
