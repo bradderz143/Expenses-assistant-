@@ -2149,3 +2149,2018 @@
   Libreria y Papeleria Ejemplo | null | null MXN
 === 434 min R11b hotel row under the company name no total
   Transfers Ejemplo | null | null MXN
+=== 435 gt01 comedor fel pequeno contribuyente Q-dot prices
+  Comedor Doña Ejemplo | 2026-11-20 | 11800 GTQ
+  2|ALMUERZO DEL DIA|70.00
+  1|CALDO DE RES|30.00
+  2|REFRESCO NATURAL|12.00
+  6|TORTILLAS|6.00
+=== 436 gt02 rest antigua fel columns tip total in words
+  La Fonda del Ejemplo | 2026-11-21 | 51150 GTQ
+  2|PEPIAN DE POLLO|156.00
+  1|JOCON DE POLLO|75.00
+  1|GUACAMOL CON TORTILLAS|42.00
+  3|CERVEZA GALLO|84.00
+  2|LIMONADA CON SODA|48.00
+  1|RELLENITOS DE PLATANO|30.00
+  1|CAFE AMERICANO|30.00
+=== 437 gt03 cafe panajachel no quantities
+  Cafe Ejemplo Atitlan | 2026-11-19 | 9700 GTQ
+  |CAPUCHINO GRANDE|22.00
+  |DESAYUNO TIPICO|45.00
+  |JUGO DE NARANJA|18.00
+  |PAN DE BANANO|12.00
+=== 438 gt04 rest flores total in quetzales and dollars
+  Restaurante Ejemplo del Lago | 2026-11-18 | 33550 GTQ
+  1|PESCADO BLANCO A LA PLANCHA|110.00
+  1|TACOS DE POLLO|55.00
+  1|ENSALADA EJEMPLO|48.00
+  2|CERVEZA MOZA|60.00
+  1|LICUADO DE PAPAYA|22.00
+  1|AGUA PURA|10.00
+=== 439 gt05 steak house zona 10 pre-cuenta with tip table
+  Ejemplo Steak House | 2026-11-17 | 85330 GTQ
+  1|PUYAZO 12 OZ|189.00
+  1|LOMITO 8 OZ|175.00
+  1|CHURRASQUITO INFANTIL|95.00
+  1|ENSALADA CESAR|68.00
+  2|COPA VINO TINTO|110.00
+  3|AGUA MINERAL|60.00
+  1|PIE DE LIMON|45.00
+=== 440 gt06 bakery cafe code rows then units x price
+  San Ejemplo | 2026-11-22 | 13100 GTQ
+  2|CROISSANT DE JAMON|39.00
+  4|PAN DE MANTEQUILLA|16.00
+  2|CAPUCCINO MEDIANO|46.00
+  1|PASTELITO DE PIÑA|30.00
+=== 441 gt07 comedor market stall whole prices
+  Comedor "la Ejemplo | 2026-11-16 | 5500 MXN
+  1|CHURRASQUITO|35
+  1|FRESCO DE TAMARINDO|8
+  1|CAFE|7
+  3|TORTILLAS|5
+=== 442 gt08 bistro bill with tip and total written by hand
+  Ejemplo Bistro | 2026-11-21 | 38200 GTQ
+  2|MENU EJECUTIVO|150.00
+  1|SOPA DE FRIJOL|38.00
+  1|PASTA AL PESTO|82.00
+  2|TE FRIO|36.00
+  1|COPA DE VINO BLANCO|48.00
+  1|EXPRESSO DOBLE|28.00
+=== 443 gt09 coffee shop zona 4 names then prices as blocks
+  Ejemplo Coffee Roasters | 2026-11-20 | 11900 MXN
+=== 444 gt10 pub antigua happy hour row under item
+  Ejemplo Irish Pub | 2026-11-20 | 41690 GTQ
+  4|GALLO DRAFT 0.5L|140.00
+  2|MOJITO CLASICO|90.00
+  |HAPPY HOUR 2X1|-45.00
+  1|NACHOS EJEMPLO|65.00
+  1|ALITAS BUFFALO (12)|89.00
+  2|SHOT QUETZALTECA|40.00
+=== 445 gt11 cafeteria zona 9 base and iva on one row
+  Restaurante y Cafeteria Ejemplo | 2026-11-19 | 16100 GTQ
+  1|DESAYUNO CHAPIN|52.00
+  1|OMELETTE DE VEGETALES|48.00
+  2|CAFE CON LECHE|36.00
+  1|JUGO VERDE|25.00
+=== 446 gt12 cevicheria quantity after name as xN
+  Cevicheria Ejemplo | 2026-11-18 | 20800 GTQ
+  2|CEVICHE DE CAMARON|90.00
+  1|CEVICHE MIXTO|50.00
+  2|MICHELADA|60.00
+  1|AGUA PURA|8.00
+=== 447 gt13 hotel antigua fel nights with iva and inguat
+  Hotel Posada Ejemplo | 2026-11-21 | 146400 GTQ
+  2|HABITACION DOBLE (NOCHE)|1,200.00
+=== 448 gt14 hostel flores in english, arrival and departure
+  Ejemplo Hostel Flores | 2026-11-19 | 32500 GTQ
+  |Dorm bed 8 pax x 2 nights|170.00
+  2|Breakfast|70.00
+  |Towel rental|10.00
+  3|Beer Gallo|75.00
+=== 449 gt15 hotel panajachel statement with dated charges
+  Hotel Ejemplo del Lago | 2026-11-22 | 188000 GTQ
+  |HABITACION|650.00
+  |CENA RESTAURANTE|185.00
+  |HABITACION|650.00
+  |TOUR EN LANCHA|300.00
+  |LAVANDERIA|55.00
+  |MINIBAR|40.00
+=== 450 gt16 hostel antigua dated rows with a key deposit
+  Ejemplo Backpackers Hostel | 2026-11-18 | 39500 GTQ
+  |DORMITORIO 1 NOCHE|95.00
+  |DEPOSITO LLAVE|50.00
+  |DORMITORIO 1 NOCHE|95.00
+  |DESAYUNO|35.00
+  |SHUTTLE A PACAYA|120.00
+=== 451 gt17 airport hotel rate in dollars total in both
+  Hotel Ejemplo Aeropuerto | 2026-11-23 | 7930 USD
+  |TARIFA|65.00
+  |HOSPEDAJE|500.50
+=== 452 gt18 hospedaje flores name nights price total
+  Hospedaje Ejemplo | 2026-11-16 | 64600 GTQ
+  3|HABITACION SENCILLA|540.00
+  3|DESAYUNO|90.00
+  2|AGUA PURA|16.00
+=== 453 gt19 eco lodge lanquin tab with day and month rows
+  Ejemplo Eco Lodge Lanquin | 2026-11-21 | 163800 GTQ
+  2|19/11 CENA BUFFET|140.00
+  4|19/11 CERVEZA|100.00
+  2|20/11 DESAYUNO|80.00
+  2|20/11 TOUR SEMUC CHAMPEY|400.00
+  2|20/11 CENA BUFFET|140.00
+  |21/11 CABAÑA PRIVADA 2 NOCHES|700.00
+=== 454 gt20 shuttle ticket with labels
+  Ejemplo Travel & Shuttles | 2026-11-20 | 30000 GTQ
+=== 455 gt21 shuttle flores to belize priced in dollars
+  Transportes Ejemplo Peten | 2026-11-17 | 19500 USD
+  |EQUIVALENTE|195.00
+=== 456 gt22 boat ticket panajachel
+  Asociacion de Lancheros Ejemplo | 2026-11-19 | 2500 GTQ
+  |TARIFA TURISTA|25.00
+=== 457 gt23 tuk tuk receipt
+  Asociacion de Mototaxis Ejemplo | 2026-11-19 | 2000 MXN
+  |VALOR|20.00
+=== 458 gt24 pullman bus ticket guatemala to peten
+  Linea Ejemplo del Norte | 2026-11-16 | 25000 MXN
+=== 459 gt25 airport taxi voucher dollars and quetzales
+  Taxis Ejemplo Aeropuerto la Aurora | 2026-11-14 | 35000 USD
+=== 460 gt26 tour agency fel tours per person
+  Ejemplo Expeditions | 2026-11-19 | 114000 GTQ
+  2|TOUR VOLCAN PACAYA TARDE|240.00
+  2|ENTRADA PARQUE PACAYA|200.00
+  1|TOUR ACATENANGO 2 DIAS|650.00
+  1|ALQUILER CHUMPA Y BASTON|50.00
+=== 461 gt27 tikal tour voucher in dollars
+  Ejemplo Tours Tikal | 2026-11-18 | 6000 USD
+  2|TRANSPORT + GUIDE|60.00
+  |PARK FEE NOT INCLUDED (150 + 100)|
+=== 462 gt28 agency receipt with services dated in front
+  Viajes Ejemplo Atitlan | 2026-11-20 | 79000 GTQ
+  |TOUR LANCHA 3 PUEBLOS 2 PAX|300.00
+  |SHUTTLE PANAJACHEL - ANTIGUA 2 PAX|250.00
+  |SHUTTLE ANTIGUA - AEROPUERTO 2 PAX|240.00
+=== 463 gt29 coffee tour receipt with concepto
+  Finca Ejemplo Coffee Tour | 2026-11-22 | 40000 GTQ
+=== 464 gt30 supermarket antigua multiples above the name, weighed
+  Supermercado la Ejemplo | 2026-11-21 | 22903 GTQ
+  |AGUA SALVAVIDAS 1.5L|9.50
+  3|TORTRIX LIMON|18.75
+  0.850 LB|BANANO|2.13
+  |PAN SANDWICH BIMBO|24.90
+  |CERVEZA GALLO LATA 6PK|59.95
+  2|YOGURT NATURAL|24.80
+  |PROTECTOR SOLAR FPS50|89.00
+=== 465 gt31 village shop short
+  Tienda Ejemplo | 2026-11-19 | 4900 GTQ
+  2|AGUA PURA|10.00
+  1|GALLETAS|6.00
+  1|PAPEL HIGIENICO|5.00
+  1|TARJETA TIGO|25.00
+  3|BANANOS|3.00
+=== 466 gt32 handicraft stall nota de venta with discount
+  Artesanias Ejemplo | 2026-11-21 | 55000 GTQ
+  1|HUIPIL BORDADO|350.00
+  2|BOLSA TIPICA|120.00
+  3|PULSERAS|30.00
+  1|MASCARA DE MADERA|85.00
+=== 467 gt33 minimarket flores name qty price total
+  Mini Market Ejemplo | 2026-11-17 | 10300 GTQ
+  2|AGUA 1 LT|16.00
+  1|REPELENTE OFF|45.00
+  3|CERVEZA BRAHVA|27.00
+  2|PAPAS FRITAS|15.00
+=== 468 gt34 pharmacy with a percentage discount under one item
+  Farmacias Ejemplo | 2026-11-20 | 7690 GTQ
+  1|IBUPROFENO 400MG X 10 TAB|18.50
+  1|SUERO ORAL COCO 500ML|14.00
+  2|LOPERAMIDA 2MG X 6|36.00
+  |DESC. 10%|-3.60
+  1|ALCOHOL GEL 60ML|12.00
+=== 469 gt35 small pharmacy flores packs after names
+  Farmacia Ejemplo Flores | 2026-11-18 | 3700 GTQ
+  4|DRAMAMINE TAB|12.00
+  10|ACETAMINOFEN 500|10.00
+  |CURITAS CAJA|15.00
+=== 470 gt36 fuel pump slip, headings then values as blocks
+  Estacion Ejemplo Puma | 2026-11-22 | 28314 GTQ
+=== 471 gt37 fuel with shop goods, gallons x price on the row
+  Gasolinera Ejemplo Shell | 2026-11-21 | 24682 GTQ
+  6.351 GAL|REGULAR|196.82
+  1|ACEITE 2T|38.00
+  2|AGUA PURA 600ML|12.00
+=== 472 gt38 small fuel slip gallons and price per gallon
+  Servicentro Ejemplo | 2026-11-19 | 6500 GTQ
+  |GAL 2.000 P/G|32.50
+  |VALOR|65.00
+=== 473 gt39 atm 5b withdrawal with commission
+  5b Cajero Automatico | 2026-11-20 | 200000 GTQ
+=== 474 gt40 atm bac with fee and total debited
+  Panajachel, Solola | 2026-11-19 | 154620 GTQ
+  |RETIRO|1,500.00
+  |CARGO POR USO|46.20
+=== 475 gt41 visanet slip with empty tip and total lines
+  Ejemplo Cafe Bar | 2026-11-20 | 28500 GTQ
+=== 476 gt42 bac slip with tip and total filled in
+  Restaurante Ejemplo del Arco | 2026-11-21 | 45300 GTQ
+=== 477 gt43 card slip paid in dollars by conversion
+  Hotel Ejemplo Antigua | 2026-11-22 | 19645 USD
+=== 478 gt44 tigo top-up from a shop terminal
+  Tigo | 2026-11-15 | 5000 GTQ
+=== 479 gt45 claro sim card and package at the airport
+  Claro | 2026-11-14 | 12400 GTQ
+  1|SIM CARD PREPAGO 4G|25.00
+  1|PAQUETE TURISTA 15 DIAS 10GB|99.00
+=== 480 gt46 tikal entrance ticket
+  Ministerio de Cultura y Deportes | 2026-11-18 | 15000 MXN
+  |VALOR|150.00
+=== 481 gt47 bank counter payment of park tickets
+  Agencia Santa Elena Peten | 2026-11-17 | 40000 GTQ
+  2|BOLETO EXTRANJERO|300.00
+  1|BOLETO AMANECER|100.00
+=== 482 gt48 museum ticket antigua
+  Museo Ejemplo de Arte Colonial | 2026-11-21 | 12500 GTQ
+  2|ADULTO EXTRANJERO|100.00
+  1|ESTUDIANTE|25.00
+=== 483 gt49 volcano park entrance, price on its own row
+  Parque Nacional Volcan de Pacaya | 2026-11-20 | 10000 MXN
+  |INGRESO VISITANTE EXTRANJERO|100.00
+=== 484 gt50 laundry by the pound with received and delivery dates
+  Lavanderia Ejemplo | 2026-11-20 | 10000 GTQ
+  7.5 LBS|LAVADO Y SECADO|60.00
+  1|EDREDON|40.00
+=== 485 gt51 laundry flores by the kilo
+  Lavanderia "ejemplo | 2026-11-18 | 5500 GTQ
+  4 KG|ROPA|40.00
+  |SERVICIO EXPRESS|15.00
+=== 486 gt52 comedor quantities printed with a zero in front
+  Comedor y Cafeteria Ejemplo | 2026-11-17 | 10400 GTQ
+  1|DESAYUNO CHAPIN|38.00
+  2|CAFE CON LECHE|24.00
+  1|PANQUEQUES CON MIEL|30.00
+  1|JUGO DE NARANJA|12.00
+=== 487 gt53 fel pdf layout hotel, numbered rows with Servicio
+  Hotel Ejemplo Real | 2026-11-22 | 151400 MXN
+  2|Hospedaje habitacion sencilla|1,464.00
+  1|Parqueo|50.00
+=== 488 gt54 fel pdf layout cafe, numbered rows with Bien
+  Maria Ejemplo Ejemplo | 2026-11-21 | 12200 MXN
+  2|Capuchino|44.00
+  1|Panini de pollo|48.00
+  1|Pastel de chocolate|30.00
+=== 489 gt55 restaurant with mild ocr damage
+  null | 2026-11-21 | 99300 GTQ
+  2|KAK IK|170.00
+  1|HILACHAS|68.00
+  2|FRESCO DE HORCHATA|30.00
+  1|CERVEZA CABRO|25.00
+=== 490 gt56 restaurant total then total with suggested tip
+  El Ejemplo Cocina Guatemalteca | 2026-11-20 | 37950 GTQ
+  2|CALDO DE GALLINA|130.00
+  1|CHILES RELLENOS|72.00
+  1|TAMAL DE CHIPILIN|28.00
+  2|ROSA DE JAMAICA|40.00
+  1|CERVEZA GALLO|30.00
+  1|CAFE DE OLLA|15.00
+  1|MOLE DE PLATANO|30.00
+=== 491 gt57 comedor with each price on the row under the name
+  Comedor y Taqueria Ejemplo | 2026-11-18 | 10600 MXN
+  3|TACOS DE RES|36.00
+  1|PLATO TIPICO|40.00
+  2|LICUADO DE BANANO|30.00
+=== 492 gt58 pizza delivery, date on the delivery row
+  Pizzeria Ejemplo | 2026-11-21 | 28600 GTQ
+  1|PIZZA FAMILIAR SUPREMA|139.00
+  1|PIZZA MEDIANA HAWAIANA|85.00
+  1|PAN DE AJO|25.00
+  1|GASEOSA 2 LITROS|22.00
+=== 493 gt59 hostel bar in english, tip and card surcharge
+  Ejemplo Hostel & Bar | 2026-11-19 | 30000 GTQ
+  2|Family dinner|150.00
+  3|Gallo|75.00
+  1|Cuba libre|30.00
+  1|Brownie|20.00
+=== 494 gt60 hostel with an online prepayment and the balance paid
+  Hostal Ejemplo Antigua | 2026-11-20 | 57000 GTQ
+  3|NOCHES HABITACION PRIVADA|570.00
+=== 495 gt61 public boat, two fares, total in words
+  Lanchas Ejemplo S.c | 2026-11-22 | 5000 GTQ
+=== 496 gt62 shuttle booking e-mail in english
+  null | 2026-11-19 | 7000 USD
+=== 497 gt63 kayak rental by the hour with a returned deposit
+  Ejemplo Kayak & Sup Rental | 2026-11-19 | 16000 GTQ
+  |KAYAK DOBLE 2 HORAS|100.00
+  |PADDLE BOARD 1 HORA|60.00
+=== 498 gt64 convenience shop with a top-up, a discount row and iva
+  Super Ejemplo 24 | 2026-11-19 | 9245 GTQ
+  |AGUA PURA 1 GAL|14.50
+  |CERVEZA GALLO 12OZ|9.75
+  |CERVEZA GALLO 12OZ|9.75
+  |RICITOS|5.00
+  |RECARGA TIGO 30|30.00
+  |PAN MOLDE INTEGRAL|26.95
+  |DESCUENTO PAN MOLDE|-4.00
+  |BOLSA PLASTICA|0.50
+=== 499 gt65 grocery ticket with no total row
+  Abarroteria Ejemplo | 2026-11-17 | 1800 MXN
+  1|JABON|6.00
+  2|AGUA|12.00
+  1|PILAS AA|18.00
+=== 500 gt66 pharmacy qty name unit discount total
+  Farmacia Ejemplo Batres | 2026-11-18 | 19350 GTQ
+  1|BLOQUEADOR SOLAR 120ML|121.50
+  2|SALES DE REHIDRATACION|13.00
+  1|REPELENTE SPRAY|59.00
+=== 501 gt67 fuel fel fields with the colons lost
+  Estacion de Servicio Ejemplo Texaco | 2026-11-20 | 23862 GTQ
+  7.413|SUPER|238.62
+=== 502 gt68 atm slip, each label above its value
+  Ejemplo Industrial | 2026-11-17 | 250000 MXN
+  |COMISION|35.00
+=== 503 gt69 card slip with only the merchant's legal name
+  Panajachel | 2026-11-19 | 38500 MXN
+=== 504 gt70 claro top-up slip from a pharmacy
+  Farmacia Ejemplo | 2026-11-16 | 2500 GTQ
+  |VALOR RECARGA|25.00
+=== 505 gt71 ruins entrance with adults x price
+  Parque Arqueologico Ejemplo Yaxha | 2026-11-19 | 16000 GTQ
+  2|ADULTOS EXTRANJEROS|160.00
+  1|VEHICULO|0.00
+=== 506 gt72 airport coffee chain with modifiers under an item
+  Cafe Ejemplo Barista | 2026-11-23 | 13400 GTQ
+  1|LATTE 16 OZ|32.00
+  |LECHE DE ALMENDRA|6.00
+  |SHOT EXTRA|8.00
+  1|AMERICANO 12 OZ|22.00
+  1|SANDWICH JAMON Y QUESO|42.00
+  1|MUFFIN ARANDANO|24.00
+=== 507 gt73 dry cleaner per piece with express surcharge and deposit
+  Lavanderia y Tintoreria Ejemplo | 2026-11-16 | 23250 GTQ
+  3|CAMISA|45.00
+  2|PANTALON|40.00
+  1|SACO|45.00
+  5|ROPA INTERIOR|25.00
+=== 508 gt74 hostel folio in english with towel and key deposits
+  Ejemplo Lake Hostel | 2026-11-20 | 52000 GTQ
+  |Dorm bed|90.00
+  |Key deposit|50.00
+  |Dinner|60.00
+  |Dorm bed|90.00
+  |Kayak rental|80.00
+  |Bar tab|150.00
+=== 509 mx01 fonda in a market named after a date
+  Fonda "ejemplo | 2026-11-18 | 46000 MXN
+  3|COMIDAS CORRIDAS A $85|255.00
+  1|TLAYUDA CON TASAJO|120.00
+  2|AGUAS DE HORCHATA|50.00
+  1|CHOCOLATE DE AGUA|35.00
+=== 510 mx02 juice stand whole prices with dollar signs
+  Jugos y Licuados Ejemplo | 2026-11-19 | 12000 MXN
+  1|JUGO VERDE CH|35
+  1|LICUADO FRESA GDE|45
+  1|TORTA DE JAMON|40
+=== 511 mx03 taqueria qty name unit total
+  Taqueria el Ejemplo | 2026-11-22 | 32500 MXN
+  5|TACO PASTOR|90.00
+  3|TACO SUADERO|60.00
+  1|GRINGA|55.00
+  1|ORDEN CEBOLLITAS|30.00
+  2|COCA COLA 355|50.00
+  1|AGUA JAMAICA 1 LT|40.00
+=== 512 mx04 taqueria order slip without a total
+  Tacos Ejemplo | 2026-11-21 | 20100 MXN
+  4|PASTOR|72.00
+  2|BISTEC|44.00
+  1|QUESADILLA|35.00
+  2|REFRESCO|50.00
+=== 513 mx05 cantina with a tip table of three rates
+  Cantina la Ejemplo | 2026-11-21 | 63000 MXN
+  6|CERVEZA MONTEJO|270.00
+  2|MEZCAL ESPADIN|180.00
+  1|BOTANA EJEMPLO|0.00
+  1|SOPA DE LIMA|85.00
+  1|PAPADZULES|95.00
+=== 514 mx06 corner shop with weighed ham and pieces
+  Abarrotes "la Ejemplo | 2026-11-20 | 25400 MXN
+  0.500 KG|JAMON|60.00
+  1|PAN BIMBO|48.00
+  6|HUEVO|21.00
+  2|AGUA 1.5L|36.00
+  1|REPELENTE|89.00
+=== 515 mx07 tortilleria by the kilo on a street named after a date
+  Tortilleria Ejemplo | 2026-11-19 | 6500 MXN
+  1.5 KG|TORTILLA|36.00
+  |TOTOPOS 1 BOLSA|20.00
+  0.5 KG|MASA|9.00
+=== 516 mx08 taxi rank receipt with the amount in words
+  Sitio de Taxis Ejemplo A.c | 2026-11-18 | 25000 MXN
+=== 517 mx09 colectivo ticket two passengers
+  Transportes Colectivos Ejemplo | 2026-11-20 | 11000 MXN
+  2|PASAJEROS|55.00
+=== 518 mx10 posada lodging note with nights x price
+  Posada Ejemplo | 2026-11-22 | 139000 MXN
+  2|NOCHES HAB. DOBLE|1,300.00
+  1|DESAYUNO|90.00
+=== 519 mx11 small hotel with iva and lodging tax
+  Hotel Ejemplo Colonial | 2026-11-21 | 203361 MXN
+  2|HOSPEDAJE|1,680.67
+=== 520 mx12 nota de venta from a small printer, date in words
+  Artesanias Ejemplo | 2026-11-21 | 97000 MXN
+  2|BLUSA BORDADA|560.00
+  1|REBOZO|350.00
+  4|SEPARADORES|60.00
+=== 521 mx13 ticket with only a person's legal name
+  Juan Ejemplo Ejemplo | 2026-11-19 | 68500 MXN
+  2|CEVICHE MIXTO|320.00
+  1|FILETE AL MOJO|185.00
+  3|CERVEZA|135.00
+  1|LIMONADA|45.00
+=== 522 mx14 ticket with only a company legal name, suffix on its own row
+  Comercializadora Ejemplo del Sureste | 2026-11-20 | 38500 MXN
+  1|SOMBRERO|180.00
+  1|BLOQUEADOR 50 FPS|165.00
+  2|AGUA 1L|40.00
+=== 523 mx15 fruit stall with kilos after the names
+  Frutas y Verduras Ejemplo | 2026-11-18 | 16800 MXN
+  |MANGO 2 KG|60.00
+  |AGUACATE 1/2 KG|45.00
+  |PIÑA 1 PZA|35.00
+  |LIMON 1 KG|28.00
+=== 524 mx16 cocina economica names then prices as blocks
+  Cocina Economica Ejemplo | 2026-11-17 | 35500 MXN
+  2|MENU DEL DIA|170.00
+  1|POZOLE GRANDE|95.00
+  3|AGUA DE SABOR|60.00
+  1|FLAN|30.00
+=== 525 mx17 juice bar with half litre and size letters
+  Jugos Ejemplo | 2026-11-21 | 22000 MXN
+  1|JUGO NARANJA 1/2 LT|40.00
+  1|JUGO ZANAHORIA 1 LT|65.00
+  1|LICUADO PLATANO M|45.00
+  2|COCTEL DE FRUTAS CH|70.00
+=== 526 mx18 bar bill with the tip and a second total written in
+  Bar el Ejemplo | 2026-11-21 | 65500 MXN
+  2|MARGARITA|260.00
+  2|CERVEZA ARTESANAL|190.00
+  1|GUACAMOLE|120.00
+=== 527 mx19 tortas stand with each-price before the line total
+  Tortas Ejemplo | 2026-11-22 | 43500 MXN
+  3|TORTA DE MILANESA C/U|195.00
+  2|CEMITA DE POLLO C/U|140.00
+  4|REFRESCO 600 ML C/U|100.00
+=== 528 mx20 beach palapa with service and a total in dollars
+  Palapa Ejemplo | 2026-11-19 | 94600 MXN
+  1|PESCADO FRITO KG|380.00
+  2|COCO FRIO|120.00
+  1|CEVICHE CHICO|160.00
+  4|CERVEZA SOL|200.00
+=== 529 mx21 ice cream shop short ticket
+  Paleteria y Neveria Ejemplo | 2026-11-18 | 9500 MXN
+  2|PALETA DE AGUA|30.00
+  1|NIEVE DOBLE|45.00
+  1|AGUA FRESCA 1/2|20.00
+=== 530 mx22 hostel payment receipt with nights and a key deposit
+  Hostal Ejemplo | 2026-11-17 | 97000 MXN
+  |CAMA EN DORMITORIO 3 NOCHES|840.00
+  1|RENTA DE TOALLA|30.00
+  |DEPOSITO DE LLAVE|100.00
+=== 531 mx23 taqueria with ocr damage and counts inside the names
+  null | 2026-11-20 | 29000 MXN
+  1|ORDEN DE 5 TACOS PASTOR|85.00
+  1|ORDEN DE 3 TACOS ARRACHERA|90.00
+  2|VOLCAN DE QUESO|70.00
+  1|AGUA DE HORCHATA 1 LT|45.00
+=== 532 mx24 fonda breakfasts sold as numbered packages
+  Fonda Ejemplo | 2026-11-23 | 26500 MXN
+  1|PAQUETE 2 HUEVOS AL GUSTO|85.00
+  1|PAQUETE 4 CHILAQUILES|95.00
+  2|CAFE DE OLLA|50.00
+  1|JUGO NARANJA|35.00
+=== 533 mx25 seafood cocktail stall with sizes
+  Cocteleria Ejemplo | 2026-11-20 | 43000 MXN
+  1|COCTEL CAMARON GDE|160.00
+  1|COCTEL PULPO MED|130.00
+  2|TOSTADA CEVICHE|90.00
+  2|AGUA MINERAL|50.00
+=== 534 mx26 beer depot with a crate and bottle deposit
+  Deposito Ejemplo Modelorama | 2026-11-21 | 64500 MXN
+  1|CARTON CORONA 24 PZ|420.00
+  1|ENVASE CARTON|120.00
+  2|BOLSA HIELO 5 KG|70.00
+  1|BOTANA|35.00
+=== 535 mx27 cabins priced in pesos and paid in dollars
+  Cabañas Ejemplo Bacalar | 2026-11-20 | 290000 MXN
+  |PRECIO POR NOCHE|1,450.00
+=== 536 mx28 dive shop note with a payment on account
+  Buceo Ejemplo Cozumel | 2026-11-19 | 452000 MXN
+  2|BUCEO 2 TANQUES|3,600.00
+  2|RENTA DE EQUIPO|800.00
+  1|CUOTA PARQUE MARINO|120.00
+=== 537 mx29 barbacoa stand with kilos and halves in front
+  Barbacoa Ejemplo | 2026-11-22 | 82200 MXN
+  |1 1/2 KG BARBACOA DE BORREGO|630.00
+  |1/2 KG TORTILLAS|12.00
+  2 LT|CONSOME|80.00
+  4|REFRESCOS|100.00
+=== 538 mx30 roast chicken stand with a half chicken
+  Pollos Asados Ejemplo | 2026-11-20 | 37800 MXN
+  1|POLLO ENTERO|190.00
+  |1/2 POLLO|100.00
+  2|ARROZ|40.00
+  1|SALSA HABANERA|0.00
+  1|COCA COLA 2.5 LT|48.00
+=== 539 mx31 taqueria whose quantities happen to count up
+  Taqueria Ejemplo de la Esquina | 2026-11-19 | 23100 MXN
+  1|TORTA DE COCHINITA|45.00
+  2|PANUCHOS|40.00
+  3|TACOS DE LECHON|66.00
+  4|SALBUTES|80.00
+=== 540 mx32 greengrocer name unit quantity price total
+  Verduras Ejemplo | 2026-11-21 | 14800 MXN
+  1.5|JITOMATE KG|42.00
+  1|CEBOLLA KG|30.00
+  2|CILANTRO MANOJO|16.00
+  4|AGUACATE PZA|60.00
+=== 541 mx33 cantina with IMPORTE as the total and the amount in words
+  Cantina Ejemplo del Centro | 2026-11-20 | 46500 MXN
+  3|CERVEZA VICTORIA 1/2|135.00
+  2|TEQUILA DERECHO|180.00
+  1|BOTANA MIXTA|150.00
+  1|CALDO DE CAMARON|0.00
+=== 542 mx34 corner shop with a phone top-up
+  Miscelanea Ejemplo | 2026-11-18 | 24500 MXN
+  1|RECARGA TELCEL 100|100.00
+  2|CERVEZA CORONA 355|50.00
+  1|PAPAS SABRITAS 45G|20.00
+  1|REPELENTE 60ML|75.00
+=== 543 mx35 tortilleria scale ticket printed as fields
+  Tortilleria y Molino Ejemplo | 2026-11-21 | 6000 MXN
+  |TORTILLA DE MAIZ|60.00
+=== 544 mx36 taxi meter ticket with distance and time rows
+  Taxi Ejemplo Radio Taxi | 2026-11-22 | 18000 MXN
+  |BANDERAZO|15.00
+  |TIEMPO 29 MIN|23.00
+=== 545 mx37 van ticket with departure and issue dates
+  Transportes Turisticos Ejemplo | 2026-11-19 | 35000 MXN
+=== 546 mx38 posada statement, dated nights, deposit then balance
+  Posada Ejemplo del Carmen | 2026-11-19 | 246000 MXN
+  |HOSPEDAJE|780.00
+  |HOSPEDAJE|780.00
+  |HOSPEDAJE|780.00
+  |LAVANDERIA|120.00
+=== 547 mx39 nota de venta with a discount and the amount in words
+  Hamacas Ejemplo | 2026-11-20 | 210000 MXN
+  1|HAMACA MATRIMONIAL|950.00
+  2|HAMACA INDIVIDUAL|1,200.00
+  2|JUEGO DE HAMAQUEROS|160.00
+=== 548 mx40 small shop ticket that ends without a total
+  Abarrotes Ejemplo | 2026-11-22 | 5400 MXN
+  1|AGUA CIEL 1.5L|22.00
+  1|PAN DULCE|18.00
+  2|PLATANO|9.00
+  1|CAFE SOLUBLE 50G|54.00
+=== 549 mx41 fonda order to go with a packaging charge
+  Fonda la Ejemplo | 2026-11-21 | 19400 MXN
+  2|TOSTADA DE TINGA|70.00
+  1|TOSTADA DE PATA|40.00
+  1|QUESADILLA FLOR DE CALABAZA|35.00
+  2|AGUA DE JAMAICA 1/2 LT|44.00
+  1|DESECHABLE|5.00
+=== 550 mx42 juice stand with a promotion row, street named after a date
+  Jugos y Tortas Ejemplo | 2026-11-23 | 14800 MXN
+  2|JUGO DE NARANJA GDE|90.00
+  |PROMO 2X1 JUGOS|-45.00
+  1|TORTA DE PIERNA|55.00
+  1|LICUADO DE MAMEY|48.00
+=== 551 mx43 taqueria bill with a suggested tip and a total with tip
+  Taqueria Ejemplo Grill | 2026-11-20 | 62675 MXN
+  3|TACO ARRACHERA|135.00
+  2|TACO CAMARON|110.00
+  1|QUESO FUNDIDO|120.00
+  2|MICHELADA|180.00
+=== 552 mx44 guesthouse receipt under a person's name, amount in words
+  Maria Ejemplo Ejemplo | 2026-11-18 | 120000 MXN
+=== 553 mx45 butcher stall weights x price
+  Carniceria Ejemplo | 2026-11-19 | 44200 MXN
+  0.750 KG|ARRACHERA|240.00
+  0.500 KG|CHORIZO|70.00
+  1.200 KG|POLLO PECHUGA|132.00
+=== 554 mx46 pulqueria litres and half litres
+  Pulqueria la Ejemplo | 2026-11-21 | 31000 MXN
+  2|LITRO CURADO DE AVENA|160.00
+  |1 1/2 LITRO NATURAL|30.00
+  1|BOTANA|0.00
+  3|CERVEZA|120.00
+=== 555 mx47 taqueria ticket, total and payment labels above their values
+  Tacos y Tortas Ejemplo | 2026-11-21 | 26800 MXN
+  2|TORTA AL PASTOR|130.00
+  4|TACO DE BISTEC|88.00
+  2|AGUA DE HORCHATA|50.00
+=== 556 mx48 mezcal shop bottles with sizes
+  Mezcaleria Ejemplo | 2026-11-22 | 113000 MXN
+  1|MEZCAL ESPADIN 750 ML|480.00
+  2|MEZCAL TOBALA 200 ML|560.00
+  1|SAL DE GUSANO 100 G|90.00
+=== 557 mx49 island ferry ticket, price on its own row
+  Ejemplo Express Holbox | 2026-11-18 | 22000 MXN
+  |ADULTO EXTRANJERO|220.00
+=== 558 mx50 payment terminal slip with a tip chosen on the terminal
+  null | 2026-11-18 | 50600 MXN
+  |CONSUMO|460.00
+=== 559 sv01 surf hostel in english with dated rows, month first
+  Ejemplo Surf Hostel | 2026-11-19 | 18850 MXN
+  |Private room|45.00
+  |Surfboard rental|15.00
+  |Private room|45.00
+  |Surf lesson|30.00
+  |Bar|18.50
+  |Shuttle to airport|35.00
+=== 560 sv02 restaurant factura with the salvadoran totals block
+  Restaurante Ejemplo del Puerto | 2026-11-20 | 2888 MXN
+  1|MARISCADA|14.50
+  1|COCTEL DE CONCHAS|6.75
+  2|PILSENER|4.00
+  1|AGUA CRISTAL|1.00
+=== 561 sv03 electronic invoice of a hotel with tourism levy
+  Hotel Ejemplo San Salvador | 2026-11-22 | 17752 USD
+  2|HABITACION ESTANDAR|158.00
+  1|DESAYUNO BUFFET|12.00
+=== 562 sv04 tour operator receipt per person
+  null | 2026-11-19 | 11200 MXN
+  2|TOUR VOLCAN SANTA ANA|90.00
+  2|ENTRADA PARQUE CERRO VERDE|12.00
+  1|GUIA LOCAL|10.00
+=== 563 sv05 archaeological park ticket, price on its own row
+  Ministerio de Cultura | 2026-11-21 | 700 MXN
+  |EXTRANJERO NO RESIDENTE|7.00
+=== 564 sv06 beach restaurant bill with tip lines left to fill in
+  Restaurante Ejemplo el Tunco | 2026-11-21 | 5170 MXN
+  2|CEVICHE DE PESCADO|19.00
+  1|PARGO FRITO|16.50
+  3|CERVEZA SUPREMA|9.00
+  1|LIMONADA|2.50
+=== 565 sv07 hostel nights x price with the tourism levy
+  Hostal Ejemplo Santa Ana | 2026-11-18 | 6059 MXN
+  3|NOCHE DORMITORIO|36.00
+  1|TOUR CAFE|20.00
+  2|CERVEZA|3.00
+=== 566 sv08 card slip with tip and total
+  Ejemplo Beach Club | 2026-11-21 | 5670 MXN
+=== 567 bz01 restaurant san pedro with gst, service and a us dollar total
+  Ejemplo Grill & Bar | 2026-11-20 | 21438 USD
+  2|Lobster Tacos|56.00
+  1|Grilled Snapper|48.00
+  1|Conch Ceviche|26.00
+  3|Belikin Beer|21.00
+  2|Rum Punch|24.00
+=== 568 bz02 water taxi ticket for two
+  Ejemplo Water Taxi | 2026-11-19 | 8400 MXN
+  2|Adult One Way|84.00
+=== 569 bz03 border exit fees receipt
+  Western Border Station - Benque Viejo | 2026-11-18 | 4000 MXN
+  |DEPARTURE TAX|30.00
+  |PACT FEE|7.50
+  |BORDER DEVELOPMENT FEE|2.50
+=== 570 bz04 guesthouse folio with hotel tax on dated rows, month first
+  Ejemplo Guesthouse Caye Caulker | 2026-11-21 | 12000 MXN
+  |Room Charge|120.00
+  |Room Charge|120.00
+  |Bicycle Rental|20.00
+=== 571 bz05 grocery shop with gst letters and a key
+  Ejemplo Supermarket | 2026-11-19 | 6745 MXN
+  |WATER 1 GAL|4.50
+  |BELIKIN STOUT 6PK|21.00
+  |INSECT REPELLENT|14.95
+  |BANANA CHIPS|3.00
+  |SUNSCREEN SPF50|24.00
+=== 572 bz06 cave tour receipt in us dollars with a belize dollar total
+  Burns Avenue, San Ignacio | 2026-11-18 | 56250 USD
+  2|ATM Cave Tour|220.00
+  2|Park Entrance Fee|30.00
+=== 573 bz07 golf cart rental per day with a refundable deposit
+  Ejemplo Golf Cart Rentals | 2026-11-20 | 27000 MXN
+=== 574 bz08 bar tab with a gratuity table and the tip written in
+  Ejemplo Sports Bar | 2026-11-21 | 8525 MXN
+  4|Belikin|24.00
+  2|Panty Ripper|20.00
+  1|Chicken Wings (10)|22.00
+=== 575 bz09 atm withdrawal with a fee
+  Atm 0041 San Ignacio | 2026-11-18 | 40000 MXN
+  |ATM FEE BZD|5.25
+  |AVAILABLE BALANCE|
+=== 576 hn01 restaurant copan with the honduran totals block
+  Restaurante Ejemplo Copan | 2026-11-20 | 63500 HNL
+  2|BALEADA ESPECIAL|90.00
+  1|PLATO TIPICO|180.00
+  1|SOPA DE CARACOL|220.00
+  2|CERVEZA SALVA VIDA|100.00
+  1|LICUADO DE BANANO|45.00
+=== 577 hn02 comedor with quantities printed 01 02 03
+  Comedor Ejemplo | 2026-11-21 | 16900 HNL
+  1|SOPA DE RES|120.00
+  2|REFRESCO NATURAL|40.00
+  3|TORTILLAS|9.00
+=== 578 hn03 ferry ticket with a municipal tax and a dollar figure
+  Ejemplo Ferry Utila | 2026-11-19 | 79000 HNL
+  1|ADULTO EXTRANJERO L|750.00
+=== 579 hn04 ruins ticket priced in dollars with the lempira equivalent
+  Parque Arqueologico Copan | 2026-11-20 | 50000 USD
+  |VALOR|20.00
+  |EQUIVALENTE L|500.00
+=== 580 hn05 dive shop in dollars with isv and a lempira total
+  Ejemplo Dive Center | 2026-11-21 | 1178750 HNL
+  1|Open Water Course|320.00
+  2|Fun Dive|80.00
+  1|Reef Fee|10.00
+=== 581 hn06 hotel with isv and the tourism tax
+  Hotel Ejemplo San Pedro | 2026-11-22 | 240850 HNL
+  1|NOCHE HABITACION SENCILLA L|1,850.00
+  1|DESAYUNO L|180.00
+=== 582 hn07 island minimarket with tax marks and a key
+  Super Ejemplo West End | 2026-11-21 | 68500 HNL
+  |AGUA AGUAZUL 1.5L|28.00
+  |CERVEZA BARENA 12OZ 6PK|210.00
+  |PROTECTOR SOLAR|385.00
+  |PAN MOLDE|62.00
+=== 583 hn08 coach ticket with travel and issue dates
+  Transportes Ejemplo Alas | 2026-11-21 | 52000 HNL
+  |TARIFA L|520.00
+  |ISV EXENTO|
+=== 584 hn09 card slip with tip in lempiras
+  Cafe Ejemplo Utila | 2026-11-21 | 38000 HNL
+=== 585 gt75 legal name, the word restaurante, then the town
+  Inversiones Ejemplo del Lago | 2026-11-19 | 17500 GTQ
+  1|PESCADO A LA PLANCHA|85.00
+  1|PLATO VEGETARIANO|60.00
+  2|LIMONADA|30.00
+=== 586 gt76 hostel statement with a dated card commission
+  Hostal Ejemplo del Volcan | 2026-11-20 | 101850 GTQ
+  |HABITACION PRIVADA|260.00
+  |HABITACION PRIVADA|260.00
+  |TOUR ACATENANGO|450.00
+  |COMISION POR TARJETA 5%|48.50
+=== 587 min A1 hostel dated rows, key deposit in spanish
+  Ejemplo Hostel | 2026-11-18 | 24000 GTQ
+  |DORMITORIO|95.00
+  |DEPOSITO LLAVE|50.00
+  |DORMITORIO|95.00
+=== 588 min A2 hostel dated rows, key deposit in english
+  Ejemplo Hostel | 2026-11-18 | 24000 MXN
+  |Dorm bed|95.00
+  |Key deposit|50.00
+  |Dorm bed|95.00
+=== 589 min A3 three dated rows only, deposit in the middle
+  null | 2026-11-18 | 9500 MXN
+  |DORMITORIO|95.00
+  |DEPOSITO LLAVE|50.00
+  |DESAYUNO|35.00
+=== 590 min A4 hostel dated rows, towel deposit last
+  Ejemplo Hostel | 2026-11-18 | 22000 GTQ
+  |DORMITORIO|95.00
+  |DORMITORIO|95.00
+  |DEPOSITO TOALLA|30.00
+=== 591 min B1 quetzal total then a total in dollars, with tip
+  Restaurante Ejemplo | 2026-11-18 | 33550 GTQ
+  1|PESCADO BLANCO|305.00
+=== 592 min B2 quetzal total then a total in dollars, no tip
+  Restaurante Ejemplo | 2026-11-18 | 33550 GTQ
+  1|PESCADO BLANCO|335.50
+=== 593 min B3 quetzal total with tip and an exchange-rate row only
+  Restaurante Ejemplo | 2026-11-18 | 33550 GTQ
+  1|PESCADO BLANCO|305.00
+=== 594 min C1 tip table rows that end in a total, quetzales
+  Ejemplo Steak House | 2026-11-17 | 85330 GTQ
+  1|PUYAZO 12 OZ|742.00
+=== 595 min C2 tip table rows that end in a total, pesos
+  Ejemplo Steak House | 2026-11-17 | 85330 MXN
+  1|PUYAZO 12 OZ|742.00
+=== 596 min C3 one tip row that ends in a total, quetzales
+  Ejemplo Steak House | 2026-11-17 | 81620 GTQ
+  1|PUYAZO 12 OZ|742.00
+=== 597 min D1 atm slip, bank name then a town row
+  Panajachel, Solola | 2026-11-19 | 150000 MXN
+  |RETIRO|1,500.00
+=== 598 min D2 bank counter receipt, bank name then its branch
+  Agencia Santa Elena Peten | 2026-11-17 | 30000 GTQ
+  2|BOLETO EXTRANJERO|300.00
+=== 599 min E1 fuel then an included-tax row
+  null | null | 28314 GTQ
+  |DIESEL 10.152 GAL|283.14
+=== 600 min F1 bus ticket, VALOR with Q
+  Transportes Ejemplo | 2026-11-16 | 25000 MXN
+=== 601 min F2 taxi voucher with a dollar fare and a quetzal fare
+  Taxis Ejemplo | 2026-11-14 | 35000 USD
+=== 602 min A5 hostel dated rows, a sim card sold at reception
+  Ejemplo Hostel | 2026-11-19 | 4000 MXN
+  |Dorm bed|15.00
+  |SIM card|10.00
+  |Dorm bed|15.00
+=== 603 min B4 quetzal total, dollar total and the exchange-rate row
+  Restaurante Ejemplo | 2026-11-18 | 33550 GTQ
+  1|PESCADO BLANCO|305.00
+=== 604 min B5 quetzal total, dollar total and the rate row, no tip
+  Restaurante Ejemplo | 2026-11-18 | 33550 GTQ
+  1|PESCADO BLANCO|335.50
+=== 605 min B6 quetzal total, dollar total and a note about dollars
+  Restaurante Ejemplo | 2026-11-18 | 33550 GTQ
+  1|PESCADO BLANCO|305.00
+=== 606 min C4 tip table rows that end in a total, under a total row
+  Ejemplo Steak House | 2026-11-17 | 74200 GTQ
+  1|PUYAZO 12 OZ|742.00
+=== 607 min G1 keywords damaged, prices clean
+  Restaurante el Ejemplo | 2026-11-21 | 99300 GTQ
+  2|KAK IK|170.00
+  1|HILACHAS|68.00
+  2|FRESCO DE HORCHATA|30.00
+  1|CERVEZA CABRO|25.00
+=== 608 min G2 prices damaged, keywords clean
+  Restaurante el Ejemplo | 2026-11-21 | 32230 GTQ
+  2|KAK IK|170.00
+  1|HILACHAS|68.00
+  2|FRESCO DE HORCHATA|30.00
+  1|CERVEZA CABRO|25.00
+=== 609 min G3 only the tip rate damaged
+  Restaurante el Ejemplo | 2026-11-21 | 32230 GTQ
+  2|KAK IK|170.00
+  1|HILACHAS|68.00
+  2|FRESCO DE HORCHATA|30.00
+  1|CERVEZA CABRO|25.00
+=== 610 min G4 only the change word damaged
+  Restaurante el Ejemplo | 2026-11-21 | 32230 GTQ
+  2|KAK IK|170.00
+  1|HILACHAS|68.00
+  2|FRESCO DE HORCHATA|30.00
+  1|CERVEZA CABRO|25.00
+=== 611 min G5 only the cash word damaged
+  Restaurante el Ejemplo | 2026-11-21 | 32230 GTQ
+  2|KAK IK|170.00
+  1|HILACHAS|68.00
+  2|FRESCO DE HORCHATA|30.00
+  1|CERVEZA CABRO|25.00
+=== 612 min G6 the same bill undamaged
+  Restaurante el Ejemplo | 2026-11-21 | 32230 GTQ
+  2|KAK IK|170.00
+  1|HILACHAS|68.00
+  2|FRESCO DE HORCHATA|30.00
+  1|CERVEZA CABRO|25.00
+=== 613 min H1 fel pdf rows with a tax column and the totals row
+  null | null | 151400 MXN
+  2|Hospedaje habitacion sencilla|1,464.00
+  1|Parqueo|50.00
+=== 614 min H2 fel pdf rows numbered, Bien, quantity, name
+  null | null | 12200 MXN
+  2|Capuchino|44.00
+  1|Panini de pollo|48.00
+  1|Pastel de chocolate|30.00
+=== 615 min R2a departure tax paid as an item
+  null | null | 3750 MXN
+  |DEPARTURE TAX|30.00
+  |PACT FEE|7.50
+=== 616 min R2b departure tax as the only row above the total
+  null | null | 3000 MXN
+  |DEPARTURE TAX|30.00
+=== 617 min R3a one and a half kilos beside a quantity row
+  null | null | 73000 MXN
+  |1 1/2 KG BARBACOA|630.00
+  4|REFRESCOS|100.00
+=== 618 min R3b one and a half kilos beside two quantity rows
+  null | null | 74200 MXN
+  |1 1/2 KG BARBACOA|630.00
+  |1/2 KG TORTILLAS|12.00
+  4|REFRESCOS|100.00
+=== 619 min R4a line number, decimal quantity, name, unit, total
+  null | null | 17000 MXN
+  2|HABITACION ESTANDAR|158.00
+  1|DESAYUNO BUFFET|12.00
+=== 620 min R4b one row with line number and decimal quantity
+  null | null | 15800 MXN
+  |1 2.00 HABITACION ESTANDAR|158.00
+=== 621 min R5a two rows with quantities 01 and 02
+  null | null | 16000 MXN
+  1|SOPA DE RES|120.00
+  2|REFRESCO NATURAL|40.00
+=== 622 min R5b three rows with quantities 01 02 03
+  null | null | 16900 MXN
+  1|SOPA DE RES|120.00
+  2|REFRESCO NATURAL|40.00
+  3|TORTILLAS|9.00
+=== 623 min R5c three rows with quantities 01 02 04
+  null | null | 17200 MXN
+  1|SOPA DE RES|120.00
+  2|REFRESCO NATURAL|40.00
+  4|TORTILLAS|12.00
+=== 624 min G7 only the total word damaged
+  Restaurante el Ejemplo | 2026-11-21 | 32230 GTQ
+  2|KAK IK|170.00
+  1|HILACHAS|68.00
+  2|FRESCO DE HORCHATA|30.00
+  1|CERVEZA CABRO|25.00
+=== 625 min G8 total and change words damaged
+  Restaurante el Ejemplo | 2026-11-21 | 32230 GTQ
+  2|KAK IK|170.00
+  1|HILACHAS|68.00
+  2|FRESCO DE HORCHATA|30.00
+  1|CERVEZA CABRO|25.00
+=== 626 min G9 total and cash words damaged
+  Restaurante el Ejemplo | 2026-11-21 | 35000 GTQ
+  2|KAK IK|170.00
+  1|HILACHAS|68.00
+  2|FRESCO DE HORCHATA|30.00
+  1|CERVEZA CABRO|25.00
+=== 627 min G10 total, cash and change words damaged, no subtotal or tip
+  Restaurante el Ejemplo | 2026-11-21 | 89300 MXN
+  2|KAK IK|170.00
+  1|HILACHAS|68.00
+  2|FRESCO DE HORCHATA|30.00
+  1|CERVEZA CABRO|25.00
+=== 628 min K1 folio with a negative payment and a zero balance, month first
+  Ejemplo Guesthouse | 2026-11-19 | 12000 MXN
+  |Room Charge|120.00
+  |Room Charge|120.00
+=== 629 min K2 folio with a payment and a zero balance, day first
+  Ejemplo Guesthouse | 2026-11-19 | 12000 MXN
+  |Room Charge|120.00
+  |Room Charge|120.00
+=== 630 min L1 shop name that ends in its country, then the street
+  Burns Avenue, San Ignacio | 2026-11-18 | 28125 USD
+=== 631 min L2 shop name that ends in its country, nothing else above the date
+  null | 2026-11-19 | 11200 MXN
+=== 632 min J1 no total row, the dearest item last
+  Abarrotes Ejemplo | 2026-11-22 | 5400 MXN
+  1|AGUA|22.00
+  1|PAN DULCE|18.00
+  2|PLATANO|9.00
+  1|CAFE|54.00
+=== 633 min B7 subtotal, tip, total in quetzales, total in dollars and the rate
+  null | null | 33550 GTQ
+=== 634 min P1 total in belize dollars then in us dollars
+  Ejemplo Grill | 2026-11-20 | 21438 USD
+=== 635 min P2 price in us dollars then the lempira equivalent
+  Parque Ejemplo | 2026-11-20 | 50000 USD
+  |VALOR|20.00
+  |EQUIVALENTE L|500.00
+=== 636 min B8 two items, subtotal, tip, both totals and the rate
+  Restaurante Ejemplo | 2026-11-18 | 33550 GTQ
+  1|PESCADO BLANCO|205.00
+  1|TACOS DE POLLO|100.00
+=== 637 min B9 two items, subtotal, tip, both totals, no rate row
+  Restaurante Ejemplo | 2026-11-18 | 33550 GTQ
+  1|PESCADO BLANCO|205.00
+  1|TACOS DE POLLO|100.00
+=== 638 min N1 card slip, acquirer above the merchant's legal name
+  Panajachel | 2026-11-19 | 38500 GTQ
+=== 639 min T1 taxi meter rows
+  null | null | 18000 MXN
+  |BANDERAZO|15.00
+  |TIEMPO 29 MIN|23.00
+=== 640 min U1 whole prices with no sign
+  1 Churrasquito 35 | null | 5500 MXN
+  1|CHURRASQUITO|35
+  1|FRESCO DE TAMARINDO|8
+  1|CAFE|7
+  3|TORTILLAS|5
+=== 641 min V1 the only date on a row that says delivery
+  Pizzeria Ejemplo | 2026-11-21 | 13900 GTQ
+  1|PIZZA FAMILIAR|139.00
+=== 642 min D3 atm slip, bank name with LTD then the machine row
+  Atm 0041 San Ignacio | 2026-11-18 | 40000 MXN
+=== 643 min W1 legal name, the word restaurante, a town row
+  Inversiones Ejemplo del Lago | null | 17500 GTQ
+=== 644 min W2 trade name, the word restaurante, a town row
+  El Ejemplo | null | 17500 GTQ
+=== 645 min W3 legal name, the word bar, a town row in mexico
+  Operadora Ejemplo | null | 17500 MXN
+=== 646 min A6 dated nights and a dated card commission
+  null | 2026-11-20 | 54600 GTQ
+  |HABITACION|260.00
+  |HABITACION|260.00
+  |COMISION POR TARJETA 5%|26.00
+=== 647 mxa01 oxxo cant articulo precio total with promo
+  OXXO | 2026-11-24 | 11500 MXN
+  1|COCA COLA S/AZUCAR 600ML|19.00
+  2|GATORADE NARANJA 500ML|44.00
+  1|SANDWICH JAMON QUESO|42.00
+  1|CAFE ANDATTI 12OZ|21.00
+  |PROMO CAFE+SANDWICH|-11.00
+=== 648 mxa02 oxxo top-up deposit and one product
+  OXXO | 2026-11-23 | 180000 MXN
+  1|CIGARROS MARLBORO 20S|85.00
+=== 649 mxa03 7eleven descripcion cant precio total
+  7-Eleven | 2026-11-24 | 19300 MXN
+  1|BIG GULP 32OZ|28.00
+  2|HOT DOG JUMBO|50.00
+  1|CAFE SELECT 20OZ|30.00
+  2|RED BULL 250ML|96.00
+  85|PROMO 2 RED BULL|-11.00
+=== 650 mxa04 walmart barcode first, quantity row under
+  Walmart Supercenter | 2026-11-23 | 27254 MXN
+  |LECHE LALA DESL 1L|55.00
+  |PAN BIMBO INTEG 680G|52.00
+  |COCA COLA 3L|45.00
+  |HUEVO SAN JUAN 18PZ|64.00
+  0.865 KG|PLATANO CHIAPAS|21.54
+  |DETERG ARIEL 1KG|39.90
+  |DESCUENTO ROLLBACK|-4.90
+=== 651 mxa05 soriana articulo cant precio importe
+  Soriana Super | 2026-11-22 | 41816 MXN
+  2|TORTILLA MAIZ 1KG|48.00
+  3|FRIJOL NEGRO LA COSTENA 560G|64.50
+  1|JAMON FUD PAVO 290G|62.00
+  1|PAPEL HIG REGIO 12 ROLLOS|89.90
+  1.240|MANZANA GALA KG|60.76
+  1|CERVEZA CORONA 6 PACK 355ML|115.00
+=== 652 mxa06 chedraui cant um descripcion importe
+  Chedraui Selecto | 2026-11-21 | 107885 MXN
+  1|ACEITE OLIVA EJEMPLO 500ML|189.00
+  2|PASTA BARILLA SPAGHETTI 500G|79.80
+  0.385 KG|QUESO MANCHEGO|142.45
+  0.512 KG|JAMON SERRANO|281.60
+  1|VINO TINTO EJEMPLO 750ML|329.00
+  3|AGUA MINERAL TOPO CHICO 600ML|57.00
+=== 653 mxa07 farmacias del ahorro price discount amount columns
+  Farmacias del Ahorro | 2026-11-23 | 43880 MXN
+  1|ASPIRINA PROTECT 100MG 28 TAB|96.00
+  2|ELECTROLIT FRESA 625ML|54.00
+  1|TEMPRA 500MG 20 TAB|57.60
+  1|BLOQUEADOR SOLAR FPS50 120ML|231.20
+=== 654 mxa08 sanborns restaurant with tip written on the slip
+  Sanborns | 2026-11-23 | 65300 MXN
+  2|CAFE AMERICANO|96.00
+  1|MOLLETES TRADICIONALES|139.00
+  1|ENCHILADAS SUIZAS SANBORNS|219.00
+  1|JUGO NARANJA GDE|79.00
+  1|PAN DULCE|35.00
+=== 655 mxa09 sanborns store with department rows
+  Sanborns | 2026-11-22 | 214600 MXN
+  |NOVELA EJEMPLO|349.00
+  |DEPTO 31 PERFUMERIA|
+  |EAU TOILETTE EJEMPLO 100ML|1,890.00
+  |DESC. 20%|-378.00
+  |DEPTO 07 DULCERIA|
+  |CHOCOLATES SURTIDOS 400G|285.00
+=== 656 mxa10 vips with coupon and suggested tips on one row
+  Vips | 2026-11-23 | 88920 MXN
+  1|SOPA AZTECA|109.00
+  1|ENCHILADAS VIPS POLLO|185.00
+  1|CLUB SANDWICH|199.00
+  1|MILANESA DE RES|229.00
+  3|LIMONADA REFILL|177.00
+  1|PAY DE QUESO|89.00
+=== 657 mxa11 toks breakfast package with its parts
+  Restaurantes Toks | 2026-11-22 | 57400 MXN
+  2|PAQUETE DESAYUNO TOKS|378.00
+  |CHILAQUILES VERDES C/POLLO|
+  |HUEVOS AL GUSTO|
+  |JUGO NARANJA|
+  |CAFE AMERICANO|
+  1|PAN DULCE PIEZA|32.00
+  1|FRUTA DE TEMPORADA|89.00
+=== 658 mxa12 starbucks with modifiers and card balance
+  Starbucks Coffee | 2026-11-23 | 40700 MXN
+  1 Gr|Latte|82.00
+  |Leche Deslactosada|
+  |Shot Extra|14.00
+  1|Vt Caramel Macchiato|92.00
+  1|Al Americano|58.00
+  1|Panini Jamon Serrano|109.00
+  1|Muffin Mora Azul|52.00
+=== 659 mxa13 cielito querido x1 after names
+  Cielito Querido Cafe | 2026-11-24 | 35100 MXN
+  1|CHOCOLATE CIELITO MED|68.00
+  2|LATTE HORCHATA GDE|148.00
+  2|CONCHA DE VAINILLA|56.00
+  1|CUERNITO JAMON QUESO|79.00
+=== 660 mxa14 el globo pieces
+  El Globo | 2026-11-23 | 54900 MXN
+  3|CONCHA CHOCOLATE|57.00
+  2|GARIBALDI|44.00
+  1|PASTEL TRES LECHES CH|389.00
+  6|BOLILLO|21.00
+  1|GELATINA MOSAICO|38.00
+=== 661 mxa15 krispy kreme dozens
+  Krispy Kreme | 2026-11-22 | 48200 MXN
+  1|DOCENA GLASEADA ORIGINAL|215.00
+  1|1/2 DOCENA SURTIDA|159.00
+  2|CAFE AMERICANO 12 OZ|76.00
+  1|DONA INDIVIDUAL RELLENA|32.00
+=== 662 mxa16 subway with bread and extras under the sub
+  Subway | 2026-11-24 | 39000 MXN
+  1|SUB 15CM POLLO TERIYAKI|109.00
+  |PAN ITALIANO|
+  |EXTRA QUESO|15.00
+  1|SUB 30CM ITALIANO BMT|179.00
+  1|COMBO PAPAS Y REFRESCO 21OZ|49.00
+  2|GALLETA CHISPAS|38.00
+=== 663 mxa17 burger king combos at the airport
+  Burger King | 2026-11-22 | 63200 MXN
+  1|COMBO WHOPPER C/QUESO MED|229.00
+  |SIN CEBOLLA|
+  |COCA COLA SIN AZUCAR|
+  1|COMBO KING DE POLLO GDE|215.00
+  |AGRANDAR PAPAS|20.00
+  1|NUGGETS 10 PZ|119.00
+  1|SUNDAE CHOCOLATE|49.00
+=== 664 mxa18 carls jr name qty unit total
+  Carl's Jr. | 2026-11-23 | 81800 MXN
+  2|FAMOUS STAR COMBO GDE|378.00
+  1|WESTERN BACON COMBO MED|205.00
+  1|CRISSCUT FRIES|65.00
+  2|MALTEADA OREO|170.00
+=== 665 mxa19 little caesars count row before the subtotal
+  Little Caesars Pizza | 2026-11-21 | 51600 MXN
+  2|HOT-N-READY PEPPERONI|218.00
+  1|CRAZY BREAD|49.00
+  1|CRAZY SAUCE|15.00
+  1|ULTIMATE SUPREMA|189.00
+  1|PEPSI 2 LT|45.00
+=== 666 mxa20 dominos delivery with coupon before subtotal
+  Domino's Pizza | 2026-11-23 | 35600 MXN
+  2|PIZZA MEDIANA ORILLA QUESO|398.00
+  |PEPPERONI|
+  |HAWAIANA|
+  1|CANELAZOS|79.00
+  1|COCA COLA 2L|49.00
+  |CUPON 2X1 MARTES|-199.00
+=== 667 mxa21 cinepolis snack bar
+  Cinépolis | 2026-11-23 | 61200 MXN
+  1|COMBO NACHOS|185.00
+  |REFRESCO GDE|
+  1|PALOMITAS JUMBO MANTEQUILLA|112.00
+  2|REFRESCO JUMBO|164.00
+  1|HOT DOG|79.00
+  1|ICEE MEDIANO|72.00
+=== 668 mxa22 cinemex tickets with a service charge
+  Cinemex | 2026-11-22 | 63600 MXN
+  2|ADULTO PLATINO|420.00
+  1|NINO PLATINO|180.00
+=== 669 mxa23 airport restaurant with AICM discount and service
+  Wings | 2026-11-24 | 85388 MXN
+  2|CERVEZA BOHEMIA 355ML|198.00
+  1|CLUB SANDWICH|289.00
+  1|ENSALADA CESAR C/POLLO|259.00
+  1|AGUA MINERAL|79.00
+=== 670 mxa24 airport bar in dollars with a peso total
+  Bar el Despegue Ejemplo | 2026-11-22 | 8798 USD
+  2|MARGARITA CLASICA|28.00
+  2|CORONA EXTRA|16.00
+  1|NACHOS SUPREME|18.50
+  1|GUACAMOLE & CHIPS|14.00
+=== 671 mxa25 airport cantina with a table of suggested tips
+  La Cantina Ejemplo Aeropuerto | 2026-11-21 | 53000 MXN
+  1|TORTA AHOGADA|165.00
+  1|CERVEZA MODELO ESPECIAL|95.00
+  1|CARNE EN SU JUGO|215.00
+  1|CAFE DE OLLA|55.00
+=== 672 mxa26 airport gift shop pesos and dollars
+  Artesanias y Regalos Ejemplo | 2026-11-24 | 280500 MXN
+  1|MASCADA SEDA EJEMPLO|2,450.00
+  1|LLAVERO ALEBRIJE|185.00
+  2|IMAN CALAVERA|170.00
+=== 673 mxa27 duty free item qty price amount in dollars
+  The Duty Free Shop | 2026-11-23 | 20400 USD
+  2|TEQUILA EJEMPLO ANEJO 1L|108.00
+  1|RON EJEMPLO 12 ANOS 750ML|42.00
+  1|CIGARRILLOS EJEMPLO 200S|35.00
+  3|M&M PEANUT 400G|28.50
+  1|PROMO 3X2 M&M|-9.50
+=== 674 mxa28 viva aerobus counter baggage and seat
+  Viva Aerobus | 2026-11-22 | 177000 MXN
+  |MALETA DOCUMENTADA 25KG 1|850.00
+  |EXCESO DE PESO 5KG 1|600.00
+  |ASIENTO VIVA PLUS 4C 1|320.00
+=== 675 mxa29 volaris change fee at the counter
+  Volaris | 2026-11-21 | 248124 MXN
+  |CARGO POR CAMBIO|899.00
+  |DIFERENCIA DE TARIFA|1,240.00
+  |TUA DIFERENCIA|0.00
+=== 676 mxa30 aeromexico seat and priority emd
+  Aeroméxico | 2026-11-24 | 74800 MXN
+  |ASIENTO AM PLUS 7D|549.00
+  |PRIORIDAD ABORDAJE|199.00
+  |TARIFA|644.83
+=== 677 mxa31 car hire closing invoice days at a rate
+  Hertz | 2026-11-23 | 468408 MXN
+  |TARIFA 3 DIAS|1,950.00
+  |PROTECCION LDW 3 DIAS|840.00
+  |RESP. CIVIL PLI 3 DIAS|570.00
+  |CARGO AEROPUERTO 10%|336.00
+  12 LTS|GASOLINA|342.00
+=== 678 mxa32 car hire label and value with advance payment
+  Ejemplo Rent A Car | 2026-11-18 | 580000 MXN
+=== 679 mxa33 airport taxi ticket with the amount in words
+  Porto Taxi Ejemplo | 2026-11-23 | 42000 MXN
+=== 680 mxa34 ado airport bus ticket with a price row
+  ADO | 2026-11-22 | 26000 MXN
+=== 681 mxa35 etn counter two adults
+  ETN Turistar Lujo | 2026-11-21 | 158000 MXN
+  2|ADULTO|1,560.00
+  2|SEGURO VIAJERO|20.00
+=== 682 mxa36 primera plus round trip with dated rows
+  Primera Plus | 2026-11-20 | 125100 MXN
+  |LEON - CDMX NORTE 12|695.00
+  |CDMX NORTE - LEON 08|695.00
+  |DESCUENTO VIAJE REDONDO 10%|-139.00
+=== 683 mxa37 toll booth of a concession, no total row
+  Autopista Ejemplo del Sol | 2026-11-23 | 24200 MXN
+  |TARIFA|242.00
+=== 684 mxa38 toll tag reload at a shop
+  OXXO | 2026-11-22 | 51000 MXN
+=== 685 mxa39 urban car park first hour and fractions, stamped ticket
+  Estacionamiento Publico Ejemplo | 2026-11-23 | 9900 MXN
+  1|PRIMERA HORA|36.00
+  11|FRACCION 15 MIN|99.00
+=== 686 mxa40 valet parking
+  Valet Parking Ejemplo | 2026-11-22 | 14000 MXN
+  |SERVICIO DE VALET|80.00
+  |TIEMPO ADICIONAL 2 HRS|60.00
+=== 687 mxa41 airport bus to puebla one adult
+  Estrella Roja | 2026-11-24 | 42000 MXN
+  1|ADULTO|420.00
+=== 688 mxa42 7eleven quantity first, count row with the number first
+  7-Eleven | 2026-11-22 | 17700 MXN
+  2|CERVEZA TECATE LIGHT 473ML|50.00
+  1|PAPAS SABRITAS ADOBADAS 62G|24.00
+  1|SLURPEE 22OZ|29.00
+  1|PROTECTOR SOLAR EJEMPLO 60ML|79.00
+  |PROMO 2X$45 TECATE|-5.00
+=== 689 mxa43 walmart express weighed rows under names, multiple under its item
+  Walmart Express | 2026-11-22 | 31768 MXN
+  0.560 KG|AGUACATE HASS KG|49.84
+  0.430 KG|LIMON S/SEMILLA KG|16.34
+  |TORTILLAS TIA ROSA 12PZ|28.00
+  |CERVEZA MODELO 6PK|139.00
+  |REFRESCO SQUIRT 600ML|42.00
+  |TOTOPOS EJEMPLO 300G|42.50
+=== 690 mxa44 farmacias del ahorro airport, wallet discount under subtotal
+  Farmacias del Ahorro | 2026-11-24 | 27400 MXN
+  1|DRAMAMINE 50MG 24 TAB|118.00
+  1|SAL DE UVAS PICOT 12 SOB|58.00
+  2|AGUA BONAFONT 1L|44.00
+  1|GEL ANTIBACTERIAL 60ML|35.00
+  1|CUBREBOCAS TRICAPA 10PZ|49.00
+=== 691 mxa45 starbucks airport paid in dollars
+  Starbucks | 2026-11-22 | 30100 MXN
+  1|VENTI CAFFE LATTE|98.00
+  1|GRANDE COLD BREW|89.00
+  1|CROISSANT MANTEQUILLA|59.00
+  1|BOTELLA AGUA ETHOS|55.00
+=== 692 mxa46 airport convenience shop barcode and name, pieces row under
+  Aeromarket Ejemplo | 2026-11-21 | 74900 MXN
+  1|COCA COLA 600ML|45.00
+  2|GALLETAS EMPERADOR|56.00
+  1|ALMOHADA DE VIAJE|349.00
+  1|AUDIFONOS EJEMPLO|299.00
+=== 693 mxa47 soriana pieces x price on the item row, two for one
+  Soriana Hiper | 2026-11-20 | 42829 MXN
+  4|LECHE ALPURA DESL 1L|111.60
+  |YOGHURT DANONE FRESA 900G|46.50
+  2|CEREAL ZUCARITAS 710G|178.00
+  |PROMO 2X1 ZUCARITAS|-89.00
+  |SHAMPOO EJEMPLO 750ML|79.90
+  1.845 KG|POLLO ENTERO KG|101.29
+=== 694 mxa48 dominos carry out with a numbered coupon
+  Domino's Pizza | 2026-11-22 | 48600 MXN
+  1|PIZZA GDE ESPECIALIDAD MEXICANA|259.00
+  1|PIZZA GDE 1 INGREDIENTE|199.00
+  1|PAPOTAS|79.00
+  1|COCA COLA 2 L|49.00
+  |CUPON 9102 2DA PIZZA A $99|-100.00
+=== 695 mxa49 airport lounge passes
+  Salon Vip Ejemplo Lounge | 2026-11-24 | 172500 MXN
+  2|ACCESO SALA VIP ADULTO|1,380.00
+  1|ACCESO MENOR 6-12|345.00
+=== 696 mxa50 airport grill with peso and dollar columns
+  Restaurante Ejemplo Sky Grill | 2026-11-22 | 8255 MXN
+  2|HAMBURGUESA SKY|33.22
+  1|ALITAS BBQ 10 PZ|16.06
+  2|CERVEZA CORONA|10.56
+  1|MARGARITA MANGO|11.94
+=== 697 app01 uber mx updated receipt, tip added later, two charges
+  Uber | 2026-11-23 | 21430 MXN
+  |Tarifa del viaje|171.90
+=== 698 app02 uber us with fees and tip
+  Uber | 2026-11-22 | 3847 MXN
+  |Trip fare|27.18
+=== 699 app03 didi cash trip with toll and tip
+  DiDi | 2026-11-22 | 16350 MXN
+  |Tarifa del viaje|118.20
+  |Peajes|23.00
+  |Cuota de servicio|9.80
+=== 700 app04 rappi pharmacy order, name rows then qty x price
+  Rappi | 2026-11-23 | 20900 MXN
+  2|Suero Electrolit Coco 625 ml|27.00
+  1|Paracetamol 500 mg 20 tabletas|45.00
+  1|Curitas Ejemplo 30 pzas|39.00
+  |Costo de envío|39.00
+  |Tarifa de servicio|12.00
+=== 701 app05 uber eats mx with two for one and small order fee
+  Uber Eats | 2026-11-22 | 38856 MXN
+  2|Orden de tacos al pastor (5 pzas)|190.00
+  |Con piña|
+  |Sin cebolla|
+  1|Gringa de pastor|89.00
+  3|Agua de jamaica 500 ml|105.00
+=== 702 app06 uber eats us with tax and membership benefit
+  Uber Eats | 2026-11-21 | 4783 MXN
+  1|Pad Thai|15.95
+  |Chicken|
+  |Medium spicy|
+  1|Green Curry|16.95
+  2|Thai Iced Tea|9.00
+=== 703 app07 airbnb mx with weekly discount
+  Airbnb | 2026-11-18 | 559000 MXN
+  |$1,450.00 x 3 noches|4,350.00
+  |Descuento por estancia semanal|-217.50
+  |Tarifa de limpieza|600.00
+  |Tarifa por servicio de Airbnb|668.20
+=== 704 app08 airbnb us paid in two parts
+  Airbnb | 2026-11-10 | 105310 USD
+  |$185.00 x 4 nights|740.00
+  |Cleaning fee|95.00
+  |Airbnb service fee|117.89
+  |Occupancy taxes and fees|100.21
+=== 705 app09 booking hotel confirmation with tax rates in front
+  Booking.com | 2026-11-23 | 645300 MXN
+  |Habitación Doble Superior|5,400.00
+=== 706 app10 booking car hire with the price for each day on the total row
+  Booking.com | 2026-11-15 | 283500 MXN
+  |Alquiler del coche 3 días|1,950.00
+  |Protección total|885.00
+  |Precio total (3 días, 945.00 por día)|2,835.00
+=== 707 app11 aeromexico e-ticket with tax codes
+  Aeroméxico | 2026-11-15 | 52773 USD
+  |Tarifa aérea|412.00
+=== 708 app12 volaris two passengers, 2 x fares
+  Volaris | 2026-11-14 | 706528 MXN
+  2|Tarifa base|2,196.00
+  2|TUA|2,210.00
+  2|Combo Plus|1,498.00
+  |Selección de asientos|396.00
+=== 709 app13 united e-ticket receipt with fare breakdown fields
+  United Airlines | 2026-11-12 | 45158 USD
+=== 710 app14 amazon us order with free shipping and estimated tax
+  amazon.com | 2026-11-20 | 5518 MXN
+  |Qty: 1|18.99
+  |Packing Cubes Set of 6 Example|
+  |Qty: 2|31.98
+=== 711 app15 amazon mx shipped, price under each product, promotions
+  amazon.com.mx | 2026-11-19 | 133800 MXN
+=== 712 app16 mercado libre one product, two units, coupon
+  Mercado Libre | 2026-11-21 | 74800 MXN
+  |Producto (2)|798.00
+  |Envío|0.00
+  |Llega gratis el lunes 23 de noviembre|
+  |Descuento con cupón|-50.00
+=== 713 app17 hotel e-folio, dates as 20Nov26, charges credits balance
+  COURTYARD by Marriott | 2026-11-20 | 71441 MXN
+  |20Nov26 Room Charge|189.00
+  |20Nov26 State Occupancy Tax|11.34
+  |20Nov26 City Occupancy Tax|17.01
+  |21Nov26 Room Charge|189.00
+  |21Nov26 State Occupancy Tax|11.34
+  |21Nov26 City Occupancy Tax|17.01
+  |21Nov26 Bistro - Dinner|24.36
+  |22Nov26 Room Charge|189.00
+  |22Nov26 State Occupancy Tax|11.34
+  |22Nov26 City Occupancy Tax|17.01
+  |22Nov26 Valet Parking|38.00
+  |23Nov26 Visa|714.41
+=== 714 app18 hotel e-folio with reference numbers and a credit in brackets
+  Hampton Inn & Suites Example Airport | 2026-11-23 | 33385 MXN
+  |GUEST ROOM|142.00
+  |GUEST ROOM|142.00
+  |SNACK SHOP|7.25
+=== 715 app19 resort folio, dates as 20-Nov-26, agency deposit and card
+  Grand Ejemplo Resort & Spa | 2026-11-23 | 246207 MXN
+  |PAQUETE TODO INCLUIDO 2 ADULTOS|5,950.00
+  |SANEAMIENTO AMBIENTAL|76.00
+  |PAQUETE TODO INCLUIDO 2 ADULTOS|5,950.00
+  |SANEAMIENTO AMBIENTAL|76.00
+  |SPA MASAJE RELAJANTE 50 MIN CHQ 8841|2,150.00
+  |PAQUETE TODO INCLUIDO 2 ADULTOS|5,950.00
+  |SANEAMIENTO AMBIENTAL|76.00
+  |TIENDA BOUTIQUE CHQ 1207|845.00
+=== 716 app20 airport hotel receipt, nights rate amount table
+  Hotel Ejemplo Express Aeropuerto | 2026-11-23 | 327260 MXN
+  2|HOSPEDAJE|2,360.00
+  2|DESAYUNO BUFFET|390.00
+  1|TRANSPORTE AEROPUERTO|0.00
+=== 717 app21 hotel folio with the amount column read as its own block
+  Hotel Ejemplo Colonial | 2026-11-21 | 370020 MXN
+=== 718 app22 telcel top-up e-mail
+  Telcel | 2026-11-23 | 20000 MXN
+=== 719 app23 top-up slip from a shop terminal
+  Recargas Ejemplo | 2026-11-22 | 10000 MXN
+  |RECARGA $100|100.00
+=== 720 app24 us prepaid refill with fees and tax
+  T-Mobile | 2026-11-21 | 3075 MXN
+  |Refill amount|25.00
+  |Regulatory Programs & Telco Recovery Fee|3.18
+  |State and local sales tax|2.07
+  |E911 fee|0.50
+=== 721 app25 didi food with store discount and coupon
+  DiDi Food | 2026-11-22 | 32700 MXN
+  1|Pollo asado entero con guarniciones|245.00
+  2|Refresco de lata 355 ml|50.00
+  1|Arroz rojo (1/2 litro)|45.00
+=== 722 app26 rappi restaurant, times sign, tip added afterwards
+  Rappi | 2026-11-21 | 52740 MXN
+  2|Rollo California especial|318.00
+  1|Yakimeshi mixto|129.00
+  |Sin camarón|
+  1|Té verde frío 500 ml|45.00
+=== 723 app27 uber cancellation fee
+  Uber | 2026-11-21 | 3500 MXN
+  |Tarifa de cancelación|35.00
+=== 724 app28 viva aerobus e-mail with combo parts
+  Viva Aerobus | 2026-11-16 | 227808 MXN
+  1|Adulto Tarifa Zero|689.00
+  |TUA|520.52
+  |Combo Smart|548.00
+  |maleta documentada 25 kg|
+  |Asiento Regular|
+  |Viva Flex|199.00
+  |Cargo por pago con tarjeta|79.00
+=== 725 app29 american airlines bag fee receipt
+  American Airlines | 2026-11-22 | 8000 MXN
+  |1st checked bag|35.00
+  |2nd checked bag|45.00
+=== 726 app30 booking us resort with resort fee and tax rows
+  Booking.com | 2026-11-22 | 45578 USD
+  |Resort King Room|267.00
+  3|Resort fee per night|135.00
+=== 727 app31 hotels.com receipt with nightly rows
+  Hotels.com | 2026-11-18 | 53086 MXN
+  |Nov 23|219.00
+  |Nov 24|239.00
+=== 728 app32 mercado libre two products with units rows
+  Mercado Libre | 2026-11-22 | 58600 MXN
+  |Cargo por envío|89.00
+  |Cupón de descuento|-50.00
+  |Pagaste|586.00
+  |Mercado Pago · Saldo en cuenta|
+  |Llega entre el 24 y el 26 de noviembre|
+=== 729 app33 uber eats tip added after, original and updated totals
+  Uber Eats | 2026-11-20 | 31240 MXN
+  1|Chilaquiles rojos con pollo|135.00
+  1|Café latte grande|62.00
+  1|Jugo verde 500 ml|58.00
+=== 730 app34 didi card trip, coupon above the breakdown
+  DiDi | 2026-11-21 | 10760 MXN
+  |Tarifa total|142.60
+  |Descuento por cupón|-35.00
+=== 731 app35 rappi supermarket with weight, x2 and a missing product
+  Rappi | 2026-11-20 | 23090 MXN
+  |Plátano Tabasco 1.2 kg|28.80
+  2|Leche Lala entera 1 L|55.00
+  |Pan Bimbo blanco grande 680 g|46.00
+  |Huevo blanco 12 pzas|42.50
+  |Producto no disponible: Queso panela 400 g|0.00
+=== 732 app36 ado app purchase two adults with early discount
+  ADO | 2026-11-19 | 142840 MXN
+  2|Adulto|1,516.00
+=== 733 app37 etn online round trip, rows open with the weekday
+  ETN Turistar | 2026-11-18 | 140400 MXN
+  |Sáb Guadalajara - Morelia Asiento 9 Adulto|780.00
+  |Dom Morelia - Guadalajara Asiento 12 Adulto|780.00
+=== 734 app38 us airport parking reservation with a daily rate
+  Example Airport Parking | 2026-11-15 | 11191 MXN
+  |Covered self park 4 days @ $24.00/day|96.00
+  |Airport access fee|4.00
+  |Service fee|3.99
+=== 735 app39 toll tag reload e-mail
+  Pase | 2026-11-22 | 50000 MXN
+=== 736 app40 uk rail booking with railcard discount and booking fee
+  Trainline | 2026-11-20 | 7366 GBP
+  1|Adult Advance Single|45.50
+  1|Adult Off-Peak Single|62.30
+  |Railcard discount|-35.93
+  |Booking fee|1.79
+=== 737 app41 tube contactless journey history
+  Transport for London | 2026-11-23 | 1925 GBP
+  |Heathrow Terminals 2 & 3 to Paddington|5.60
+  |Bus journey, route 23|1.75
+  |Paddington to Westminster|2.90
+  |Westminster to Greenwich|3.40
+  |Greenwich to Heathrow Terminal 5|5.60
+=== 738 app42 starbucks card reload
+  Starbucks | 2026-11-22 | 2500 MXN
+  |Starbucks Card (4521) reload|25.00
+=== 739 app43 cinepolis app tickets with online fee and a combo
+  Cinépolis | 2026-11-22 | 70300 MXN
+  2|Boleto adulto VIP|380.00
+=== 740 app44 walmart pickup, price x quantity then total, substitution
+  Walmart | 2026-11-21 | 32888 MXN
+  2|Agua Bonafont 6 L|68.00
+  1|Papel higiénico Regio 18 rollos|112.00
+  |Manzana roja por kg|59.88
+  1|Sustituido: Café soluble Nescafé 120 g|98.00
+=== 741 app45 uk hotel invoice with vat summary and dated payment
+  The Example Arms Hotel | 2026-11-23 | 36590 GBP
+  |Room - Bed & Breakfast|145.00
+  |Dinner - Restaurant|48.50
+  |Bar|12.40
+  |Room - Bed & Breakfast|145.00
+  |Car Park|15.00
+=== 742 app46 us car hire e-receipt with fees and tax
+  Hertz | 2026-11-20 | 34385 USD
+  3|DAYS|156.00
+  |LOSS DAMAGE WAIVER 3 DAYS|95.97
+=== 743 app47 uber paid partly with uber cash
+  Uber | 2026-11-20 | 9687 MXN
+  |Tarifa del viaje|84.87
+=== 744 app48 hotel information invoice with a totals row of two columns
+  Hyatt Place Example Airport | 2026-11-22 | 36809 MXN
+  |Guest Room|159.00
+  |Guest Room|159.00
+  |Gallery Market|8.75
+=== 745 min-a negative rows with the quantity after the name
+  Ejemplo Duty Free | null | 900 MXN
+  3|M&M PEANUT 400G|28.50
+  1|PROMO 3X2 M&M|-9.50
+  2|ENVASE RETORNABLE|-10.00
+=== 746 us01 grill with tip lines and suggested tips with totals
+  Example Grill & Tap | 2026-11-21 | 6116 MXN
+  2|Draft IPA Pint|16.00
+  1|Smash Burger|15.50
+  |Add Bacon|2.00
+  |No Onion|
+  1|Fish Tacos (3)|17.00
+  1|Side Sweet Potato Fries|6.00
+=== 747 us02 steakhouse settled slip with tip and a gratuity table
+  The Example Steakhouse | 2026-11-20 | 16976 MXN
+  1|Caesar Salad|12.00
+  1|Ribeye 14oz|46.00
+  |MED RARE|
+  1|Salmon Filet|32.00
+  2|Glass Cabernet|28.00
+  1|Creme Brulee|10.00
+=== 748 us03 tex-mex large party with automatic gratuity
+  Example Cantina Tex-mex | 2026-11-22 | 24466 MXN
+  3|Fajitas for Two|119.85
+  2|Queso Dip Large|21.00
+  6|Fountain Drink|20.94
+  1|Pitcher Margarita|32.00
+=== 749 us04 coffee roasters with modifiers and a tip
+  Example Coffee Roasters | 2026-11-22 | 1960 MXN
+  1|Latte 12oz|5.25
+  |Oat Milk|0.75
+  |Extra Shot|1.00
+  1|Drip Coffee 16oz|3.50
+  1|Everything Bagel w/ Cream Cheese|4.75
+=== 750 us05 mcdonalds breakfast with meal parts and take-out total
+  McDonald's Restaurant #4521 | 2026-11-21 | 1512 MXN
+  1|Sausage McMuffin Egg Meal|6.49
+  |Hash Browns|
+  |M Coffee|
+  1|Hotcakes|4.29
+  1|L Orange Juice|3.19
+=== 751 us06 walgreens name row then barcode and price, multibuy
+  Walgreens | 2026-11-22 | 1793 MXN
+  |REG 11.99 MYWALGREENS SAVINGS|2.00
+  |SMARTWATER 1L|2.79
+=== 752 us07 target with department headings and a regular price row
+  Target | 2026-11-21 | 3571 MXN
+  |GG WATER 24PK NF|3.99
+  |DORITOS NF|4.79
+  |HEALTH AND BEAUTY|
+  |SUNSCREEN T|9.89
+  |Regular Price|11.99
+  |HOME|
+  |PHONE CHARGER T|14.99
+=== 753 us08 safeway with member savings under items and multibuy
+  Safeway | 2026-11-22 | 2087 MXN
+  |CHOBANI YOGURT 4 QTY|5.00
+  |Regular Price|6.36
+  |Member Savings|-1.36
+  |LAYS CLASSIC 2 QTY 2 FOR|7.00
+  |Regular Price|9.98
+  |Member Savings|-2.98
+  |PRODUCE|
+  |BANANAS 2.14 lb @ $0.69 /lb WT|1.48
+  |AVOCADO HASS 3 QTY|3.00
+  |REFRIG/FROZEN|
+  |LUCERNE MILK 1GAL|4.29
+  |CRV MILK|0.10
+=== 754 us09 trader joes with each rows under items
+  Trader Joe's | 2026-11-22 | 1665 MXN
+  |BANANAS ORGANIC|0.87
+  |SPARKLING WATER LIME|1.98
+  |MANDARIN ORANGE CHICKEN|4.99
+  |T-HAND SOAP LAVENDER|3.99
+  |DARK CHOC PB CUPS|4.49
+=== 755 us10 casino resort folio with resort fee and its tax
+  Example Resort & Casino | 2026-11-22 | 41806 MXN
+  |Room Charge 21-142|129.00
+  |Resort Fee|45.00
+  |Room Charge 21-142|129.00
+  |Resort Fee|45.00
+  |Cafe Example Chk 8841|23.50
+=== 756 us11 motel one night with three occupancy taxes and a pet fee
+  Example Inn Express | 2026-11-22 | 15308 MXN
+  1|Room Rate|109.00
+  |Pet Fee|25.00
+=== 757 us12 city garage with parking tax and daily max
+  Sp+ Parking | 2026-11-21 | 2200 MXN
+  |DAILY MAX RATE|22.00
+  |PARKING FEE|20.32
+=== 758 us13 airport garage days at a rate
+  Iah Airport Parking | 2026-11-20 | 9600 MXN
+  4|DAYS|96.00
+=== 759 us14 amtrak e-ticket receipt two fares
+  Amtrak | 2026-11-18 | 3420 MXN
+  1|ADULT COACH SEAT|18.00
+  1|SENIOR COACH SEAT|16.20
+=== 760 us15 subway vending machine new card and value
+  Mta Nyc Transit | 2026-11-21 | 4250 MXN
+  |New OMNY Card|1.00
+  |Add Value|33.00
+  |AirTrain JFK Fare|8.50
+=== 761 us16 sports bar tab with a measure in a name and tip suggestions
+  Example Sports Bar | 2026-11-21 | 4978 MXN
+  2|BUD LIGHT 16OZ DRAFT|11.00
+  1|PATRON SILVER 1.5OZ|13.00
+  1|WINGS 10PC BUFFALO|15.99
+  1|TITOS & SODA|9.00
+  |HAPPY HOUR DISC|-3.00
+=== 762 us17 chipotle no quantities with an extra under an item
+  Chipotle Mexican Grill | 2026-11-21 | 3534 MXN
+  |Chicken Burrito|9.85
+  |Guacamole|2.95
+  |Steak Bowl|11.75
+  |Chips & Queso Blanco|4.65
+  |Large Fountain Drink|3.45
+=== 763 uk01 wetherspoon style pub with pints and a measure in a name
+  The Example Moon | 2026-11-22 | 4600 MXN
+  2|Peroni Pint|11.90
+  1|Gin & Tonic Dbl|6.45
+  1|Fish & Chips|11.49
+  1|5oz Rump Steak|9.99
+  |Peppercorn sauce|0.99
+  2|Pepsi Max Pint|5.18
+=== 764 uk02 tavern with 1 x rows, half pint and optional service
+  The Example Tavern | 2026-11-21 | 7791 GBP
+  2|Sunday Roast Beef|37.00
+  1|Sticky Toffee Pudding|7.50
+  1|175ml Malbec|7.25
+  1|1/2 Pint Guinness|3.10
+  1|Pint Lager Shandy|5.40
+  2|25ml Bombay Sapphire|9.00
+=== 765 uk03 brasserie with food and beverage sums and service
+  Example Brasserie | 2026-11-20 | 10794 GBP
+  2|Negroni|24.00
+  1|Burrata|11.50
+  1|Steak Frites|26.00
+  1|Sea Bass|24.50
+  1|Btl Still Water 750ml|4.95
+  1|Side Fries|5.00
+  |Food|67.00
+  |Beverage|28.95
+=== 766 uk04 tesco with clubcard price rows and loose weight
+  Tesco | 2026-11-22 | 1021 GBP
+  |Tesco Finest Pizza|5.50
+  |Cc|-1.00
+  |Walkers Crisps 6pk|1.95
+  |Walkers Crisps 6pk|1.95
+  |Clubcard Price|-0.90
+  |Semi Skimmed Milk 2L|1.65
+  0.845 kg|Bananas Loose|0.76
+  |Carrier Bag|0.30
+=== 767 uk05 coop with a multibuy heading and savings
+  Co-op | 2026-11-21 | 1400 GBP
+  2|Co-op Sandwich BLT|7.00
+  |Innocent Smoothie 750ml|3.75
+  |McVities Digestives|1.85
+  |for 2 Yoghurts|
+  |Muller Corner|0.95
+  |Muller Corner|0.95
+  |Muller Corner|0.95
+  |Multibuy saving|-0.95
+  |Member price saving|-0.50
+=== 768 uk06 pret with eat in and take away parts and a vat table
+  Pret A Manger | 2026-11-22 | 1510 GBP
+  1|Chicken Caesar Baguette|6.95
+  1|Flat White|3.85
+  1|Pret Bar Love|2.35
+  1|Still Water 500ml|1.95
+=== 769 uk07 rail ticket office with railcard discount
+  Lner | 2026-11-23 | 4515 GBP
+  |LONDON KINGS X to YORK|68.40
+  1|SEAT RESERVATION|0.00
+  |Discount applied 34%|-23.25
+=== 770 uk08 tube ticket machine new oyster and top up
+  Transport for London | 2026-11-22 | 2700 GBP
+  |Oyster card new|7.00
+  |Pay as you go top up|20.00
+=== 771 uk09 ncp car park with a tariff band
+  Ncp | 2026-11-22 | 1800 GBP
+  |Tariff 6-9 hours|18.00
+=== 772 uk10 council pay and display ticket
+  Example City Council | 2026-11-22 | 450 GBP
+  |Paid|4.50
+  |Purchased|
+  |EXPIRES|
+  |Vehicle AB12 CDE|
+=== 773 uk11 superdrug with three for two
+  Superdrug | 2026-11-21 | 1098 GBP
+  |Paracetamol 500mg 16s|0.65
+  |Travel Sickness Tabs 12|3.99
+  |Sun Lotion SPF30 200ml|6.99
+  3|for 2 Mix & Match|-0.65
+  |Health & Beautycard points earned 10|
+=== 774 mxb01 oxxo with ocr damage, total label and value on two rows
+  OXXO | 2026-11-22 | 33100 MXN
+  2|AGUA CIEL 1L|34.00
+  1|CAFE ANDATTI GDE|28.00
+  1|SANDWICH POLLO|45.00
+  1|GALLETAS OREO 114G|24.00
+=== 775 mxb02 walmart name, quantity x price and total on one row
+  Walmart | 2026-11-21 | 28090 MXN
+  2|LECHE LALA ENTERA 1L|53.00
+  4|ATUN TUNY AGUA 140G|75.60
+  1|PAPEL ALUMINIO REYNOLDS|58.00
+  1|ACEITE NUTRIOLI 946ML|46.90
+  1.105|MANZANA GOLDEN KG|47.40
+=== 776 mxb03 chedraui pieces after names and savings rows in the list
+  Super Chedraui | 2026-11-20 | 31950 MXN
+  |PAN TOSTADO BIMBO 2 PZA|64.00
+  |AHORRO PAN TOSTADO BIMBO|-8.00
+  |CREMA LALA 450ML 1 PZA|38.50
+  |JABON ZOTE 400G 3 PZA|54.00
+  |AHORRO 3X2 JABON ZOTE|-18.00
+  |BLOQUEADOR EJEMPLO FPS50 1 PZA|189.00
+=== 777 mxb04 soriana express two columns read as two blocks
+  Soriana Express | 2026-11-21 | 12200 MXN
+=== 778 mxb05 farmacias del ahorro two lines numbered 01 and 02
+  Farmacias del Ahorro | 2026-11-22 | 11700 MXN
+  1|OMEPRAZOL 20MG 14 CAPS|95.00
+  2|SUERO ORAL NARANJA 500ML|22.00
+=== 779 mxb06 sanborns restaurant, labels and values on separate rows
+  Sanborns | 2026-11-22 | 92100 MXN
+  2|SOPA DE TORTILLA|178.00
+  1|MOLE POBLANO|229.00
+  1|TACOS DE COCHINITA|189.00
+  2|CERVEZA VICTORIA|130.00
+  1|FLAN|75.00
+=== 780 mxb07 vips two for one margaritas and a courtesy
+  Vips | 2026-11-21 | 69800 MXN
+  2|1 MARGARITA CLASICA|139.00
+  1|TAMPIQUENA|269.00
+  1|ENCHILADAS SUIZAS|195.00
+  1|CORTESIA CAFE|0.00
+  1|PASTEL CHOCOLATE|95.00
+=== 781 mxb08 starbucks x2 after names and a cup discount
+  Starbucks Coffee | 2026-11-23 | 35400 MXN
+  2|Latte Venti|196.00
+  |Americano Alto|58.00
+  |Desc vaso reutilizable|-5.00
+  1|Baguette Pavo|105.00
+=== 782 mxb09 burger king kiosk with numbered combos
+  Burger King | 2026-11-21 | 55500 MXN
+  1|#3 WHOPPER DOBLE COMBO|249.00
+  |PAPAS GDES|
+  |SPRITE|
+  1|#7 CRISPY CHICKEN COMBO|199.00
+  2|PAY DE MANZANA|58.00
+  1|4 NUGGETS|49.00
+=== 783 mxb10 dominos halves under pizzas
+  Domino's | 2026-11-22 | 76100 MXN
+  2|PIZZAS GDES 2 INGREDIENTES|398.00
+  |1/2 PEPPERONI 1/2 CHAMPINONES|
+  |1/2 JAMON 1/2 PINA|
+  1|PIZZA MED ESPECIALIDAD|189.00
+  |MITAD MEXICANA MITAD HAWAIANA|
+  1|ORDEN ALITAS 8 PZAS|129.00
+  |BBQ|
+  1|REFRESCO 2L|45.00
+=== 784 mxb11 cinepolis vip at the seat with service
+  Cinépolis Vip | 2026-11-22 | 75130 MXN
+  1|BAGUETTE SERRANO|189.00
+  1|PALOMITAS GRANDES CARAMELO|119.00
+  2|COPA VINO TINTO 150ML|260.00
+  1|CREPA NUTELLA|115.00
+=== 785 mxb12 airport sports bar, dollars after amounts, bucket, two for one
+  Air Ejemplo Cantina | 2026-11-22 | 10408 USD
+  1|CUBETA 6 CERVEZAS CORONA|42.00
+  2|1 MARGARITA FROZEN|16.00
+  1|QUESADILLAS POLLO|15.00
+  1|NACHOS GRANDES|17.50
+=== 786 mxb13 duty free quantity rows above the items
+  Dufry | 2026-11-23 | 223200 USD
+  2|TOBLERONE 360G|38.00
+  1|WHISKY EJEMPLO 12Y 1L|54.00
+  1|PERFUME EJEMPLO 50ML|32.00
+=== 787 mxb14 aeromexico counter two charges numbered 01 and 02
+  Aeroméxico | 2026-11-22 | 157000 MXN
+  1|EXCESO DE EQUIPAJE 2DA PIEZA|1,150.00
+  2|CAMBIO DE ASIENTO PREFERENTE|420.00
+=== 788 mxb15 europcar invoice concept days unit amount
+  Europcar | 2026-11-20 | 361746 MXN
+  3|TIEMPO Y KILOMETRAJE|1,770.00
+  3|COBERTURA CDW|780.00
+  3|COBERTURA PAI|285.00
+  1|CARGO POR AEROPUERTO|283.50
+  1|COMBUSTIBLE|0.00
+=== 789 mxb16 airport taxi prepaid ticket with fields
+  Taxi Seguro Aeropuerto Ejemplo | 2026-11-22 | 48000 MXN
+  |SERVICIO DE TAXI SEDAN|480.00
+=== 790 mxb17 ado ticket with fare, tax and total under the passenger row
+  ADO Gl | 2026-11-21 | 102000 MXN
+  1|ADULTO|1,020.00
+  |TARIFA|879.31
+=== 791 mxb18 toll booth with ocr damage
+  CAPUFE | 2026-11-22 | 13600 MXN
+=== 792 mxb19 car park, rate and total columns read as one row
+  Estacionamiento Ejemplo Plaza | 2026-11-21 | 8800 MXN
+  |TARIFA $22.00 X HORA TOTAL|88.00
+=== 793 mxb20 deli counter price per kilo, weight, amount
+  La Comer | 2026-11-21 | 31695 MXN
+  |JAMON SERRANO 549.00 0.250|137.25
+  |QUESO MANCHEGO 389.00 0.300|116.70
+  |SALAMI EJEMPLO 420.00 0.150|63.00
+=== 794 mxb21 el globo quantities with a zero in front and pz
+  El Globo | 2026-11-22 | 28200 MXN
+  3|CONCHA VAINILLA|57.00
+  2|OREJA|38.00
+  1|ROSCA DE NUEZ|145.00
+  12|BOLILLO|42.00
+=== 795 mxb22 airport restaurant, kind of place alone on the first row
+  La Ejemplo de Oaxaca | 2026-11-22 | 37000 MXN
+  1|TLAYUDA TASAJO|185.00
+  1|MEZCAL ESPADIN 2 OZ|140.00
+  1|AGUA DE HORCHATA|45.00
+=== 796 mxb23 oxxo products, count row, then a service
+  OXXO | 2026-11-21 | 13900 MXN
+  1|COCA COLA 600ML|19.00
+  1|SABRITAS SAL 45G|20.00
+  |RECARGA TELCEL|100.00
+  |COMISION|0.00
+=== 797 app49 bus e-ticket, day of travel with a time above the day paid
+  Primera Plus | 2026-11-18 | 72000 MXN
+  |Tarifa|695.00
+=== 798 min-b quantity row above a fee of the same amount
+  Rappi | null | 7800 MXN
+  1|Curitas Ejemplo 30 pzas|39.00
+  |Costo de envío|39.00
+=== 799 min-c total row with the price for each day
+  Ejemplo Car Rental | null | 283500 MXN
+  |Alquiler del coche 3 días|1,950.00
+  |Protección total|885.00
+  |Precio total (3 días, 945.00 por día)|2,835.00
+=== 800 min-d pick-up day with a time above the day paid
+  Ejemplo Car Rental | 2026-11-15 | 283500 MXN
+=== 801 mxc01 cinema snack bar, x2 only on multiples, a drink named 7 UP
+  Cinemex | 2026-11-22 | 50200 MXN
+  2|PALOMITAS GRANDES|198.00
+  2|7 UP GRANDE|130.00
+  |NACHOS CON QUESO|95.00
+  |HOT DOG JUMBO|79.00
+=== 802 mxc02 wings chain delivery, xN after every dish, delivery fee
+  Wingstop | 2026-11-21 | 90000 MXN
+  2|10 ALITAS CLASICAS|398.00
+  1|20 BONELESS BBQ|329.00
+  2|PAPAS CAJUN|138.00
+  |ENVIO|35.00
+=== 803 mxc03 departure tax and security fee at an airport counter
+  null | 2026-11-22 | 4200 USD
+  |DEPARTURE TAX|38.00
+  |AIRPORT SECURITY FEE|4.00
+=== 804 us18 motel one night, taxes then the card, balance due
+  Example Motor Lodge | 2026-11-21 | 8900 MXN
+  |Room Charge|89.00
+=== 805 min-e1 price for a kilo, weight with three decimals, amount
+  Ejemplo Deli | null | 13725 MXN
+  |JAMON SERRANO 549.00 0.250|137.25
+=== 806 min-e2 whole price for a kilo, weight with two decimals, amount
+  Ejemplo Deli | null | 9000 MXN
+  |QUESO OAXACA|90.00
+=== 807 min-e3 weight with two decimals, whole price, amount
+  Ejemplo Tortilleria | null | 3300 MXN
+  |TORTILLA|33.00
+=== 808 min-f1 quantity with a zero in front, then pz
+  Ejemplo Pan | null | 5700 MXN
+  3|CONCHA VAINILLA|57.00
+=== 809 min-f2 quantity with a zero in front, then kg or x
+  Ejemplo Super | null | 9200 MXN
+  2 KG|TORTILLA|48.00
+  2|TACO PASTOR|44.00
+=== 810 min-g1 total and change read with zeros, total value on the next row
+  OXXO | null | 16200 MXN
+  2|AGUA CIEL 1L|34.00
+  1|CAFE ANDATTI GDE|28.00
+=== 811 min-g2 total read with a zero, value on the next row
+  OXXO | null | 6200 MXN
+  2|AGUA CIEL 1L|34.00
+  1|CAFE ANDATTI GDE|28.00
+=== 812 min-g3 change read with a zero, total value on the next row
+  OXXO | null | 6200 MXN
+  2|AGUA CIEL 1L|34.00
+  1|CAFE ANDATTI GDE|28.00
+=== 813 min-h total in dollars then total m.n.
+  Dufry | null | 68400 MXN
+  |TOBLERONE 360G|38.00
+=== 814 min-i folio with no total row and a tax included note
+  Grand Ejemplo Resort | 2026-11-20 | 164138 MXN
+  |PAQUETE TODO INCLUIDO|5,950.00
+  |PAQUETE TODO INCLUIDO|5,950.00
+=== 815 min-j fare total, coupon, total paid
+  DiDi | null | 10760 MXN
+  |Tarifa total|142.60
+  |Descuento por cupón|-35.00
+=== 816 min-k x2 after a dish named with a figure, another dish without
+  Ejemplo Wings | null | 45700 MXN
+  2|12 ALITAS BBQ|378.00
+  |PAPAS GAJO|79.00
+=== 817 min-l tax rows then a card payment, no total row
+  Example Motel | null | 8900 MXN
+  |Room Charge|89.00
+=== 818 min-m departure tax as the only line
+  null | null | 3800 MXN
+  |DEPARTURE TAX|38.00
+=== 819 app50 us parking e-mail, total row with the price for each day
+  SpotHero | 2026-11-14 | 6199 MXN
+  |Parking subtotal|57.00
+  |Service fee|4.99
+  |Total (4 days, $14.25/day)|61.99
+  |Paid with Visa ending in 4521|
+=== 820 mxc04 wings restaurant, xN after every dish, birthday coupon
+  Buffalo Wild Wings | 2026-11-21 | 81800 MXN
+  2|12 ALITAS TRADICIONALES|438.00
+  1|3 LECHES|89.00
+  4|TARRO CERVEZA 1 L|380.00
+  |CUPON CUMPLEANOS|-89.00
+=== 821 mxc05 mexican hotel folio one night, card as tc visa, balance only
+  Hotel Ejemplo Centro | 2026-11-22 | 115000 MXN
+  |HABITACION SENCILLA|1,150.00
+=== 822 us19 airport suites one night, taxes, a state fee, visa, balance only
+  Example Suites Airport | 2026-11-22 | 13400 MXN
+  |Room Charge|134.00
+  |State Hotel Fee|5.00
+=== 823 min-n peso and dollar columns, total row with both
+  Restaurante Ejemplo Sky Grill | null | 3820 MXN
+  2|HAMBURGUESA SKY|33.22
+=== 824 min-h2 total in dollars, total m.n., card paid in dollars
+  Dufry | null | 3800 USD
+  |TOBLERONE 360G|38.00
+=== 825 min-o one night folio paid with discover, balance due
+  Example Motel | 2026-11-21 | 8900 MXN
+  |Room Charge|89.00
+=== 826 min-p service charge between two items
+  Cinépolis | null | 70300 MXN
+  2|Boleto adulto VIP|380.00
+=== 827 min-q food and beverage sums above the subtotal
+  Example Brasserie | null | 5000 GBP
+  1|Steak Frites|26.00
+  2|Negroni|24.00
+  |Food|26.00
+  |Beverage|24.00
+=== 828 min-s folio rows dated 20Nov26 with a card row
+  Courtyard Example | 2026-11-20 | 20034 MXN
+  |20Nov26 Room Charge|189.00
+  |20Nov26 State Occupancy Tax|11.34
+  |21Nov26 Visa|200.34
+=== 829 min-t product row then units row, paid row
+  Mercado Libre | null | 23800 MXN
+  |Cargo por envío|89.00
+  |Pagaste|238.00
+=== 830 min-u product row then qty and price row
+  amazon.com | null | 1899 MXN
+  |Qty: 1|18.99
+=== 831 uk12 lodge one night with breakfast, card row, balance only
+  The Example Lodge | 2026-11-23 | 10750 GBP
+  |Accommodation|95.00
+  |Breakfast|12.50
+=== 832 min-h3 quantity row above the item, total in dollars, total m.n., card in dollars
+  Dufry | null | 68400 USD
+  2|TOBLERONE 360G|38.00
+=== 833 min-o2 one night folio, visa row with a minus, balance due
+  Example Motel | 2026-11-21 | 8900 MXN
+  |Room Charge|89.00
+=== 834 min-o3 one night folio, visa row without a minus, balance due
+  Example Motel | 2026-11-21 | 9804 MXN
+  |Room Charge|89.00
+=== 835 min-v1 one night folio in pesos, tc visa with a minus, saldo
+  Hotel Ejemplo Centro | 2026-11-21 | 115000 MXN
+  |HABITACION SENCILLA|1,150.00
+=== 836 min-v2 one night folio in pesos, tc visa without a minus, saldo
+  Hotel Ejemplo Centro | 2026-11-21 | 133400 MXN
+  |HABITACION SENCILLA|1,150.00
+=== 837 app51 concert tickets e-mail, day of the event with a time above the day bought
+  Tu orden está confirmada | 2026-11-21 | 313700 MXN
+  2|General A|2,560.00
+=== 838 app52 esim receipt with a welcome discount
+  Airalo | 2026-11-19 | 1000 MXN
+  |Mexico eSIM 5 GB - 30 Days|13.00
+  |Discount (WELCOME)|-3.00
+=== 839 app53 uber eats grocery order, name rows then qty x price, bags row
+  Uber Eats | 2026-11-21 | 31200 MXN
+  2|Leche deslactosada 1 L|27.00
+  1|Pan integral 680 g|52.00
+  1|Jabón de tocador 3 pzas|45.00
+  |Bolsas reutilizables|45.00
+=== 840 app54 us car hire e-mail, pick-up and return with times, fees and tax
+  Enterprise -A-Car | 2026-11-20 | 28741 MXN
+  3|Days at $48.00 / Day|144.00
+  |Damage Waiver 3 Days at $29.99 / Day|89.97
+  |Concession Recoup Fee 11.11%|25.99
+  |Vehicle License Fee|5.55
