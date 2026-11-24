@@ -370,10 +370,10 @@
   1|PASTEL 3 LECHES|70.00
 === 55 mx-rest-09 padded line numbers, qty, name, amount
   Parrilla Ejemplo | 2026-11-19 | 60000 MXN
-  |2 TACO DE RIB EYE|190.00
-  |1 QUESO FUNDIDO|125.00
-  |4 CERVEZA TECATE|200.00
-  |1 PAPA ASADA|85.00
+  2|TACO DE RIB EYE|190.00
+  1|QUESO FUNDIDO|125.00
+  4|CERVEZA TECATE|200.00
+  1|PAPA ASADA|85.00
 === 56 mx-rest-10 product codes after the quantity
   Cafe de la Plaza Ejemplo | 2026-11-18 | 31200 MXN
   1|CAFE AMERICANO|38.00
@@ -996,9 +996,9 @@
   3|3 CERVEZA SOL|144.00
 === 165 min padded line numbers then quantity
   null | null | 51500 MXN
-  |2 TACO DE RIB EYE|190.00
-  |1 QUESO FUNDIDO|125.00
-  |4 CERVEZA TECATE|200.00
+  2|TACO DE RIB EYE|190.00
+  1|QUESO FUNDIDO|125.00
+  4|CERVEZA TECATE|200.00
 === 166 min folio rows dated without the year
   null | null | 110200 MXN
   |20/11 HOSPEDAJE|950.00
@@ -1436,7 +1436,7 @@
   Papeleria Ejemplo | 2026-11-15 | 22150 MXN
   |CUADERNO PROFESIONAL RAYA|70.00
   |BOLIGRAFO BIC AZUL|40.00
-  1|PEGAMENTO LAPIZ 21 G|22.50
+  |PEGAMENTO LAPIZ 21 G|22.50
   |FOLDER CARTA C/25|89.00
 === 259 mx54 turibus day tickets
   Turibus | 2026-11-14 | 50000 MXN
@@ -1733,7 +1733,7 @@
 === 323 gt118 hardware price then quantity then total
   Ferreteria el Martillo | 2026-11-12 | 14300 GTQ
   |FOCO LED 9W|60.00
-  2|CINTA AISLANTE NEGRA|17.00
+  |CINTA AISLANTE NEGRA|17.00
   |TUBO PVC 1/2 PULG 3 M|66.00
 === 324 gt119 shuttle receipt
   Transportes Turisticos Ejemplo | 2026-11-14 | 30000 GTQ
@@ -2091,9 +2091,9 @@
   Example Travel Store | null | 4398 MXN
 === 419 min R10b quantities with zeros one two three
   null | null | 3900 MXN
-  |CAFE AMERICANO|25.00
-  |PAN DULCE|28.00
-  |AGUA 600ML|39.00
+  1|CAFE AMERICANO|25.00
+  2|PAN DULCE|28.00
+  3|AGUA 600ML|39.00
 === 420 min R10c quantities one two two three before barcodes
   null | null | 16250 MXN
   1|PAN BIMBO BLANCO 680G|45.00
@@ -2105,7 +2105,7 @@
   |MAGNA|460.00
 === 422 min R6d price not whole then quantity then total
   null | null | 4500 MXN
-  2|PEGAMENTO LAPIZ 21 G|45.00
+  |PEGAMENTO LAPIZ 21 G|45.00
 === 423 min R7d ticket two days
   null | null | null MXN
   |TICKET 2 DIAS|420.00
@@ -2127,6 +2127,7 @@
 === 428 min K parking tax then a fee
   null | null | 3180 MXN
   |PARKING|28.00
+  |PARKING TAX|2.80
   |CONVENIENCE FEE|1.00
 === 429 min R2b idp row after the last product
   null | null | 31342 GTQ
@@ -2135,10 +2136,12 @@
 === 430 us154 airport parking tax then access fee
   Example Airport Parking | 2026-11-16 | 6990 MXN
   |PARKING 5 DAYS|60.00
+  |PARKING TAX|3.90
   |AIRPORT ACCESS FEE|6.00
 === 431 min K2 parking tax then access fee
   null | null | 6600 MXN
   |PARKING 5 DAYS|60.00
+  |PARKING TAX|3.90
   |AIRPORT ACCESS FEE|6.00
 === 432 min R8f suffix row then slogan no total
   Ferreteria Ejemplo | null | null MXN

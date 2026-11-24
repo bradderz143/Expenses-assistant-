@@ -26,6 +26,8 @@ class _Style {
     this.wholePrices = false,
     this.quantityColumn = false,
     this.flags = '',
+    this.bareWhole = false,
+    this.quantityAbove = false,
   });
 
   /// Prices with one decimal ("110.0").
@@ -40,6 +42,24 @@ class _Style {
   /// Letters this receipt prints after its prices as tax marks although
   /// they could be a size: "1.15 G" (gravado) on every row.
   final String flags;
+
+  /// Prices are bare whole figures ("1 CHURRASQUITO 35"), as market
+  /// stalls and comedores print them.
+  final bool bareWhole;
+
+  /// A quantity row ("2 x 5.50") belongs to the item under it whenever its
+  /// sum is that item's price.
+  final bool quantityAbove;
+
+  _Style copyWith({String? flags, bool? bareWhole, bool? quantityAbove}) =>
+      _Style(
+        oneDecimal: oneDecimal,
+        wholePrices: wholePrices,
+        quantityColumn: quantityColumn,
+        flags: flags ?? this.flags,
+        bareWhole: bareWhole ?? this.bareWhole,
+        quantityAbove: quantityAbove ?? this.quantityAbove,
+      );
 }
 
 /// One OCR row split into its wording and the figures after it.
@@ -133,10 +153,10 @@ class ItemLineParser {
     // (not a product such as "IDP APPLICATION FEE").
     // Also "I.D.P.", "IDP SUPER Q 4.70 X GAL", "IDP (4.70 X GALON)", and
     // the Salvadoran levies "FOVIAL" and "COTRANS".
-    r'i\.?\s?d\.?\s?p\b\.?\s*:?\s*(?:[$(-]|\d|$)|idp\b.*\bgal|'
-    r'fovial\b|cotrans\b|'
-    // "OCCUPANCY TAX 9.45", "ROOM TAX", "HOTEL/MOTEL TAX 9.45".
-    r'(?:[a-z/&.-]+\s+){0,2}tax(?:es)?\s*(?:\d|[$-]|$)|'
+    r'i\.?\s?d\.?\s?p\b\.?\s*(?:incluido\s*)?:?\s*(?:[$(-]|\d|$)|'
+    r'idp\b.*\bgal|fovial\b|cotrans\b|'
+    // The sums of an electronic invoice: "TOTALES: 0.00 1,514.00".
+    r'totales\b|'
     // The price of one, printed as a field: "PRECIO UNITARIO $23.89".
     r'(?:precio|valor)\s+unitario|unit\s+price|price\s?/\s?gal|'
     // "PRECIO $23.89": the same field with its colon lost.
@@ -205,13 +225,23 @@ class ItemLineParser {
     r'nro\.?\s*(?:de\s+)?articulos\s*[:#=]?\s*\d+\s*$)',
   );
 
-  /// Tax, levy and field rows that can stand between two items: they are
-  /// not listed and do not end the list ("IDP Q 40.06" then "ACEITE 45.00",
-  /// "PARKING TAX" then "AIRPORT ACCESS FEE").
+  /// A tax under any name on a dated row of a statement: "11/16/26
+  /// OCCUPANCY TAX 9.45", "HOTEL/MOTEL TAX". Without a date in front a
+  /// named tax may be the thing paid for ("DEPARTURE TAX $30.00").
+  static final RegExp _taxWord = RegExp(r'\btax(?:es)?\b', caseSensitive: false);
+
+  /// A named tax printed with its rate: "State Occupancy Tax 6% 6.54",
+  /// "CITY PARKING TAX 8.25% 1.68". Passed over wherever it stands.
+  static final RegExp _ratedTax = RegExp(
+    r'\btax(?:es)?\b.*\d\s?%|\d\s?%.*\btax(?:es)?\b',
+    caseSensitive: false,
+  );
+
+  /// Levy and field rows that can stand between two items: they are not
+  /// listed and do not end the list ("IDP Q 40.06" then "ACEITE 45.00").
   static final RegExp _levy = _folded(
     r'^(?:i\.?\s?d\.?\s?p\b|fovial\b|cotrans\b|inguat\b|'
     r'(?:contribucion\s+(?:(?:de|al|para)\s+)?)?turismo\s+\d|'
-    r'(?:[a-z/&.-]+\s+){1,2}tax(?:es)?\b|'
     r'(?:precio|valor)\s+unitario|unit\s+price|price\s?/\s?gal|'
     r'precio\s*\$?\s*\d|i\.\s?s\.\s?h\b)',
   );
@@ -287,6 +317,7 @@ class ItemLineParser {
       'discounts', 'ahorro', 'savings',
       // header
       'cargos', 'charges', 'payment', 'payments', 'abono', 'abonos',
+      'price', 'precio', 'charged', 'updated', 'actualizado',
       'sujeto', 'sujetos',
       'sujetas', 'gravados', 'gravadas', 'exentos', 'exentas',
       'ticket', 'folio', 'mesa', 'table', 'fecha', 'date', 'hora', 'time',
@@ -346,7 +377,8 @@ class ItemLineParser {
     if (_strict.hasMatch(t) ||
         _count.hasMatch(t) ||
         _lodgingTax.hasMatch(text) ||
-        _numberedTax.hasMatch(text)) {
+        _numberedTax.hasMatch(text) ||
+        _ratedTax.hasMatch(text)) {
       return (_Summary.yes, totals);
     }
     if (_soft.hasMatch(t)) {
@@ -415,8 +447,12 @@ class ItemLineParser {
 
   /// "2 7UP", "1 3 LECHES", "1 1/2 POLLO", "2 20 ALITAS": on a receipt
   /// whose rows begin with a quantity, the first of two figures is it.
-  static final RegExp _quantityThenFigure =
-      RegExp(r'^(\d{1,2})\s+(?=\d\S*\s*\S*[A-Za-zÀ-ÿ])');
+  /// Not "1 1/2 KG BARBACOA": one and a half kilos.
+  static final RegExp _quantityThenFigure = RegExp(
+    r'^(\d{1,2})\s+(?=\d\S*\s*\S*[A-Za-zÀ-ÿ])'
+    r'(?!\d+/\d+\s*(?:kgs?|kilos?|lts?|litros?|l|lbs?|libras?|g|grs?)\b)',
+    caseSensitive: false,
+  );
 
   /// "1 x 12 ALITAS BBQ", "2 x 7UP 600ML": how many, a times sign, and a
   /// name that begins with a figure.
@@ -454,6 +490,8 @@ class ItemLineParser {
   static final RegExp _wholeShape = RegExp(
     r'^(-?)\$?(-?)(\d{1,3}(?:[.,]\d{3})+|(?<=\$-?)\d+)(-?)$',
   );
+
+  static final RegExp _bareWhole = RegExp(r'^\d{1,5}$');
 
   static final RegExp _numberToken = RegExp(r'^[$£€]?-?\d+(?:[.,]\d+)?=?$');
   static final RegExp _timesToken = RegExp(r'^[xX×*@]$');
@@ -497,6 +535,9 @@ class ItemLineParser {
     // "1.75L", "0.75L": litres. No till marks its tax with an L.
     if (m != null && RegExp(r'\d[Ll]$').hasMatch(token)) m = null;
     if (m == null && style.wholePrices) m = _wholeShape.firstMatch(token);
+    if (m == null && style.bareWhole && _bareWhole.hasMatch(token)) {
+      return token;
+    }
     if (m == null) return null;
     final figures = m[3]!
         .replaceAll(RegExp('[Oo]'), '0')
@@ -692,9 +733,18 @@ class ItemLineParser {
       quantity = '1';
       t = t.substring(one.end);
     } else if (padded != null) {
+      // "03 PZ CONCHA", "02 KG TORTILLA", "02 X TACO": the same as "3 PZ
+      // CONCHA" once the zeros are gone.
       final count = int.parse(padded[1]!);
-      if (count > 0) quantity = '$count';
-      t = t.substring(padded.end);
+      final plain = '$count${t.substring(padded[1]!.length)}';
+      final unit = count > 0 ? _leadingQuantity.firstMatch(plain) : null;
+      if (unit != null) {
+        quantity = unit[2] == null ? '$count' : '$count ${unit[2]}';
+        t = plain.substring(unit.end);
+      } else {
+        if (count > 0) quantity = '$count';
+        t = t.substring(padded.end);
+      }
     } else if (volume != null) {
       quantity = '${_plain(volume[1]!)} ${volume[2]}';
       t = t.substring(volume.end);
@@ -927,27 +977,44 @@ class ItemLineParser {
   static List<ReceiptItem> extract(List<String> rows) {
     final style = _styleOf(rows);
     final items = _extractWith(rows, style);
-    // "1.15 G", "2.85 G": a letter after the last price that could be a
-    // size (grams, kilos, litres, metres) or this till's tax mark. It is
-    // read as a mark only when the list then adds up to a printed total and
-    // did not before; otherwise "AGUA 1.50 L" keeps its size.
+    // "1 CHURRASQUITO 35" / "1 CAFE 7" / "TOTAL Q55": whole prices with no
+    // sign and no decimals anywhere. Read that way only when nothing else
+    // was found and the lines then come to the printed total.
+    if (items.isEmpty && !rows.any(_decimalFigure.hasMatch)) {
+      final bare = style.copyWith(bareWhole: true);
+      final whole = _extractWith(rows, bare);
+      final printed = _printedTotals(rows, bare);
+      if (whole.length >= 2 && _addsUp(whole, printed, bare)) return whole;
+      return items;
+    }
+    final totals = _printedTotals(rows, style);
+    if (totals.isEmpty || _addsUp(items, totals, style)) return items;
+    // The list does not come to a printed total. Two things on a receipt
+    // can be read two ways; the other reading is kept only when the list
+    // then does add up.
+    // - "1.15 G", "2.85 G": a letter after the last price that could be a
+    //   size (grams, kilos, litres, metres) or this till's tax mark.
+    //   Otherwise "AGUA 1.50 L" keeps its size.
+    // - "DUFRY" / "2 X 19.00" / "TOBLERONE 38.00": a quantity row that
+    //   could belong to the wording above it or to the item under it.
     final letters = <String>{};
     for (final row in rows) {
       final m = _markedPrice.firstMatch(_clean(row, style));
       if (m != null && !style.flags.contains(m[1]!)) letters.add(m[1]!);
     }
-    if (letters.isEmpty) return items;
-    final totals = _printedTotals(rows, style);
-    if (totals.isEmpty || _addsUp(items, totals, style)) return items;
-    final marked = _Style(
-      oneDecimal: style.oneDecimal,
-      wholePrices: style.wholePrices,
-      quantityColumn: style.quantityColumn,
-      flags: style.flags + letters.join(),
-    );
-    final other = _extractWith(rows, marked);
-    return _addsUp(other, totals, marked) ? other : items;
+    final marked = style.copyWith(flags: style.flags + letters.join());
+    for (final other in [
+      if (letters.isNotEmpty) marked,
+      style.copyWith(quantityAbove: true),
+      if (letters.isNotEmpty) marked.copyWith(quantityAbove: true),
+    ]) {
+      final read = _extractWith(rows, other);
+      if (_addsUp(read, totals, other)) return read;
+    }
+    return items;
   }
+
+  static final RegExp _decimalFigure = RegExp(r'\d[.,]\d{2}(?!\d)');
 
   /// The amounts on the subtotal and total rows.
   static List<double> _printedTotals(List<String> rows, _Style style) {
@@ -986,6 +1053,13 @@ class ItemLineParser {
     final texts = [for (final r in rows) _clean(r, style)];
     final parsed = [for (final t in texts) _parse(t, style)];
     final kinds = [for (var i = 0; i < n; i++) _summaryOf(texts[i], parsed[i])];
+    for (var i = 0; i < n; i++) {
+      if (kinds[i].$1 != _Summary.yes &&
+          _datedRow.hasMatch(rows[i]) &&
+          _taxWord.hasMatch(texts[i])) {
+        kinds[i] = (_Summary.yes, false);
+      }
+    }
     // Whether, under each row, the totals are still to come, and whether
     // anything of the totals block is.
     final totalsBelow = List<bool>.filled(n, false);
@@ -1016,10 +1090,35 @@ class ItemLineParser {
     // payments are not items, and once the last dated row is a payment only
     // totals and breakdowns follow.
     final dated = [for (final r in rows) _datedRow.hasMatch(r)];
-    bool payment(int k) =>
-        dated[k] &&
-        parsed[k].amount != null &&
-        (kinds[k].$1 == _Summary.yes || _folioPayment.hasMatch(texts[k]));
+    // What the dated charges come to, and the dated tax on them.
+    var datedSum = 0.0;
+    var datedTax = 0.0;
+    for (var k = 0; k < n; k++) {
+      final amount = parsed[k].amount;
+      if (!dated[k] || amount == null) continue;
+      final value = _value(amount, style);
+      if (value == null || value <= 0) continue;
+      if (_cardPayment.hasMatch(texts[k]) || _folioPayment.hasMatch(texts[k])) {
+        continue;
+      }
+      if (kinds[k].$1 != _Summary.yes) {
+        datedSum += value;
+      } else if (!kinds[k].$2) {
+        datedTax += value;
+      }
+    }
+    bool payment(int k) {
+      final amount = parsed[k].amount;
+      if (!dated[k] || amount == null) return false;
+      if (kinds[k].$1 == _Summary.yes || _cardPayment.hasMatch(texts[k])) {
+        return true;
+      }
+      if (!_folioPayment.hasMatch(texts[k])) return false;
+      final value = _value(amount, style);
+      return amount.startsWith('-') ||
+          _close(value, datedSum) ||
+          _close(value, datedSum + datedTax);
+    }
     var datedCharges = 0;
     var undatedCharges = 0;
     var lastDated = -1;
@@ -1073,7 +1172,8 @@ class ItemLineParser {
         _levy.hasMatch(folds[k]) ||
         _count.hasMatch(folds[k]) ||
         _lodgingTax.hasMatch(texts[k]) ||
-        _numberedTax.hasMatch(texts[k]);
+        _numberedTax.hasMatch(texts[k]) ||
+        _ratedTax.hasMatch(texts[k]);
     // The number a count row gives ("TOTAL ARTICULOS 6").
     int? counted;
     for (var k = 0; k < n && counted == null; k++) {
@@ -1081,13 +1181,22 @@ class ItemLineParser {
       final figures = RegExp(r'\d+').allMatches(folds[k]).toList();
       if (figures.isNotEmpty) counted = int.tryParse(figures.last[0]!);
     }
-    // Rows that read as a priced item at first sight.
+    // Rows that read as a priced item at first sight, and how many of
+    // them open with a number.
     var itemRows = 0;
+    var leadItemRows = 0;
     for (var k = 0; k < n; k++) {
+      // Down to the subtotal or total: what is printed under it ("DESCUENTO
+      // 3.60", payments) is not part of the list.
+      if (itemRows > 0 && kinds[k].$1 == _Summary.yes && kinds[k].$2) break;
+      // A discount row ("DESC. 10% -3.60") has no number in front on any
+      // till; it says nothing about the column.
       if (parsed[k].amount != null &&
+          !parsed[k].amount!.startsWith('-') &&
           parsed[k].head.isNotEmpty &&
           kinds[k].$1 != _Summary.yes) {
         itemRows++;
+        if (_nameOf(parsed[k].head, style).$2 != null) leadItemRows++;
       }
     }
 
@@ -1127,6 +1236,42 @@ class ItemLineParser {
     // quantity, whatever the numbers of the other rows look like.
     var codedMultiplies = false;
     var paddedMultiplies = false;
+
+    // A quantity row ("2 x 5.50") whose sum is the price of the row under
+    // it. Not a row that breaks off ("1.00 x 2.21="): its total was read
+    // onto the next row, and it belongs to the name above.
+    bool fitsBelow(int j) {
+      if (j + 1 >= n || !parsed[j].figuresOnly || !parsed[j].complete) {
+        return false;
+      }
+      final count =
+          parsed[j].quantity == null ? null : _number(parsed[j].quantity!);
+      final each =
+          parsed[j].amount == null ? null : _value(parsed[j].amount!, style);
+      final under = parsed[j + 1];
+      return count != null &&
+          each != null &&
+          !summary(j + 1) &&
+          under.head.isNotEmpty &&
+          under.amount != null &&
+          _close(count * each, _value(under.amount!, style));
+    }
+
+    var quantityRows = 0;
+    var fitting = 0;
+    var noWordingAbove = false;
+    for (var j = 0; j < n; j++) {
+      final row = parsed[j];
+      if (!row.figuresOnly || !row.complete || row.quantity == null) continue;
+      quantityRows++;
+      if (!fitsBelow(j)) continue;
+      fitting++;
+      if (j == 0 || parsed[j - 1].amount != null || parsed[j - 1].head.isEmpty) {
+        noWordingAbove = true;
+      }
+    }
+    final quantityRowsAbove =
+        quantityRows >= 2 && fitting == quantityRows && noWordingAbove;
 
     final items = <ReceiptItem>[];
     // The number each item's row opened with, by the item's first row, and
@@ -1200,6 +1345,7 @@ class ItemLineParser {
           if (value != null &&
               value > 0 &&
               !kinds[i].$2 &&
+              !_cardPayment.hasMatch(text) &&
               !_folioPayment.hasMatch(text)) {
             taxSum += value;
           }
@@ -1217,6 +1363,24 @@ class ItemLineParser {
       }
       if (voidMarker(i)) {
         voidAbove = true;
+        i++;
+        continue;
+      }
+      // "1 Servicio 2 Hospedaje habitacion sencilla 732.00 0.00 1,464.00 IVA
+      // 156.86": number, goods or service, quantity, description, unit
+      // price, discount, total, tax.
+      final invoiced = _invoiceRow.firstMatch(text);
+      if (invoiced != null) {
+        started = true;
+        items.add(ReceiptItem(
+          description: invoiced[2]!.trim(),
+          quantity: _plain(invoiced[1]!),
+          amountText: invoiced[3],
+          firstRow: i,
+          lastRow: i,
+        ));
+        loose = 0;
+        voidAbove = false;
         i++;
         continue;
       }
@@ -1340,8 +1504,10 @@ class ItemLineParser {
             unit > 0 &&
             !_close(unit * count, total)) {
           final inner = _innerQuantity.firstMatch(name);
-          if (inner != null && _close(unit * int.parse(inner[1]!), total)) {
-            quantity = inner[1];
+          final many =
+              inner == null ? null : _number(inner[1]!.replaceAll(',', '.'));
+          if (inner != null && many != null && _close(unit * many, total)) {
+            quantity = _plain(inner[1]!);
             name = name.substring(inner.end);
             numberedLine = true;
           }
@@ -1351,8 +1517,9 @@ class ItemLineParser {
           // row's own sum says so ("2 CERVEZA CORONA X6 159.00 318.00"). With
           // no unit price it is one after a number and a barcode ("4
           // 7707654300019 JABON PROTEX X3 9.800"), and after a quantity in
-          // front when other rows of the receipt carry no "x" at all ("1
-          // CUBETA CORONA X6 330.00" beside "3 CERVEZA 165.00").
+          // front when every row opens with one and others carry no "x"
+          // ("1 CUBETA CORONA X6 330.00" beside "3 CERVEZA 165.00"; not "12
+          // ALITAS BBQ x2" beside "PAPAS GAJO").
           final times = double.parse(row.quantity!);
           final pack = unit != null && unit > 0
               ? !_close(unit * times, total) &&
@@ -1362,7 +1529,8 @@ class ItemLineParser {
                   (kind == _LeadKind.coded ||
                       (kind == _LeadKind.plain &&
                           leading != null &&
-                          timesRows < itemRows));
+                          timesRows < itemRows &&
+                          leadItemRows == itemRows));
           if (pack) {
             name = '$name ${row.times}';
             quantity = null;
@@ -1431,23 +1599,17 @@ class ItemLineParser {
         }
         // "TIQUETE 0045120" / "2 x 5.50" / "SOPA DE TORTILLA 11.00": a
         // quantity row whose sum is the price of the row under it belongs to
-        // that row, not to the wording above. Not a row that breaks off
-        // ("1.00 x 2.21="): its total was read onto the next row, and it
-        // belongs to the name above.
-        var below = false;
-        if (j + 1 < n && parsed[j].figuresOnly && parsed[j].complete) {
-          final count =
-              parsed[j].quantity == null ? null : _number(parsed[j].quantity!);
-          final each =
-              parsed[j].amount == null ? null : _value(parsed[j].amount!, style);
-          final under = parsed[j + 1];
-          below = count != null &&
-              each != null &&
-              !summary(j + 1) &&
-              under.head.isNotEmpty &&
-              under.amount != null &&
-              _close(count * each, _value(under.amount!, style));
-        }
+        // that row, not to the wording above.
+        // Either every such row of the receipt fits the row under it and
+        // one of them has no wording above (the till prints them that way),
+        // or the wording above holds a long number, as no product does. A
+        // lone "1 x $39.00" between a product and a fee of the same amount
+        // stays with the product.
+        final below = j < n &&
+            fitsBelow(j) &&
+            (style.quantityAbove ||
+                quantityRowsAbove ||
+                RegExp(r'\d{4,}').hasMatch(row.head));
         if (j < n && parsed[j].figuresOnly && !below) {
           final figures = parsed[j];
           var amountText = figures.amount;
@@ -1629,8 +1791,10 @@ class ItemLineParser {
     final numbered = !codedMultiplies &&
         _countsUp(coded) &&
         (straight || countSays(coded));
-    // "001", "002", "003": zeros in front and counting up, the same. "002"
-    // then "001" are quantities.
+    // "001", "002", "003": zeros in front and counting up, the same, when
+    // the count of things bought says so or the quantities stand elsewhere
+    // on every row. "01", "02", "03" with nothing else to go by are
+    // quantities, and so are "002" then "001".
     final padded = [
       for (final lead in leadRows)
         if (lead.kind == _LeadKind.padded) int.tryParse(lead.text) ?? -1,
@@ -1639,7 +1803,8 @@ class ItemLineParser {
         padded.isNotEmpty &&
         padded.first == 1 &&
         _countsUp(padded) &&
-        (padded.length >= 3 || countSays(padded));
+        (countSays(padded) ||
+            !leads.values.any((l) => l.kind == _LeadKind.padded && l.used));
     // A short code after every such counter is the product's code.
     final codeColumn = counters &&
         items.every((item) =>
@@ -1648,13 +1813,28 @@ class ItemLineParser {
     // A number in front of every row whose quantity stands after the name
     // is a column of line numbers or codes; in front of only some, it
     // belongs to those names.
-    final lines = !behind.contains(false);
+    // Rows with no number in front at all say there is no such column.
+    final lines = !behind.contains(false) && leadItemRows == itemRows;
+    // "01 2 TACO DE RIB EYE 190.00", "02 1 QUESO FUNDIDO 125.00": after
+    // every counter a second number, which is how many.
+    final counterThenQuantity = padded.length >= 2 &&
+        padded.first == 1 &&
+        _countsUp(padded) &&
+        items.every((item) =>
+            leads[item.firstRow]?.kind != _LeadKind.padded ||
+            RegExp(r'^\d{1,3}\s+(?=\S*[A-Za-zÀ-ÿ])')
+                .hasMatch(item.description));
     for (var k = 0; k < items.length; k++) {
       final item = items[k];
       final lead = leads[item.firstRow];
       if (lead == null) continue;
       var description = item.description;
       var quantity = item.quantity;
+      if (counterThenQuantity && lead.kind == _LeadKind.padded && lead.used) {
+        final space = description.indexOf(' ');
+        quantity = description.substring(0, space);
+        description = description.substring(space).trim();
+      }
       if (lead.used &&
           ((numbered && lead.kind == _LeadKind.coded) ||
               (counters && lead.kind == _LeadKind.padded))) {
@@ -1680,7 +1860,7 @@ class ItemLineParser {
   }
 
   static final RegExp _innerQuantity =
-      RegExp(r'^(\d{1,3})\s+(?=\S*[A-Za-zÀ-ÿ])');
+      RegExp(r'^(\d{1,3}(?:[.,]\d{1,3})?)\s+(?=\S*[A-Za-zÀ-ÿ])');
 
   /// Numbers that count up from one, row after row; in three rows or more
   /// one may be missing (a voided line, a row OCR lost).
@@ -1698,8 +1878,10 @@ class ItemLineParser {
 
   static _LeadKind _leadKind(String head) {
     final t = head.replaceAll(_edges, '').trim();
-    if (_padded.hasMatch(t)) return _LeadKind.padded;
+    // "001 7501055300075 COCA COLA": zeros in front and then a barcode count
+    // with the numbers before barcodes.
     if (_quantityThenCode.hasMatch(t)) return _LeadKind.coded;
+    if (_padded.hasMatch(t)) return _LeadKind.padded;
     return _LeadKind.plain;
   }
 
@@ -1747,8 +1929,9 @@ class ItemLineParser {
         }
       }
     }
-    // A free item has a unit price of nothing ("SANGRITA 2 0.00 0.00").
-    if (unit != null && (unit > 0 || sum == 0)) {
+    // A free item has a unit price of nothing ("SANGRITA 2 0.00 0.00"); a
+    // promotion or a return has one below nothing ("PROMO 1 -9.50 -9.50").
+    if (unit != null && (unit != 0 || sum == 0)) {
       if (count != null && count > 0 && _close(unit * count, sum)) {
         return (
           _plain(words.last),
@@ -1774,32 +1957,30 @@ class ItemLineParser {
       final figure = words[words.length - 2];
       final measure = number(figure);
       final price = number(words.last);
+      // Both as a pump prints them, with three decimals: "8.524 3.459".
+      // "549.00 0.250" is a price for each kilo and a weight.
+      final pump = RegExp(r'[.,]\d{3}$');
       if (measure != null &&
           price != null &&
           measure > 0 &&
-          words.last.contains(RegExp('[.,]')) &&
+          pump.hasMatch(figure) &&
+          pump.hasMatch(words.last) &&
           _close(measure * price, sum)) {
         return (_plain(figure), words.take(words.length - 2).join(' '), price);
       }
     }
-    // "TACO PASTOR 2.00 22.50 45.00", "CUADERNO 22.50 2.00 45.00": the
-    // quantity printed like a price, before or after the unit price. Only
-    // when one of the two is a whole figure and the other is not; with two
-    // whole figures which is which cannot be told.
-    if (amounts.length >= 3 && unit != null && unit > 0) {
-      final first = amounts[amounts.length - 3];
-      final second = amounts[amounts.length - 2];
-      final price = _value(first, style);
-      bool whole(String a) => RegExp(r'^\d{1,3}[.,]00$').hasMatch(a);
-      if (price != null && price > 0 && _close(price * unit, sum)) {
-        if (whole(first) && !whole(second)) return (_plain(first), name, unit);
-        if (whole(second) && !whole(first)) {
-          return (_plain(second), name, price);
-        }
-      }
-    }
     return null;
   }
+
+  /// A line of a Guatemalan electronic invoice (FEL) in the tax office's
+  /// layout: "#No", "B/S" (Bien or Servicio), quantity, description, unit
+  /// price, discounts, total and, for some, the tax.
+  static final RegExp _invoiceRow = RegExp(
+    r'^\d{1,3}\s+(?:bien|servicio)\s+(\d{1,4}(?:[.,]\d{1,2})?)\s+(.+?)\s+'
+    r'(?:\d{1,3}(?:[.,]\d{3})*[.,]\d{2})\s+(?:\d{1,3}(?:[.,]\d{3})*[.,]\d{2})\s+'
+    r'(\d{1,3}(?:[.,]\d{3})*[.,]\d{2})(?:\s+IVA\s+\d[\d.,]*)?$',
+    caseSensitive: false,
+  );
 
   /// A row that opens with a full date: "16/11/26 HABITACION 2,150.00",
   /// "16-NOV-26 HABITACION 2,150.00".
@@ -1859,10 +2040,19 @@ class ItemLineParser {
   /// A payment on a folio under names the totals words do not cover: "TC
   /// VISA", "DISCOVER", "PREPAGO AGENCIA", "DEPOSITO EN GARANTIA", "ADVANCE
   /// DEPOSIT", "TRANSFERENCIA BANCARIA", "CXC AGENCIA".
+  ///
+  /// These words also stand on charges ("DEPOSITO LLAVE 50.00", "SIM card",
+  /// "COMISION POR TARJETA"), so a row with one of them is a payment only
+  /// when it takes money off or comes to the charges of the folio.
   static final RegExp _folioPayment = RegExp(
-    r'\b(?:tc|visa|master\s?card|amex|american\s+express|discover|diners|'
-    r'pagos?|prepago|anticipo|dep[oó]sito|deposit|transferencia|agencia|cxc|'
-    r'abono|payment|prepaid|efectivo|tarjeta|card)\b',
+    r'\b(?:pagos?|prepago|anticipo|dep[oó]sito|deposit|transferencia|agencia|'
+    r'cxc|abono|payment|prepaid|efectivo|tarjeta|card)\b',
+    caseSensitive: false,
+  );
+
+  /// A card by its brand: always a payment.
+  static final RegExp _cardPayment = RegExp(
+    r'\b(?:tc|visa|master\s?card|amex|american\s+express|discover|diners)\b',
     caseSensitive: false,
   );
 

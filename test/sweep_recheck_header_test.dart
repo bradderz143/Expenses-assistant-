@@ -291,4 +291,96 @@ void main() {
       );
     });
   });
+
+  group('round four', () {
+    test('a town under the kind of place is not the shop', () {
+      expect(
+        shop([
+          'INVERSIONES EJEMPLO DEL LAGO, S.A.',
+          'RESTAURANTE',
+          'PANAJACHEL SOLOLA GUATEMALA',
+          'TOTAL Q 175.00',
+        ]),
+        'inversiones ejemplo del lago',
+      );
+      expect(
+        shop(['EL EJEMPLO', 'RESTAURANTE', 'ANTIGUA GUATEMALA', 'TOTAL Q 90.00']),
+        'el ejemplo',
+      );
+    });
+
+    test('a card network on top of the shop', () {
+      expect(
+        shop([
+          'NEONET',
+          'CAFE EJEMPLO',
+          'PANAJACHEL',
+          '19/11/2026 12:07:55',
+          'TOTAL Q 385.00',
+        ]),
+        'cafe ejemplo',
+      );
+    });
+
+    test('the total row may also print the price for each day', () {
+      expect(
+        parse([
+          'EJEMPLO CAR RENTAL',
+          'Alquiler del coche 3 días MXN 1,950.00',
+          'Protección total MXN 885.00',
+          'Precio total (3 días, MXN 945.00 por día) MXN 2,835.00',
+        ]).amountMinor,
+        283500,
+      );
+    });
+
+    test('the day it was paid, not the day of the service', () {
+      expect(
+        parse([
+          'EJEMPLO CAR RENTAL',
+          'Recogida: lun, 23 nov 2026, 10:00',
+          'Total MXN 2,835.00',
+          'Pagado con Visa el 15 nov 2026',
+        ]).date,
+        DateTime(2026, 11, 15),
+      );
+      expect(
+        parse([
+          'AUTOBUSES EJEMPLO',
+          'Viaje: sáb, 21 nov 2026, 07:30',
+          'Total MXN 458.00',
+          'Pagado el 18 nov 2026',
+        ]).date,
+        DateTime(2026, 11, 18),
+      );
+    });
+
+    test('a bill in quetzales with its total in dollars and the rate', () {
+      final p = parse([
+        'RESTAURANTE EL EJEMPLO',
+        '1 PESCADO BLANCO Q205.00',
+        '1 TACOS DE POLLO Q100.00',
+        'SUBTOTAL Q305.00',
+        'PROPINA 10% Q30.50',
+        'TOTAL Q335.50',
+        r'TOTAL US$ 43.57',
+        r'TIPO DE CAMBIO Q7.70 x US$1.00',
+      ]);
+      expect(p.currency, 'GTQ');
+      expect(p.amountMinor, 33550);
+    });
+
+    test('the total paid after a coupon', () {
+      expect(
+        parse([
+          'DiDi',
+          r'Tarifa total $142.60',
+          r'Descuento por cupón -$35.00',
+          r'Total pagado $107.60',
+          r'Visa •••• 4521 $107.60',
+        ]).amountMinor,
+        10760,
+      );
+    });
+  });
 }

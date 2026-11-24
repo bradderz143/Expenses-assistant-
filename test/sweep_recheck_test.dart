@@ -1185,11 +1185,23 @@ void main() {
         read(['PARACETAMOL 500MG 2 45.00 9.00 81.00', 'TOTAL 81.00']),
         ['2|PARACETAMOL 500MG|81.00'],
       );
+      // A quantity printed like a price cannot be told from a price per
+      // kilo beside a weight: none is guessed.
       expect(
         read(['TACO PASTOR 2.00 22.50 45.00', 'TOTAL 45.00']),
-        ['2|TACO PASTOR|45.00'],
+        ['|TACO PASTOR|45.00'],
       );
-      // Two whole figures: which is the quantity cannot be told.
+      expect(
+        read(['QUESO OAXACA 180.00 0.50 90.00', 'TOTAL 90.00']),
+        ['|QUESO OAXACA|90.00'],
+      );
+      expect(
+        read(['JAMON SERRANO 549.00 0.250 137.25', 'TOTAL 137.25'])
+            .single
+            .split('|')
+            .first,
+        isNot('549'),
+      );
       expect(
         read(['CUADERNO PROFESIONAL RAYA 35.00 2.00 70.00', 'TOTAL 70.00']),
         ['|CUADERNO PROFESIONAL RAYA|70.00'],
@@ -1256,7 +1268,7 @@ void main() {
           r'AIRPORT ACCESS FEE $6.00',
           r'TOTAL $69.90',
         ]),
-        ['PARKING 5 DAYS|60.00', 'AIRPORT ACCESS FEE|6.00'],
+        ['PARKING 5 DAYS|60.00', 'PARKING TAX|3.90', 'AIRPORT ACCESS FEE|6.00'],
       );
     });
 
@@ -1524,6 +1536,208 @@ void main() {
           r'IMPORTE $719.57',
         ]),
         ['30.120|MAGNA|719.57'],
+      );
+    });
+  });
+
+  // ------------------------------------------------------------------
+  // Fourth round: fresh ordinary receipts, Guatemala and small places,
+  // chains, airports and app e-mails.
+  group('round four: charges and taxes', () {
+    test('a deposit, a card fee or a SIM card on a dated statement', () {
+      expect(
+        priced([
+          '18/11/2026 DORMITORIO Q 95.00',
+          '18/11/2026 DEPOSITO LLAVE Q 50.00',
+          '19/11/2026 DESAYUNO Q 35.00',
+        ]),
+        ['DORMITORIO|95.00', 'DEPOSITO LLAVE|50.00', 'DESAYUNO|35.00'],
+      );
+      expect(
+        [
+          for (final i in ItemLineParser.extract([
+            '18/11/2026 DORMITORIO Q 95.00',
+            '19/11/2026 DORMITORIO Q 95.00',
+            '19/11/2026 SIM card Q 75.00',
+            '22/11/2026 COMISION POR TARJETA 5% Q 13.25',
+            'TOTAL Q 278.25',
+          ]))
+            i.amountText,
+        ],
+        ['95.00', '95.00', '75.00', '13.25'],
+      );
+    });
+
+    test('a tax that is the thing paid for', () {
+      expect(
+        priced([r'DEPARTURE TAX $30.00', r'PACT FEE $7.50', r'TOTAL $37.50']),
+        ['DEPARTURE TAX|30.00', 'PACT FEE|7.50'],
+      );
+      expect(
+        priced(['AIRPORT TAX COUNTER', 'DEPARTURE TAX 38.00', 'TOTAL 38.00']),
+        ['DEPARTURE TAX|38.00'],
+      );
+    });
+
+    test('one night: the tax rows end the list before the card row', () {
+      expect(
+        priced([
+          'EXAMPLE MOTEL',
+          'Room Charge 89.00',
+          'State Tax 5.03',
+          'City Tax 4.01',
+          'Discover XXXX4521 -98.04',
+          'Balance Due 0.00',
+        ]),
+        ['Room Charge|89.00'],
+      );
+    });
+
+    test('the fuel tax printed as included', () {
+      expect(
+        priced([
+          'DIESEL 10.152 GAL Q 283.14',
+          'IDP INCLUIDO Q 13.20',
+          'TOTAL Q 283.14',
+        ]).length,
+        1,
+      );
+    });
+  });
+
+  group('round four: names and quantities', () {
+    test('a line number, then the quantity with decimals', () {
+      expect(
+        read([
+          '1 2.00 HABITACION ESTANDAR 79.00 158.00',
+          '2 1.00 DESAYUNO BUFFET 12.00 12.00',
+          r'TOTAL A PAGAR: $170.00',
+        ]),
+        ['2|HABITACION ESTANDAR|158.00', '1|DESAYUNO BUFFET|12.00'],
+      );
+    });
+
+    test('one and a half kilos is not one of a half kilo', () {
+      expect(
+        read(['1 1/2 KG BARBACOA 630.00', '4 REFRESCOS 100.00', r'TOTAL $730.00']),
+        ['|1 1/2 KG BARBACOA|630.00', '4|REFRESCOS|100.00'],
+      );
+    });
+
+    test('quantities printed 01, 02, 03 stay quantities', () {
+      expect(
+        read([
+          '01 SOPA DE RES 120.00',
+          '02 REFRESCO NATURAL 40.00',
+          '03 TORTILLAS 9.00',
+          'TOTAL 169.00',
+        ]),
+        ['1|SOPA DE RES|120.00', '2|REFRESCO NATURAL|40.00', '3|TORTILLAS|9.00'],
+      );
+      expect(
+        read(['03 PZ CONCHA VAINILLA 57.00', 'TOTAL 57.00']),
+        ['3|CONCHA VAINILLA|57.00'],
+      );
+      expect(
+        read(['02 KG TORTILLA 48.00', 'TOTAL 48.00']),
+        ['2 KG|TORTILLA|48.00'],
+      );
+    });
+
+    test('"N x price" under a product, a fee of the same amount below', () {
+      expect(
+        read([
+          'Rappi',
+          'Curitas Ejemplo 30 pzas',
+          r'1 x $39.00',
+          r'Costo de envío $39.00',
+          r'Total $78.00',
+        ]),
+        ['1|Curitas Ejemplo 30 pzas|39.00', '|Costo de envío|39.00'],
+      );
+    });
+
+    test('"x2" after a dish named with a figure, other rows without numbers',
+        () {
+      expect(
+        read([
+          'EJEMPLO WINGS',
+          '12 ALITAS BBQ x2 378.00',
+          'PAPAS GAJO 79.00',
+          'TOTAL 457.00',
+        ]),
+        ['2|12 ALITAS BBQ|378.00', '|PAPAS GAJO|79.00'],
+      );
+      expect(
+        read(['7 UP GRANDE x2 130.00', 'PALOMITAS GRANDES 95.00', 'TOTAL 225.00'])
+            .first
+            .split('|')
+            .first,
+        '2',
+      );
+    });
+
+    test('a promotion or a return with a negative unit price', () {
+      expect(
+        read([
+          'ITEM QTY PRICE AMOUNT',
+          'M&M PEANUT 400G 3 9.50 28.50',
+          'PROMO 3X2 M&M 1 -9.50 -9.50',
+          'ENVASE RETORNABLE 2 -5.00 -10.00',
+          'TOTAL 9.00',
+        ]),
+        [
+          '3|M&M PEANUT 400G|28.50',
+          '1|PROMO 3X2 M&M|-9.50',
+          '2|ENVASE RETORNABLE|-10.00',
+        ],
+      );
+    });
+
+    test('Guatemalan electronic invoice as the tax office lays it out', () {
+      expect(
+        read([
+          '1 Servicio 2 Hospedaje habitacion sencilla 732.00 0.00 1,464.00 IVA 156.86',
+          '2 Servicio 1 Parqueo 50.00 0.00 50.00 IVA 5.36',
+          'TOTALES: 0.00 1,514.00 IVA 162.22',
+        ]),
+        ['2|Hospedaje habitacion sencilla|1,464.00', '1|Parqueo|50.00'],
+      );
+      expect(
+        read([
+          '1 Bien 2 Capuchino 22.00 0.00 44.00',
+          '2 Bien 1 Panini de pollo 48.00 0.00 48.00',
+          '3 Bien 1 Pastel de chocolate 30.00 0.00 30.00',
+          'TOTALES: 0.00 122.00',
+        ]),
+        [
+          '2|Capuchino|44.00',
+          '1|Panini de pollo|48.00',
+          '1|Pastel de chocolate|30.00',
+        ],
+      );
+    });
+
+    test('whole prices with no sign, when they add up to the total', () {
+      expect(
+        read([
+          '1 CHURRASQUITO 35',
+          '1 FRESCO DE TAMARINDO 8',
+          '1 CAFE 7',
+          '3 TORTILLAS 5',
+          'TOTAL Q55',
+        ]),
+        [
+          '1|CHURRASQUITO|35',
+          '1|FRESCO DE TAMARINDO|8',
+          '1|CAFE|7',
+          '3|TORTILLAS|5',
+        ],
+      );
+      // Not when they do not add up.
+      expect(
+        read(['MESA 4', 'CALLE 5', '1 CAFE 7', 'TOTAL Q55']),
+        isEmpty,
       );
     });
   });

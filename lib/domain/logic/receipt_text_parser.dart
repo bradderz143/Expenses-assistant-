@@ -322,7 +322,7 @@ class ReceiptTextParser {
   /// CREDOMATIC", "BANCO INDUSTRIAL", "VISANET GUATEMALA", "AMERICAN
   /// EXPRESS"). More of them are in [_merchantNoise].
   static final RegExp _acquirer = RegExp(
-    r'^(visanet|visa\b|master\s?card|american\s+express|amex\b|bac\b|'
+    r'^(visanet|neonet|visa\b|master\s?card|american\s+express|amex\b|bac\b|'
     r'banrural|bancolombia|banesco|bancaribe|banplus|bancoppel|bantrab|'
     r'(banco|bank)\s+(of\b|de\b|del\b|industrial|agr[ií]cola|azteca|'
     r'promerica|cuscatl[aá]n|atl[aá]ntida|ficohsa|popular|nacional|mercantil|'
@@ -995,8 +995,10 @@ class ReceiptTextParser {
               _bareOutlet.hasMatch(_cleanCandidate(rows[i - 1]))) ||
           (i + 1 < rows.length &&
               _bareOutlet.hasMatch(_cleanCandidate(rows[i + 1])));
+      // Only while no name stands above: under "INVERSIONES EJEMPLO, S.A."
+      // / "RESTAURANTE" the next row is the town.
       if (!_legalSuffix.hasMatch(row) &&
-          _isAddress(row, named: !seen, byOutlet: byOutlet)) {
+          _isAddress(row, named: !seen, byOutlet: byOutlet && !seen)) {
         continue;
       }
       if (i > 0 &&
@@ -1191,8 +1193,13 @@ class ReceiptTextParser {
     'fevereiro', 'marco', 'maio', 'junho', 'julho', 'setembro', 'outubro',
     'novembro', 'dezembro',
   ];
-  static final RegExp _dateKeyword =
-      RegExp(r'fecha|date|emisi[oó]n|emitido', caseSensitive: false);
+  /// Also the day it was paid ("Pagado el 15 nov 2026"), which on an
+  /// e-mail ticket stands beside the day of the service.
+  static final RegExp _dateKeyword = RegExp(
+    r'fecha|date|emisi[oó]n|emitido|pagado|pagaste|\bpaid\b|comprado|'
+    r'purchased|cobrado|charged',
+    caseSensitive: false,
+  );
 
   /// Dates that are on the receipt but are not the day of purchase: valid
   /// until, tax-authority limits and resolutions, delivery, date of birth,
@@ -1722,6 +1729,14 @@ class ReceiptTextParser {
       100,
     ),
     (RegExp(r'gran\s*total|grand\s*total', caseSensitive: false), 90),
+    // What was paid in the end, after a coupon: "Total pagado \$107.60".
+    (
+      RegExp(
+        r'total\s*pagado|total\s*paid|total\s*cobrado|total\s*charged',
+        caseSensitive: false,
+      ),
+      85,
+    ),
     (
       RegExp(
         r'total\s*a\s*pagar|importe\s*total|monto\s*total|amount\s*due|'
@@ -1764,7 +1779,9 @@ class ReceiptTextParser {
   /// what was paid.
   static final RegExp _rateRow = RegExp(
     r'\d\s*(?:x|por|per|/)\s*(?:hora|hr|hour|d[ií]a|day|fracci[oó]n|minuto|'
-    r'min|km|litro|gal[oó]n)\b',
+    // At the end of the row: "Precio total (MXN 945.00 por día) MXN
+    // 2,835.00" is a total that also says the rate.
+    r'min|km|litro|gal[oó]n)\b\W*$',
     caseSensitive: false,
   );
 
@@ -2859,6 +2876,11 @@ class ReceiptTextParser {
   /// times on a total row; an amount in words that names its currency
   /// ("QUETZALES") counts as a total row. The most named wins, the home
   /// currency on a tie.
+  static final RegExp _exchangeRateRow = RegExp(
+    r'tipo\s+de\s+cambio|\bt\.?\s?c\.?\s*[:=]|\btasa\b|exchange\s+rate',
+    caseSensitive: false,
+  );
+
   ((String, bool), Set<String>) _detectCurrency(List<String> rows) {
     final scores = <String, int>{};
     final needed = <String, int>{};
@@ -2871,6 +2893,9 @@ class ReceiptTextParser {
     }
 
     for (var i = 0; i < rows.length; i++) {
+      // A rate row names both currencies ("TIPO DE CAMBIO Q7.70 x
+      // US\$1.00"); it says nothing about which the bill is in.
+      if (_exchangeRateRow.hasMatch(rows[i])) continue;
       final weight = _totalPriority(rows[i]) >= 0 ? 3 : 1;
       final onRow = <String, int>{};
       for (final mark in _currencyMarks(rows[i])) {
