@@ -660,4 +660,527 @@ void main() {
       );
     });
   });
+
+  // ------------------------------------------------------------------
+  // Second round: receipts that broke the first rework.
+  group('round two: tax mark or size', () {
+    test('sizes on name rows when every price carries a tax letter', () {
+      expect(
+        read([
+          "TITO'S VODKA 1.75 L",
+          '1 @ 34.99 34.99 T',
+          'JACK DANIELS 1.00 L',
+          '1 @ 32.99 32.99 T',
+          'BACARDI SUPERIOR 1.75 L',
+          '1 @ 24.99 24.99 T',
+        ]),
+        [
+          "1|TITO'S VODKA 1.75 L|34.99",
+          '1|JACK DANIELS 1.00 L|32.99',
+          '1|BACARDI SUPERIOR 1.75 L|24.99',
+        ],
+      );
+      expect(
+        read(['AZAFRAN ESPANOL 1.00 G', '1 X 95.00 95.00 A']),
+        ['1|AZAFRAN ESPANOL 1.00 G|95.00'],
+      );
+    });
+
+    test('size notes under items whose prices carry a tax letter', () {
+      expect(
+        priced([
+          '1 REFRESCO COLA 38.00 A',
+          'RETORNABLE 2.50 L',
+          '1 AGUA MINERAL 22.00 A',
+          'BOTELLA 1.50 L',
+          '1 CERVEZA CAGUAMA 48.00 A',
+          'ENVASE 1.20 L',
+          'TOTAL 108.00',
+        ]),
+        [
+          'REFRESCO COLA|38.00',
+          'RETORNABLE 2.50 L|',
+          'AGUA MINERAL|22.00',
+          'BOTELLA 1.50 L|',
+          'CERVEZA CAGUAMA|48.00',
+          'ENVASE 1.20 L|',
+        ],
+      );
+    });
+
+    test('El Salvador: G is the tax mark when the list then adds up', () {
+      expect(
+        priced([r'1 PUPUSA REVUELTA $1.15 G', r'TOTAL $1.15']),
+        ['PUPUSA REVUELTA|1.15'],
+      );
+      expect(
+        priced(['1 TELEVISOR 55 PULG 1,250.00 G', 'TOTAL 1,250.00']),
+        ['TELEVISOR 55 PULG|1,250.00'],
+      );
+      expect(
+        priced([
+          'AGUA CRISTAL 1.5L  1.15  G',
+          'PAN DE CAJA BIMBO  2.85  G',
+          'TOTAL 4.00',
+        ]),
+        ['AGUA CRISTAL 1.5L|1.15', 'PAN DE CAJA BIMBO|2.85'],
+      );
+      // One row lost its letter.
+      expect(
+        priced([
+          'AGUA CRISTAL 1.5L 1.15 G',
+          'PAN DE CAJA BIMBO 2.85',
+          'TOTAL 4.00',
+        ]),
+        ['AGUA CRISTAL 1.5L|1.15', 'PAN DE CAJA BIMBO|2.85'],
+      );
+      expect(
+        priced([
+          'AGUA CRISTAL 1.5L 1.15 G',
+          'PAN DE CAJA BIMBO 2.85 G',
+          'DESCUENTO -0.50',
+          'CAFE LISTO 50G 2.10 G',
+          'TOTAL 5.60',
+        ]),
+        [
+          'AGUA CRISTAL 1.5L|1.15',
+          'PAN DE CAJA BIMBO|2.85',
+          'DESCUENTO|-0.50',
+          'CAFE LISTO 50G|2.10',
+        ],
+      );
+    });
+
+    test('El Salvador: the sums under the items are not items', () {
+      expect(
+        priced([
+          'AGUA CRISTAL 1.5L 1.15 G',
+          'PAN DE CAJA BIMBO 2.85 G',
+          'DESCUENTO 0.00',
+          'TOTAL 4.00',
+        ]),
+        ['AGUA CRISTAL 1.5L|1.15', 'PAN DE CAJA BIMBO|2.85'],
+      );
+      expect(
+        priced([
+          'AGUA CRISTAL 1.5L 1.15 G',
+          'PAN DE CAJA BIMBO 2.85 G',
+          'CAFE LISTO 50G 2.10 G',
+          'TOTAL GRAVADO 6.10',
+          'TOTAL EXENTO 0.00',
+          'TOTAL NO SUJETO 0.00',
+          'TOTAL 6.10',
+        ]),
+        [
+          'AGUA CRISTAL 1.5L|1.15',
+          'PAN DE CAJA BIMBO|2.85',
+          'CAFE LISTO 50G|2.10',
+        ],
+      );
+    });
+
+    test('a size written "1.75L" is not a price', () {
+      expect(
+        read(['COCA COLA 1.75L', '2 x 32.00 64.00', 'TOTAL 64.00']),
+        ['2|COCA COLA 1.75L|64.00'],
+      );
+      expect(
+        read(['1 COCA COLA 1.75L 32.00', 'TOTAL 32.00']),
+        ['1|COCA COLA 1.75L|32.00'],
+      );
+    });
+  });
+
+  group('round two: rows dated in front', () {
+    test('a dated correction or discount stays a line', () {
+      expect(
+        priced([
+          '16/11/26 HABITACION 2,150.00',
+          '16/11/26 MINIBAR 85.00',
+          '17/11/26 HABITACION 2,150.00',
+          '17/11/26 AJUSTE MINIBAR -85.00',
+          'TOTAL 4,300.00',
+        ]),
+        [
+          'HABITACION|2,150.00',
+          'MINIBAR|85.00',
+          'HABITACION|2,150.00',
+          'AJUSTE MINIBAR|-85.00',
+        ],
+      );
+      expect(
+        priced([
+          '16/11/26 HABITACION 2,150.00',
+          '17/11/26 HABITACION 2,150.00',
+          '17/11/26 DESCUENTO CORPORATIVO -430.00',
+          'TOTAL 3,870.00',
+        ]),
+        [
+          'HABITACION|2,150.00',
+          'HABITACION|2,150.00',
+          'DESCUENTO CORPORATIVO|-430.00',
+        ],
+      );
+    });
+
+    test('undated extras under two dated lines are still listed', () {
+      expect(
+        priced([
+          '24/11/26 TOUR CHICHEN ITZA 2 PAX 3,200.00',
+          '25/11/26 TOUR TULUM 2 PAX 2,400.00',
+          'TRASLADO AEROPUERTO 600.00',
+        ]).last,
+        'TRASLADO AEROPUERTO|600.00',
+      );
+      expect(
+        priced([
+          '23/11/2026 MEXICO TAPO - PUEBLA CAPU 320.00',
+          '25/11/2026 PUEBLA CAPU - MEXICO TAPO 320.00',
+          'SEGURO DE VIAJERO 30.00',
+          'TOTAL 670.00',
+        ]).last,
+        'SEGURO DE VIAJERO|30.00',
+      );
+      expect(
+        [
+          for (final i in ItemLineParser.extract([
+            '16/11/26 HOSPEDAJE 850.00',
+            '17/11/26 HOSPEDAJE 850.00',
+            'DESAYUNO 2 PAX 240.00',
+            'ESTACIONAMIENTO 100.00',
+            'TOTAL 2,040.00',
+          ]))
+            i.amountText,
+        ],
+        ['850.00', '850.00', '240.00', '100.00'],
+      );
+    });
+
+    test('payments printed without a minus, and under other names', () {
+      for (final payment in [
+        '18/11/26 TC VISA 4,300.00',
+        '18/11/26 PAGO EN LINEA 4,300.00',
+        '18/11/26 DEPOSITO EN GARANTIA 4,300.00',
+        '11/18/26 ADVANCE DEPOSIT 4,300.00',
+        '11/18/26 DISCOVER 4,300.00',
+      ]) {
+        expect(
+          priced([
+            '16/11/26 HABITACION 2,150.00',
+            '17/11/26 HABITACION 2,150.00',
+            payment,
+            'SALDO 0.00',
+          ]),
+          ['HABITACION|2,150.00', 'HABITACION|2,150.00'],
+          reason: payment,
+        );
+      }
+    });
+
+    test('taxes on a night under more labels; totals per day', () {
+      for (final tax in [
+        'HOTEL/MOTEL TAX 9.45',
+        'IMP. HOSP. 3% 64.50',
+        'IMP. S/HOSPEDAJE 64.50',
+      ]) {
+        expect(
+          priced([
+            '16/11/26 HABITACION 2,150.00',
+            '16/11/26 $tax',
+            '17/11/26 HABITACION 2,150.00',
+            '17/11/26 $tax',
+            'TOTAL 4,429.00',
+          ]),
+          ['HABITACION|2,150.00', 'HABITACION|2,150.00'],
+          reason: tax,
+        );
+      }
+      expect(
+        priced([
+          '16/11/26 HABITACION 2,150.00',
+          '16/11/26 RESTAURANTE 485.00',
+          'TOTAL DEL DIA 2,635.00',
+          '17/11/26 HABITACION 2,150.00',
+          '17/11/26 LAVANDERIA 260.00',
+          'TOTAL DEL DIA 2,410.00',
+          'TOTAL 5,045.00',
+        ]),
+        [
+          'HABITACION|2,150.00',
+          'RESTAURANTE|485.00',
+          'HABITACION|2,150.00',
+          'LAVANDERIA|260.00',
+        ],
+      );
+    });
+
+    test('a night with a percentage on its row is not the lodging tax', () {
+      expect(
+        [
+          for (final i in ItemLineParser.extract([
+            'HOSPEDAJE 2 NOCHES 10% DESC 3,870.00',
+            'TOTAL 3,870.00',
+          ]))
+            i.amountText,
+        ],
+        ['3,870.00'],
+      );
+    });
+
+    test('dates written year first', () {
+      expect(
+        priced([
+          '2026-11-16 HABITACION 2,150.00',
+          '2026-11-16 IVA 16% 344.00',
+          '2026-11-17 HABITACION 2,150.00',
+          '2026-11-17 IVA 16% 344.00',
+          'TOTAL 4,988.00',
+        ]),
+        ['HABITACION|2,150.00', 'HABITACION|2,150.00'],
+      );
+    });
+  });
+
+  group('round two: totals, taxes and fields', () {
+    test('a product named after a payment word', () {
+      expect(
+        priced([
+          'COCA COLA 600ML 18.00',
+          'TRANSFERENCIA DE SALDO TELCEL 100.00',
+          'SABRITAS 45G 19.00',
+          'TOTAL 137.00',
+        ]),
+        [
+          'COCA COLA 600ML|18.00',
+          'TRANSFERENCIA DE SALDO TELCEL|100.00',
+          'SABRITAS 45G|19.00',
+        ],
+      );
+    });
+
+    test('fuel levies and numbered tax rows are not items', () {
+      for (final levy in [
+        'I.D.P. Q 40.06',
+        'IDP SUPER Q 4.70 X GAL 40.06',
+        'IDP (4.70 X GALON) Q 40.06',
+      ]) {
+        expect(
+          priced([
+            'SUPER 8.524 31.49 268.42',
+            levy,
+            'TOTAL Q 268.42',
+            'EFECTIVO Q 300.00',
+          ]),
+          ['SUPER|268.42'],
+          reason: levy,
+        );
+      }
+      expect(
+        priced([
+          'GASOLINA REGULAR 10.000 3.89 38.90',
+          'FOVIAL 2.00',
+          'COTRANS 1.00',
+          'TOTAL 41.90',
+        ]),
+        ['GASOLINA REGULAR|38.90'],
+      );
+      expect(
+        priced([
+          '2 CHEESEBURGER 25.98',
+          '1 FRIES 4.50',
+          'TAX1 2.51',
+          'TOTAL 32.99',
+        ]),
+        ['CHEESEBURGER|25.98', 'FRIES|4.50'],
+      );
+    });
+
+    test('savings: a promotion row between items; a card saving at the end',
+        () {
+      expect(
+        priced([
+          'SHAMPOO PANTENE 400ML 89.00',
+          'SHAMPOO PANTENE 400ML 89.00',
+          'AHORRO 2X1 -89.00',
+          'PASTA DENTAL COLGATE 45.00',
+          'TOTAL 134.00',
+        ]).last,
+        'PASTA DENTAL COLGATE|45.00',
+      );
+      expect(
+        priced([
+          'LECHE SORIANA ENTERA 1L 24.00',
+          'PAN BLANCO SORIANA 38.00',
+          'AHORRO TARJETA SORIANA -6.00',
+          'SUBTOTAL 56.00',
+          'TOTAL 56.00',
+        ]),
+        ['LECHE SORIANA ENTERA 1L|24.00', 'PAN BLANCO SORIANA|38.00'],
+      );
+    });
+
+    test('fields with the colon lost, and a card voucher underneath', () {
+      expect(
+        read([
+          'PRODUCTO: MAGNA 87 OCT',
+          'CANTIDAD: 38.462 LTS',
+          r'PRECIO UNITARIO $23.89',
+          r'IMPORTE: $918.86',
+        ]),
+        ['38.462 LTS|MAGNA 87 OCT|918.86'],
+      );
+      expect(
+        read([
+          'PRODUCTO MAGNA 87 OCT',
+          'CANTIDAD 38.462 LTS',
+          r'PRECIO UNITARIO $23.89',
+          r'IMPORTE $918.86',
+          r'TOTAL $918.86',
+        ]),
+        ['38.462 LTS|MAGNA 87 OCT|918.86'],
+      );
+      expect(
+        read([
+          'PRODUCTO: MAGNA 87 OCT',
+          'CANTIDAD: 38.462 LTS',
+          r'PRECIO UNITARIO: $23.89',
+          r'IMPORTE: $918.86',
+          'TARJETA: ************1111',
+          'CONCEPTO: VENTA',
+          'AUTORIZACION: 123456',
+        ]),
+        ['38.462 LTS|MAGNA 87 OCT|918.86'],
+      );
+    });
+
+    test('counts in more wordings', () {
+      for (final count in [
+        '2 ARTS.',
+        'ART. VENDIDOS 2',
+        'NRO. ARTICULOS 2',
+        '2 ARTICULO(S)',
+        'ITEM COUNT 2',
+        'UNIDADES VENDIDAS 2',
+      ]) {
+        expect(
+          priced(['1 SHAMPOO 89.00', '1 JABON 22.00', count, 'TOTAL 111.00']),
+          ['SHAMPOO|89.00', 'JABON|22.00'],
+          reason: count,
+        );
+      }
+    });
+  });
+
+  group('round two: names and quantities', () {
+    test('a size or number that equals the quantity stays in the name', () {
+      expect(
+        read(['2 COCA COLA 2 L 30.00 60.00', 'TOTAL 60.00']),
+        ['2|COCA COLA 2 L|60.00'],
+      );
+      expect(
+        read(['1 AZUCAR ESTANDAR 1 KG 32.00 32.00', 'TOTAL 32.00']),
+        ['1|AZUCAR ESTANDAR 1 KG|32.00'],
+      );
+      expect(
+        read(['2 7501020540666 LECHE LALA 2 L 44.00 88.00', 'TOTAL 88.00']),
+        ['2|LECHE LALA 2 L|88.00'],
+      );
+      expect(
+        read([
+          '1 COMBO 1 89.00 89.00',
+          '2 COMBO 2 99.00 198.00',
+          '2 COMBO 3 109.00 218.00',
+          'TOTAL 505.00',
+        ]),
+        ['1|COMBO 1|89.00', '2|COMBO 2|198.00', '2|COMBO 3|218.00'],
+      );
+    });
+
+    test('the quantity in front and again as "2 x 55.00"', () {
+      expect(
+        read(['2 CERVEZA CORONA 2 x 55.00 110.00', 'TOTAL 110.00']),
+        ['2|CERVEZA CORONA|110.00'],
+      );
+      expect(
+        read(['2 POLAND SPRING WTR 1L 2 @ 2.25 4.50', 'TOTAL 4.50']),
+        ['2|POLAND SPRING WTR 1L|4.50'],
+      );
+      expect(
+        read(['3 TACO PASTOR 3 x 22.00 66.00', 'TOTAL 66.00']),
+        ['3|TACO PASTOR|66.00'],
+      );
+    });
+
+    test('"x2" after a barcode is the quantity when the row says so', () {
+      expect(
+        read(['7501055300075 COCA COLA 600ML x2 18.00 36.00', 'TOTAL 36.00']),
+        ['2|COCA COLA 600ML|36.00'],
+      );
+      expect(
+        read([
+          '7501055300075 COCA COLA 600ML x2 36.00',
+          '7501000111111 GALLETAS MARIAS x1 15.00',
+          'TOTAL 51.00',
+        ]),
+        ['2|COCA COLA 600ML|36.00', '1|GALLETAS MARIAS|15.00'],
+      );
+    });
+
+    test('a pack size beside a quantity that explains the total', () {
+      expect(
+        read(['2 CERVEZA CORONA X6 159.00 318.00', 'TOTAL 318.00']),
+        ['2|CERVEZA CORONA X6|318.00'],
+      );
+      expect(
+        read(['1 YAKULT X5 45.00 45.00', 'TOTAL 45.00']),
+        ['1|YAKULT X5|45.00'],
+      );
+    });
+
+    test('a quantity with decimals before a dish sold by the litre', () {
+      expect(
+        read(['2.00 LITRO DE HORCHATA 70.00', 'TOTAL 70.00']),
+        ['2|LITRO DE HORCHATA|70.00'],
+      );
+    });
+
+    test('numbers that climb but multiply out are quantities', () {
+      expect(
+        read([
+          '1 7501055300075 COCA COLA 600ML 18.00 18.00',
+          '2 7501000111111 GALLETAS MARIAS 15.00 30.00',
+          '3 7501031311309 YOGHURT FRESA 12.00 36.00',
+          'TOTAL 84.00',
+        ]).map((line) => line.split('|').first),
+        ['1', '2', '3'],
+      );
+      expect(
+        read([
+          '001 AGUA MINERAL 30.00 30.00',
+          '002 TACO PASTOR 22.00 44.00',
+          'TOTAL 74.00',
+        ]),
+        ['1|AGUA MINERAL|30.00', '2|TACO PASTOR|44.00'],
+      );
+    });
+
+    test('quantity after the name: with a discount column, with decimals',
+        () {
+      expect(
+        read(['PARACETAMOL 500MG 2 45.00 9.00 81.00', 'TOTAL 81.00']),
+        ['2|PARACETAMOL 500MG|81.00'],
+      );
+      expect(
+        read(['TACO PASTOR 2.00 22.00 44.00', 'TOTAL 44.00']),
+        ['2|TACO PASTOR|44.00'],
+      );
+    });
+
+    test('a note that begins with a number keeps it', () {
+      expect(
+        priced(['1 ALITAS 169.00', '10 PIEZAS BBQ', 'TOTAL 169.00']),
+        ['ALITAS|169.00', '10 PIEZAS BBQ|'],
+      );
+    });
+  });
 }

@@ -803,7 +803,36 @@ class ReceiptTextParser {
       _taxStatus.hasMatch(row) ||
       _request.hasMatch(row) ||
       _pricedRow.hasMatch(row) ||
-      _maskedNumber.hasMatch(row);
+      _maskedNumber.hasMatch(row) ||
+      _bareOutlet.hasMatch(row) ||
+      _loneSuffix.hasMatch(row);
+
+  /// The outlet of a hotel or the kind of place, with no name of its own:
+  /// "RESTAURANTE", "BAR", "LOBBY BAR", "ROOM SERVICE".
+  static final RegExp _bareOutlet = RegExp(
+    r'^\W*(?:restaurante?|bar|lobby\s+bar|pool\s+bar|snack\s+bar|'
+    r'sports\s+bar|room\s+service|servicio\s+a\s+(?:la\s+)?habitaci[oó]n|'
+    r'cafeter[ií]a|alimentos\s+y\s+bebidas)\W*$',
+    caseSensitive: false,
+  );
+
+  /// The end of a company name printed on a row of its own: "SA DE CV",
+  /// "S.A. DE C.V.", "S DE RL DE CV", "LTDA".
+  static final RegExp _loneSuffix = RegExp(
+    r'^\W*(?:s\.?\s?a\.?(?:\s?p\.?\s?i\.?)?(?:\s?b\.?)?\s+de\s+c\.?\s?v\.?|'
+    r's\.?\s+de\s+r\.?\s?l\.?(?:\s+de\s+c\.?\s?v\.?)?|s\.?\s?a\.?\s?s\.?|'
+    r's\.\s?a\.|ltda\.?|inc\.?|llc)\W*$',
+    caseSensitive: false,
+  );
+
+  static final RegExp _merchantLabelWord = RegExp(
+    r'nombre\s+(?:comercial|del\s+(?:comercio|establecimiento))|comercio|'
+    r'establecimiento|negocio|merchant',
+    caseSensitive: false,
+  );
+
+  /// A label with its value on the next row: "DESTINO:", "CLIENTE:".
+  static final RegExp _bareLabel = RegExp(r'^\W*[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .]{1,30}:\s*$');
 
   /// More parts of an address, beside a number or a comma ("ZONA 10",
   /// "LOCAL 23 PB", "KM 16.5", "PISO 2", "DIAGONAL 6 10-01").
@@ -852,14 +881,13 @@ class ReceiptTextParser {
 
   /// "HOTEL EJEMPLO CANCUN", "CAFE COLOMBIA", "TACOS MEXICO": a business
   /// called after its town or country. With no number or comma on the row
-  /// it is a name, not an address.
+  /// it is a name, not an address. Only words that say what kind of place
+  /// it is: "TIENDA GUADALAJARA CENTRO" is a branch, "GRUPO ... DE MEXICO"
+  /// a company, "CLUB DE GOLF MEXICO" a neighbourhood.
   static final RegExp _businessStart = RegExp(
-    r'^\W*(?:hotel(?:es)?|hostal|posada|motel|caf[eé]|cafeter[ií]a|'
-    r'restaurante?|bar|cantina|tacos|taquer[ií]a|pizzer[ií]a|pizza|'
-    r'farmacia|panader[ií]a|pasteler[ií]a|mariscos|tortas|sushi|burger|'
-    r'grupo|super|supermercado|tienda|abarrotes|gasolinera|carnitas|'
-    r'pollos?|birria|antojitos|cocina|fonda|comedor|lavander[ií]a|'
-    r'ferreter[ií]a|papeler[ií]a|librer[ií]a|museo|club)\s+\S',
+    r'^\W*(?:hotel|hostal|posada|motel|caf[eé]|cafeter[ií]a|restaurante?|'
+    r'cantina|tacos|taquer[ií]a|pizzer[ií]a|pizza|farmacia|panader[ií]a|'
+    r'pasteler[ií]a|mariscos|tortas|sushi|burger|museo)\s+\S',
     caseSensitive: false,
   );
 
@@ -944,6 +972,14 @@ class ReceiptTextParser {
           rows[i - 1].trimRight().endsWith(',')) {
         continue; // the customer's name, not the shop's
       }
+      // The value under a bare label ("DESTINO:" / "HOTEL EJEMPLO CANCUN",
+      // "CLIENTE:" / a company) is where to or for whom, not the shop.
+      if (named == null &&
+          i > 0 &&
+          _bareLabel.hasMatch(rows[i - 1]) &&
+          !_merchantLabelWord.hasMatch(rows[i - 1])) {
+        continue;
+      }
       if (_datesIn(row).isNotEmpty) continue;
 
       var score = named != null ? 1.5 : 1.0 - place * 0.08;
@@ -954,10 +990,12 @@ class ReceiptTextParser {
       // "PACHUCA S. DE R.L DE C.V"): the first half is the legal name too.
       final dangling =
           RegExp(r'\s(de|del|y|e|&)$', caseSensitive: false).hasMatch(row);
+      // Or with only the suffix on the next row ("GRUPO EJEMPLO DE MEXICO"
+      // / "SA DE CV").
       final legal = _legalSuffix.hasMatch(row) ||
-          (dangling &&
-              i + 1 < rows.length &&
-              _legalSuffix.hasMatch(rows[i + 1].trim()));
+          (i + 1 < rows.length &&
+              (_loneSuffix.hasMatch(rows[i + 1].trim()) ||
+                  (dangling && _legalSuffix.hasMatch(rows[i + 1].trim()))));
       if (legal) score *= 0.9;
       if (dangling && !legal) score *= 0.6;
       if (row.length > 40) score *= 0.6;
@@ -1096,7 +1134,7 @@ class ReceiptTextParser {
   static final RegExp _dayMonthName = RegExp(
     r'\b(\d{1,2})(?:st|nd|rd|th)?[\s\-/.]*(de\s+)?([A-Za-zÁÉÍÓÚáéíóú0]{3,10})\.?'
     r"([\s\-/.,'’`´]*)(del?\s+)?(\d{4}|\d{2})\b"
-    r'(?![:.]\d)(?!,\d(?!\d:\d{2}))',
+    r'(?![:.]\d)(?!,\d(?!\d?[:.]\d{2}))',
     caseSensitive: false,
   );
 
@@ -1106,7 +1144,7 @@ class ReceiptTextParser {
   static final RegExp _monthNameDay = RegExp(
     r'\b([A-Za-z]{3,10})\.?(?:\s+(\d{1,2})(?:st|nd|rd|th)?'
     r'(?:\s*,\s*|\s+del?\s+|\s+)|-(\d{1,2})-|/(\d{1,2})/)(\d{4})\b'
-    r'(?![:.]\d)(?!,\d(?!\d:\d{2}))',
+    r'(?![:.]\d)(?!,\d(?!\d?[:.]\d{2}))',
     caseSensitive: false,
   );
 
@@ -1137,6 +1175,7 @@ class ReceiptTextParser {
     r'\bres\.?\s*(dian|no\b|n[uú]m|n[°º])|rango\s*autorizado|numeraci[oó]n|'
     r'fecha\s*(de\s*)?autorizaci[oó]n|\bhasta\b|\buntil\b|\bdesde\b|'
     r'\bsince\b|\bentrega\b|best\s*before|use\s*by|pr[oó]xim[oa]|'
+    r'\bdeliver(?:y|ed)\b|\bshipp?(?:ed|ing)\b|\bestimated\b|\barriv(?:al|es|ing)\b|'
     r'fecha\s*(del?\s*)?(viaje|vuelo)|(travel|flight)\s*date',
     caseSensitive: false,
   );
