@@ -157,4 +157,138 @@ void main() {
       );
     });
   });
+
+  group('round three: the shop', () {
+    test('the name under a label that says who sells', () {
+      for (final label in [
+        'Emisor:',
+        'Vendedor:',
+        'Sold by:',
+        'RAZON SOCIAL:',
+        'VENDIDO POR:',
+        'EMPRESA:',
+        'Comercio:',
+      ]) {
+        expect(
+          shop([
+            label,
+            'CAFE EJEMPLO, S.A.',
+            '20/11/2026',
+            '1 CAPUCCINO 24.00',
+            'TOTAL 24.00',
+          ]),
+          'cafe ejemplo',
+          reason: label,
+        );
+      }
+    });
+
+    test('a slogan or branch under a legal suffix on its own row', () {
+      expect(
+        shop(['FERRETERIA EJEMPLO', 'S.A. DE C.V.', 'TODO PARA LA CONSTRUCCION']),
+        'ferreteria ejemplo',
+      );
+      expect(
+        shop(['FARMACIA EJEMPLO', 'S.A. DE C.V.', 'PLAZA LAS AMERICAS']),
+        'farmacia ejemplo',
+      );
+    });
+
+    test('a hotel printed under the company is where the ride goes', () {
+      expect(
+        shop(['TRANSFERS EJEMPLO SA DE CV', 'HOTEL EJEMPLO CANCUN']),
+        'transfers ejemplo',
+      );
+    });
+
+    test('the kind of place on one row, its name with a town on the next',
+        () {
+      expect(
+        shop([
+          'RESTAURANTE',
+          'LA EJEMPLO DE OAXACA',
+          '19/11/2026',
+          '1 MOLE NEGRO 185.00',
+          'TOTAL 185.00',
+        ]),
+        'la ejemplo de oaxaca',
+      );
+      expect(
+        shop(['CASA EJEMPLO OAXACA', 'RESTAURANTE', 'TOTAL 260.00']),
+        'casa ejemplo oaxaca',
+      );
+    });
+
+    test('a wine shop is not a car hire firm', () {
+      expect(shop(['LA EUROPEA', 'TOTAL 1,312.00']), 'la europea');
+    });
+  });
+
+  group('round three: the amount paid', () {
+    test('a discount under the subtotal: the total is the smaller figure', () {
+      expect(
+        parse([
+          'TIENDA EJEMPLO',
+          r'Subtotal $2,297.00',
+          r'Descuento -$229.70',
+          r'Total $2,067.30',
+        ]).amountMinor,
+        206730,
+      );
+      expect(
+        parse([
+          'TIENDA EJEMPLO',
+          'SUBTOTAL 2,297.00',
+          'DESCUENTO 229.70',
+          'TOTAL 2,067.30',
+        ]).amountMinor,
+        206730,
+      );
+      // A tip misread as the total is still refused.
+      expect(
+        parse(['FONDA', 'SUBTOTAL 475.00', 'PROPINA 71.25', 'TOTAL 71.25'])
+            .amountMinor,
+        47500,
+      );
+    });
+
+    test('a year, a comma and the time are not money', () {
+      final p = parse([
+        'Rappi',
+        r'Subtotal MX$506.00',
+        r'Promoción -MX$151.80',
+        r'Total MX$412.50',
+        '19 nov 2026, 21:14',
+      ]);
+      expect(p.amountMinor, 41250);
+      expect(p.date, DateTime(2026, 11, 19));
+    });
+
+    test('a price for each hour is not what was paid', () {
+      expect(
+        parse([
+          'ESTACIONAMIENTO EJEMPLO',
+          r'TARIFA: $20.00 X HORA',
+          r'IMPORTE: $60.00',
+        ]).amountMinor,
+        6000,
+      );
+    });
+
+    test('how many travel is not the shop', () {
+      expect(
+        shop([
+          'TRANSFERS EJEMPLO SA DE CV',
+          'RFC XXX010101AB1',
+          'RECIBO DE TRASLADO',
+          '14/11/2026 15:40',
+          'HOTEL EJEMPLO CANCUN',
+          '2 PASAJEROS',
+          r'TRASLADO PRIVADO SENCILLO $650.00',
+          r'TOTAL $650.00',
+        ]),
+        'transfers ejemplo',
+      );
+    });
+  });
 }

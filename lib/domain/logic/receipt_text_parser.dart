@@ -156,6 +156,10 @@ class ReceiptTextParser {
         (m) {
           final word = row.lastIndexOf(' ', m.start) + 1;
           if (row.startsWith('@', word)) return m[0]!;
+          // "19 nov 2026, 21:14": a year, a comma and the time.
+          if (RegExp(r'^\d?:\d{2}(?!\d)').hasMatch(row.substring(m.end))) {
+            return m[0]!;
+          }
           return m[1] != null
               ? '${m[1]}${m[2]}${m[3]}'
               : '${m[4]}${m[5]}${m[6]}';
@@ -687,7 +691,6 @@ class ReceiptTextParser {
     ('costacoffee', 'Costa Coffee'),
     ('sanborns', 'Sanborns'),
     ('marriott', 'Marriott'),
-    ('europcar', 'Europcar'),
     ('aeromexico', 'Aeroméxico'),
     ('mcdonalds', "McDonald's"),
     ('burgerking', 'Burger King'),
@@ -805,7 +808,15 @@ class ReceiptTextParser {
       _pricedRow.hasMatch(row) ||
       _maskedNumber.hasMatch(row) ||
       _bareOutlet.hasMatch(row) ||
-      _loneSuffix.hasMatch(row);
+      _loneSuffix.hasMatch(row) ||
+      _headCount.hasMatch(row);
+
+  /// "2 PASAJEROS", "3 ADULTOS", "4 PAX": how many people.
+  static final RegExp _headCount = RegExp(
+    r'^\W*\d{1,2}\s+(?:pasajeros?|pax|personas?|adultos?|ni[ñn]os?|menores|'
+    r'passengers?|guests?|adults?|maletas?)\b',
+    caseSensitive: false,
+  );
 
   /// The outlet of a hotel or the kind of place, with no name of its own:
   /// "RESTAURANTE", "BAR", "LOBBY BAR", "ROOM SERVICE".
@@ -825,14 +836,16 @@ class ReceiptTextParser {
     caseSensitive: false,
   );
 
-  static final RegExp _merchantLabelWord = RegExp(
-    r'nombre\s+(?:comercial|del\s+(?:comercio|establecimiento))|comercio|'
-    r'establecimiento|negocio|merchant',
+  /// A label whose value, on the next row, is where to or for whom:
+  /// "DESTINO:", "CLIENTE:", "Bill to:". Labels that say who sells
+  /// ("Emisor:", "Vendido por:", "Sold by:") are not among them.
+  static final RegExp _bareLabel = RegExp(
+    r'^\W*(?:destino|origen|cliente|receptor|hu[eé]sped|pasajeros?|'
+    r'nombre(?:\s+del?\s+cliente)?|facturar\s+a|entregar\s+(?:a|en)|'
+    r'direcci[oó]n(?:\s+de\s+entrega)?|bill(?:ed)?\s+to|ship(?:ped)?\s+to|'
+    r'sold\s+to|deliver(?:ed)?\s+to|guest|customer|destination|to)\s*:\s*$',
     caseSensitive: false,
   );
-
-  /// A label with its value on the next row: "DESTINO:", "CLIENTE:".
-  static final RegExp _bareLabel = RegExp(r'^\W*[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .]{1,30}:\s*$');
 
   /// More parts of an address, beside a number or a comma ("ZONA 10",
   /// "LOCAL 23 PB", "KM 16.5", "PISO 2", "DIAGONAL 6 10-01").
@@ -891,19 +904,29 @@ class ReceiptTextParser {
     caseSensitive: false,
   );
 
-  static bool _namedAfterPlace(String row) =>
-      _businessStart.hasMatch(row) && !RegExp(r'[\d,]').hasMatch(row);
 
   /// Address lines name places and streets ("CHACAO CARACAS (CHACAO)
   /// MIRANDA", "C.EJEMPLO, L.1, COL.CENTRO", "ZONA 10", "1234 EXAMPLE ST",
   /// "HOUSTON, TX 77002", "ZAPOPAN, JALISCO").
-  static bool _isAddress(String row) =>
-      (Countries.detectInText(row) != null && !_namedAfterPlace(row)) ||
-      ((_addressRow.hasMatch(row) || _placeWord.hasMatch(row)) &&
-          RegExp(r'[\d,]').hasMatch(row)) ||
-      _streetNumber.hasMatch(row) ||
-      _postcode.hasMatch(row) ||
-      _regionTail.hasMatch(row);
+  ///
+  /// A row that only names a town or country is spared when it reads as a
+  /// business called after the place ("HOTEL EJEMPLO CANCUN") and no name
+  /// stands above it ([named]), or when the kind of place is printed on the
+  /// row next to it ("RESTAURANTE" / "LA EJEMPLO DE OAXACA", [byOutlet]).
+  static bool _isAddress(
+    String row, {
+    bool named = true,
+    bool byOutlet = false,
+  }) {
+    final spared = !RegExp(r'[\d,]').hasMatch(row) &&
+        (byOutlet || (named && _businessStart.hasMatch(row)));
+    return (Countries.detectInText(row) != null && !spared) ||
+        ((_addressRow.hasMatch(row) || _placeWord.hasMatch(row)) &&
+            RegExp(r'[\d,]').hasMatch(row)) ||
+        _streetNumber.hasMatch(row) ||
+        _postcode.hasMatch(row) ||
+        _regionTail.hasMatch(row);
+  }
 
   /// The rows the name can be on: the top eight with words in them (rules
   /// ("=====") and stray marks from a QR code do not use up the window),
@@ -935,6 +958,8 @@ class ReceiptTextParser {
     var bestScore = 0.0;
     String? plain;
     var plainScore = 0.0;
+    // Whether a name has already been found above the row at hand.
+    var seen = false;
     final top = _headerRows(rows);
     var maxHeight = 0.0;
     for (final i in top) {
@@ -966,7 +991,14 @@ class ReceiptTextParser {
           RegExp('[A-Za-z]{2}').hasMatch(w))) {
         continue;
       }
-      if (!_legalSuffix.hasMatch(row) && _isAddress(row)) continue;
+      final byOutlet = (i > 0 &&
+              _bareOutlet.hasMatch(_cleanCandidate(rows[i - 1]))) ||
+          (i + 1 < rows.length &&
+              _bareOutlet.hasMatch(_cleanCandidate(rows[i + 1])));
+      if (!_legalSuffix.hasMatch(row) &&
+          _isAddress(row, named: !seen, byOutlet: byOutlet)) {
+        continue;
+      }
       if (i > 0 &&
           _greeting.hasMatch(rows[i - 1]) &&
           rows[i - 1].trimRight().endsWith(',')) {
@@ -974,13 +1006,11 @@ class ReceiptTextParser {
       }
       // The value under a bare label ("DESTINO:" / "HOTEL EJEMPLO CANCUN",
       // "CLIENTE:" / a company) is where to or for whom, not the shop.
-      if (named == null &&
-          i > 0 &&
-          _bareLabel.hasMatch(rows[i - 1]) &&
-          !_merchantLabelWord.hasMatch(rows[i - 1])) {
+      if (named == null && i > 0 && _bareLabel.hasMatch(rows[i - 1])) {
         continue;
       }
       if (_datesIn(row).isNotEmpty) continue;
+      seen = true;
 
       var score = named != null ? 1.5 : 1.0 - place * 0.08;
       // Big print helps a little, but a heading ("PRECUENTA") is often the
@@ -990,12 +1020,10 @@ class ReceiptTextParser {
       // "PACHUCA S. DE R.L DE C.V"): the first half is the legal name too.
       final dangling =
           RegExp(r'\s(de|del|y|e|&)$', caseSensitive: false).hasMatch(row);
-      // Or with only the suffix on the next row ("GRUPO EJEMPLO DE MEXICO"
-      // / "SA DE CV").
       final legal = _legalSuffix.hasMatch(row) ||
-          (i + 1 < rows.length &&
-              (_loneSuffix.hasMatch(rows[i + 1].trim()) ||
-                  (dangling && _legalSuffix.hasMatch(rows[i + 1].trim()))));
+          (dangling &&
+              i + 1 < rows.length &&
+              _legalSuffix.hasMatch(rows[i + 1].trim()));
       if (legal) score *= 0.9;
       if (dangling && !legal) score *= 0.6;
       if (row.length > 40) score *= 0.6;
@@ -1724,11 +1752,27 @@ class ReceiptTextParser {
   static final RegExp _includedNote =
       RegExp(r'\binc(?:l\w*|\b)', caseSensitive: false);
 
+  /// Money taken off under the subtotal: "DESCUENTO -229.70", "Promoción
+  /// -MX\$151.80", "CUPON", "AHORRO".
+  static final RegExp _offSubtotal = RegExp(
+    r'^\W*(?:descuentos?|desc\.|dcto\.?|dscto\.?|promoci[oó]n|promo\b|ahorro|'
+    r'cup[oó]n|bonificaci[oó]n|rebaja|discount|coupon|savings?)',
+    caseSensitive: false,
+  );
+
+  /// A price for each hour, day or litre: "TARIFA: \$20.00 X HORA". Not
+  /// what was paid.
+  static final RegExp _rateRow = RegExp(
+    r'\d\s*(?:x|por|per|/)\s*(?:hora|hr|hour|d[ií]a|day|fracci[oó]n|minuto|'
+    r'min|km|litro|gal[oó]n)\b',
+    caseSensitive: false,
+  );
+
   /// Whether [row] cannot be the bill's total: a subtotal, or a row with a
   /// percentage (a tax, or a tip suggestion such as "15% $71.25 TOTAL
   /// $546.25") unless that percentage is only the tax-included note.
   bool _isNotTotal(String row) {
-    if (_subtotalRow.hasMatch(row)) return true;
+    if (_subtotalRow.hasMatch(row) || _rateRow.hasMatch(row)) return true;
     if (!_notTotal.hasMatch(row)) return false;
     return !(_taxRow.hasMatch(row) &&
         _includedNote.hasMatch(row) &&
@@ -2034,8 +2078,22 @@ class ReceiptTextParser {
     final computed = subtotal > 0 && sawTax ? subtotal + tax : null;
     final paidNet = [for (final p in paid) p - change];
 
-    // The subtotal is a floor: a "total" below it is a misread (often the tip).
-    final candidates = _keywordTotals(rows, exponent, subtotal);
+    // The subtotal is a floor: a "total" below it is a misread (often the
+    // tip). A discount printed under the subtotal lowers that floor
+    // ("SUBTOTAL 2,297.00" / "DESCUENTO -229.70" / "TOTAL 2,067.30").
+    var discount = 0;
+    var underSubtotal = false;
+    for (final row in rows) {
+      if (_subtotalRow.hasMatch(row)) {
+        underSubtotal = true;
+        continue;
+      }
+      if (!underSubtotal || !_offSubtotal.hasMatch(row)) continue;
+      final v = _lastAmount(row.replaceAll('-', ' '), exponent);
+      if (v != null && v > 0) discount += v;
+    }
+    final floor = discount < subtotal ? subtotal - discount : subtotal;
+    final candidates = _keywordTotals(rows, exponent, floor);
     // Tips and service charges printed on their own rows: the gap between
     // the items (or the subtotal) and a total that includes them.
     var tips = 0;

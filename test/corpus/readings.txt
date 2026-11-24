@@ -1,0 +1,2148 @@
+=== 1 mx-rest-01 qty first, legal suffix on own row
+  La Casona Ejemplo | 2026-11-21 | 80700 MXN
+  2|SOPA DE TORTILLA|178.00
+  1|ENCHILADAS SUIZAS|165.00
+  1|ARRACHERA 300 GR|289.00
+  2|AGUA MINERAL 600ML|90.00
+  1|FLAN NAPOLITANO|85.00
+=== 2 mx-rest-02 columns cant desc p.unit importe
+  Restaurante el Fogon Ejemplo | 2026-11-20 | 111550 MXN
+  2|TACOS DE COCHINITA|190.00
+  1|GUACAMOLE|120.00
+  3|CERVEZA MODELO 355ML|195.00
+  1|FILETE DE PESCADO|245.00
+  2|COPA VINO TINTO 150ML|220.00
+=== 3 mx-rest-03 name row then qty x unit total
+  Cafe y Restaurante Ejemplo | 2026-11-19 | 51920 MXN
+  2|CHILAQUILES VERDES|196.00
+  2|JUGO DE NARANJA 500ML|90.00
+  3|CAFE AMERICANO|114.00
+  4|PAN DULCE|72.00
+=== 4 mx-rest-04 pre-cuenta
+  Mariscos el Ejemplo | 2026-11-22 | 160000 MXN
+  1|CEVICHE DE CAMARON|189.00
+  2|TOSTADA DE ATUN|178.00
+  1|PESCADO ZARANDEADO 1 KG|520.00
+  4|CERVEZA PACIFICO|220.00
+  1|LIMONADA MINERAL 1 L|95.00
+  2|AGUACHILE VERDE|398.00
+=== 5 mx-rest-05 modifiers under items
+  Hamburguesas Ejemplo Grill | 2026-11-18 | 64600 MXN
+  1|HAMBURGUESA CLASICA|165.00
+  |TERMINO MEDIO|
+  |SIN CEBOLLA|
+  1|HAMBURGUESA BBQ|185.00
+  |TOCINO EXTRA|25.00
+  |TERMINO 3/4|
+  2|PAPAS A LA FRANCESA|110.00
+  1|MALTEADA VAINILLA|85.00
+  |CAMBIO L. LIGHT|
+  2|REFRESCO 355ML|76.00
+=== 6 mx-rest-06 numbered dishes with quantity column
+  Alitas y Costillas Ejemplo | 2026-11-17 | 103200 MXN
+  1|12 ALITAS BBQ|189.00
+  2|COMBO 2|298.00
+  1|3 LECHES|75.00
+  2|7UP 600ML|60.00
+  1|1/2 COSTILLAR|245.00
+  3|CERVEZA INDIO|165.00
+=== 7 mx-rest-07 discounts and a zero discount
+  Restaurante Ejemplo del Puerto | 2026-11-23 | 66000 MXN
+  2|MOJARRA FRITA|360.00
+  |PROMO 2X1|-180.00
+  1|ARROZ A LA TUMBADA|245.00
+  2|AGUA DE JAMAICA|70.00
+  1|COCTEL DE CAMARON GDE|165.00
+=== 8 mx-fonda-01 comida corrida
+  Fonda Doña Ejemplo | 2026-11-21 | 33000 MXN
+  2|COMIDA CORRIDA|170.00
+  1|MILANESA CON PAPAS|95.00
+  1|AGUA DEL DIA 1 L|35.00
+  3|TORTILLAS EXTRA|15.00
+  1|GELATINA|15.00
+=== 9 mx-fonda-02 whole prices with dollar sign
+  Cocina Ejemplo | 2026-11-22 | 30500 MXN
+  3|SOPES|60
+  2|HUARACHE|90
+  1|POZOLE GRANDE|95
+  2|AGUA 1 LITRO|60
+=== 10 mx-taq-01 quantity after name as xN
+  Taqueria el Ejemplo | 2026-11-22 | 31000 MXN
+  5|TACO PASTOR|90.00
+  3|TACO SUADERO|60.00
+  1|GRINGA|65.00
+  1|AGUA HORCHATA 1 L|45.00
+  2|REFRESCO|50.00
+=== 11 mx-taq-02 name qty unit total
+  Tacos Ejemplo | 2026-11-16 | 32400 MXN
+  5|TACO AL PASTOR|90.00
+  3|TACO DE BISTEC|66.00
+  2|QUESADILLA|90.00
+  1|VOLCAN|28.00
+  2|AGUA FRESCA 500ML|50.00
+=== 12 mx-cafe-01 sizes in ounces
+  Cafe Ejemplo | 2026-11-21 | 21500 MXN
+  1|AMERICANO 12 OZ|48.00
+  1|LATTE 16 OZ|68.00
+  |LECHE DE AVENA|12.00
+  1|CROISSANT|45.00
+  1|PANQUE DE PLATANO|42.00
+=== 13 mx-bakery-01 pieces
+  Panaderia Ejemplo | 2026-11-20 | 15900 MXN
+  3|CONCHA|45.00
+  2|CUERNITO|30.00
+  1|PAN DE ELOTE|38.00
+  6|BOLILLO|18.00
+  1|LECHE 1 L|28.00
+=== 14 mx-bar-01 measures in names
+  Bar Ejemplo | 2026-11-21 | 121900 MXN
+  2|CERVEZA CORONA 355ML|110.00
+  1|CUBETA 6 CERVEZAS|330.00
+  2|TEQUILA DON EJEMPLO 1.5OZ|240.00
+  1|MEZCAL 2 OZ|150.00
+  1|BOTANA MIXTA|185.00
+  1|BOTELLA AGUA 1.5 L|45.00
+=== 15 mx-cantina-01 name qty unit total with a free item
+  Cantina la Ejemplo | 2026-11-20 | 74500 MXN
+  4|CERVEZA VICTORIA|220.00
+  2|CALDO DE CAMARON|170.00
+  1|TORTA DE PIERNA|95.00
+  2|TEQUILA DOBLE|260.00
+  2|SANGRITA|0.00
+=== 16 mx-fastfood-01 combos
+  Burger Ejemplo | 2026-11-21 | 36200 MXN
+  1|COMBO 3 DOBLE QUESO|139.00
+  |PAPAS GRANDES|
+  |REFRESCO GRANDE|
+  1|COMBO 1 CLASICA|119.00
+  |PAPAS MEDIANAS|
+  |COCA COLA MEDIANA|
+  1|NUGGETS 10 PZAS|89.00
+  1|CONO VAINILLA|15.00
+=== 17 mx-chicken-01 pieces under a bucket
+  Pollo Frito Ejemplo | 2026-11-22 | 56100 MXN
+  1|CUBETA FAMILIAR|329.00
+  |12 PIEZAS|
+  |RECETA ORIGINAL|
+  1|PURE GRANDE|59.00
+  1|ENSALADA COL GDE|59.00
+  6|BISQUETS|72.00
+  1|PEPSI 2 L|42.00
+=== 18 mx-pizza-01 delivery ticket
+  Pizzas Ejemplo | 2026-11-21 | 54300 MXN
+  1|PIZZA GRANDE PEPPERONI|219.00
+  1|PIZZA MEDIANA HAWAIANA|179.00
+  |MITAD MEXICANA|
+  1|ORDEN PAN DE AJO 8 PZAS|65.00
+  1|REFRESCO 2 L|45.00
+  |ENVIO|35.00
+=== 19 mx-sushi-01
+  Sushi Ejemplo | 2026-11-19 | 59600 MXN
+  2|ROLLO CALIFORNIA 10 PZAS|258.00
+  1|EDAMAMES|79.00
+  1|YAKIMESHI MIXTO|135.00
+  1|TE VERDE 500ML|39.00
+  1|CALPICO 1 L|85.00
+=== 20 mx-juice-01
+  Jugos y Licuados Ejemplo | 2026-11-20 | 26500 MXN
+  1|JUGO NARANJA 1 L|60.00
+  1|JUGO VERDE 500ML|40.00
+  2|LICUADO FRESA 1/2 L|70.00
+  1|TORTA JAMON|45.00
+  1|COCTEL DE FRUTAS GDE|50.00
+=== 21 mx-hotel-rest-01 outlet row between hotel and name
+  Hotel Ejemplo Cancun | 2026-11-21 | 108100 MXN
+  2|BUFFET DESAYUNO|780.00
+  1|JUGO VERDE|85.00
+  1|CAPUCHINO|75.00
+=== 22 mx-hotel-bar-01 lobby bar
+  Hotel Ejemplo Reforma | 2026-11-20 | 74000 MXN
+  2|MARGARITA CLASICA|360.00
+  1|CERVEZA ARTESANAL 355 ML|120.00
+  1|GUACAMOLE CON TOTOPOS|165.00
+  1|AGUA EVIAN 750ML|95.00
+=== 23 mx-roomservice-01
+  Gran Hotel Ejemplo | 2026-11-22 | 87841 MXN
+  1|CLUB SANDWICH|245.00
+  1|SOPA DE TORTILLA|135.00
+  2|COCA COLA 355ML|110.00
+  1|PASTEL DE CHOCOLATE|125.00
+=== 24 mx-folio-01 two nights
+  Hotel Ejemplo Oaxaca | 2026-11-21 | 560200 MXN
+  |HABITACION|2,150.00
+  |HABITACION|2,150.00
+  |RESTAURANTE|485.00
+=== 25 mx-folio-02 three nights with extras and a breakdown
+  Hotel Ejemplo Playa | 2026-11-21 | 750700 MXN
+  |RENTA HABITACION|1,800.00
+  |SANEAMIENTO AMBIENTAL|76.00
+  |RENTA HABITACION|1,800.00
+  |SANEAMIENTO AMBIENTAL|76.00
+  |BAR ALBERCA|340.00
+  |RENTA HABITACION|1,800.00
+  |SANEAMIENTO AMBIENTAL|76.00
+  |MINIBAR|185.00
+  |LAVANDERIA|220.00
+=== 26 mx-kiosk-01
+  Ejemplo Burgers | 2026-11-21 | 27300 MXN
+  1|COMBO 4 POLLO CRISPY|135.00
+  |PAPAS MEDIANAS|
+  |SPRITE MEDIANO|
+  1|HAMBURGUESA SENCILLA|55.00
+  2|PAY DE MANZANA|58.00
+  1|AGUA 600 ML|25.00
+=== 27 mx-delivery-01 app e-mail with a label row
+  Ejemplo Eats | 2026-11-21 | 39230 MXN
+  2|Tacos al pastor (orden de 5)|190.00
+  1|Quesadilla de flor de calabaza|65.00
+  1|Agua de horchata 1 L|48.00
+=== 28 mx-cardreader-01 terminal slip listing items
+  Cafeteria Ejemplo | 2026-11-21 | 24750 MXN
+  1|CAPUCHINO GRANDE|62.00
+  1|BAGEL SALMON|115.00
+  1|JUGO NARANJA 355ML|48.00
+=== 29 mx-rest-ocr-01 mild OCR damage
+  Rest Aurante Ejemplo | 2026-11-21 | 117000 MXN
+  1|SOPA AZTECA|85.00
+  2|TACOS ARRACHERA|190.00
+  1|AGUA MINERAL 6OOML|45.00
+  1|FLAN|65.00
+=== 30 gt-rest-01 quetzales with tip
+  Restaurante Ejemplo Antigua | 2026-11-20 | 47080 GTQ
+  2|PEPIAN DE POLLO|170.00
+  1|CHURRASCO 8 OZ|145.00
+  2|LIMONADA CON SODA|50.00
+  1|CERVEZA GALLO 355ML|28.00
+  1|RELLENITOS|35.00
+=== 31 gt-comedor-01
+  Comedor Ejemplo | 2026-11-19 | 13200 GTQ
+  2|ALMUERZO DEL DIA|60.00
+  1|CALDO DE GALLINA|45.00
+  3|TORTILLAS|3.00
+  2|FRESCO DE ROSA DE JAMAICA|16.00
+  1|CAFE|8.00
+=== 32 gt-cafe-01
+  Cafe Ejemplo | 2026-11-21 | 9200 GTQ
+  1|CAPUCCINO 12 OZ|24.00
+  1|LATTE VAINILLA 16 OZ|30.00
+  1|PASTEL DE ZANAHORIA|28.00
+  1|AGUA PURA 600 ML|10.00
+=== 33 gt-fastfood-01 fried chicken menus by pieces
+  Pollo Ejemplo | 2026-11-22 | 30100 GTQ
+  1|MENU 2 PIEZAS TRADICIONAL|45.00
+  1|MENU 3 PIEZAS EXTRA CRUJIENTE|55.00
+  1|BANQUETE 8 PIEZAS|149.00
+  |PAPAS 4 PANES|
+  1|PEPSI 2 L|22.00
+  2|PIE DE QUESO|30.00
+=== 34 gt-pizza-01
+  Pizza Ejemplo | 2026-11-20 | 32700 GTQ
+  1|PIZZA GRANDE 2 INGREDIENTES|119.00
+  1|PIZZA MEDIANA JAMON|79.00
+  1|CALZONE|45.00
+  2|COCA COLA 1.5 L|40.00
+  1|PALITROQUES 8 UNIDADES|29.00
+=== 35 gt-bar-01
+  Bar Ejemplo | 2026-11-21 | 45870 GTQ
+  4|CERVEZA GALLO 355ML|112.00
+  2|MOJITO|90.00
+  1|NACHOS CON TODO|65.00
+  1|ALITAS 12 UNIDADES|95.00
+  1|RON EJEMPLO 12 AÑOS|55.00
+=== 36 gt-folio-01 two nights with tourism tax
+  Hotel Ejemplo Antigua | 2026-11-21 | 85000 MXN
+  |HOSPEDAJE|850.00
+  |HOSPEDAJE|850.00
+  |RESTAURANTE|215.00
+  |LAVANDERIA|60.00
+=== 37 gt-bakery-01
+  Panaderia y Pasteleria Ejemplo | 2026-11-21 | 4900 GTQ
+  6|PAN FRANCES|6.00
+  4|PAN DULCE|8.00
+  1|CUBILETE|5.00
+  1|PASTEL TRES LECHES PORCION|18.00
+  1|CAFE CON LECHE 12 OZ|12.00
+=== 38 gt-taq-01 name row then qty x unit
+  Tacos Ejemplo Gt | 2026-11-22 | 13800 GTQ
+  2|ORDEN DE TACOS AL PASTOR|70.00
+  1|GRINGA DE POLLO|38.00
+  2|HORCHATA 16 OZ|30.00
+=== 39 sv-pupuseria-01 G marks with a legend
+  Pupuseria Ejemplo | 2026-11-21 | 1315 MXN
+  6|PUPUSA REVUELTA|4.50
+  4|PUPUSA QUESO LOROCO|3.40
+  2|CHOCOLATE CALIENTE|2.50
+  1|FRESCO DE HORCHATA|1.25
+  1|ATOL DE ELOTE|1.50
+=== 40 sv-rest-01 with tip
+  Restaurante Ejemplo del Mar | 2026-11-20 | 6325 MXN
+  2|COCTEL DE CONCHAS|17.00
+  1|MARISCADA|14.50
+  1|PARGO FRITO 1 LB|16.00
+  3|CERVEZA PILSENER|7.50
+  1|LIMONADA 16 OZ|2.50
+=== 41 sv-cafe-01
+  Cafe Ejemplo Sv | 2026-11-19 | 1045 MXN
+  1|CAFE AMERICANO 12 OZ|1.75
+  1|CAPUCHINO 16 OZ|2.95
+  1|QUESADILLA SALVADOREÑA|1.50
+  1|SANDWICH DE POLLO|4.25
+=== 42 sv-fastfood-01 G marks without a legend
+  Pollo Ejemplo Sv | 2026-11-22 | 1600 MXN
+  1|COMBO 2 PIEZAS|5.25
+  1|COMBO 3 PIEZAS|6.50
+  1|PAPAS GRANDES|2.25
+  1|GASEOSA 1.5 L|2.00
+=== 43 sv-folio-01 two nights
+  Hotel Ejemplo San Salvador | 2026-11-21 | 9500 MXN
+  |HABITACION|95.00
+  |HABITACION|95.00
+  |RESTAURANTE|22.60
+=== 44 sv-bar-01 name qty unit total
+  Bar y Restaurante Ejemplo | 2026-11-21 | 3905 MXN
+  1|BALDE 6 CERVEZAS|12.00
+  2|MICHELADA|7.00
+  1|BOCAS MIXTAS|8.50
+  2|RON 2 OZ|8.00
+=== 45 sv-pizza-01
+  Pizza Ejemplo Sv | 2026-11-20 | 2723 MXN
+  1|PIZZA GIGANTE 3 INGREDIENTES|15.99
+  1|PIZZA PERSONAL|4.99
+  1|PAN CON AJO 6 UNIDADES|3.50
+  1|GASEOSA 2 L|2.75
+=== 46 sv-comedor-01
+  Comedor Ejemplo | 2026-11-18 | 1445 MXN
+  2|ALMUERZO|7.00
+  1|SOPA DE GALLINA INDIA|5.50
+  2|FRESCO NATURAL|1.50
+  3|TORTILLAS|0.45
+=== 47 us-diner-01
+  Example Diner | 2026-11-21 | 5086 MXN
+  2|Pancake Stack|21.98
+  1|Huevos Rancheros|13.50
+  2|Coffee|7.00
+  1|Orange Juice 16 oz|4.50
+=== 48 us-folio-01 two nights
+  Example Hotel Downtown | 2026-11-21 | 43126 MXN
+  |ROOM CHARGE|159.00
+  |ROOM CHARGE|159.00
+  |RESTAURANT|34.20
+  |PARKING|25.00
+=== 49 us-coffee-01
+  Example Coffee Roasters | 2026-11-20 | 1784 MXN
+  1|Latte 12oz|5.25
+  |Oat Milk|0.75
+  1|Cold Brew 16oz|4.75
+  1|Blueberry Muffin|3.95
+=== 50 uk-pub-01
+  The Example Arms | 2026-11-21 | 5563 GBP
+  2|Pint Lager|11.80
+  1|Fish & Chips|15.50
+  1|Steak Pie|14.95
+  1|175ml Sauvignon Blanc|7.20
+=== 51 uk-rest-01
+  Example Kitchen | 2026-11-20 | 10969 GBP
+  2|Soup of the Day|13.00
+  1|Sea Bass|19.50
+  1|Ribeye 10oz|26.00
+  1|Bottle House Red 75cl|24.00
+  2|Sticky Toffee Pudding|15.00
+=== 52 co-rest-01 whole prices
+  Restaurante Ejemplo Bogota | 2026-11-19 | 14986000 MXN
+  2|AJIACO SANTAFERENO|56.000
+  1|BANDEJA PAISA|38.000
+  2|LIMONADA DE COCO|24.000
+  1|CERVEZA CLUB COLOMBIA 330ML|9.000
+=== 53 mx-bar-02 margaritas and a bucket
+  Bar la Ejemplo | 2026-11-21 | 110000 MXN
+  2|MARGARITA|180.00
+  1|MARTINI|150.00
+  1|MARGARITA 16 OZ|140.00
+  3|CERVEZA|165.00
+  1|CUBETA CORONA X6|330.00
+  1|NACHOS|135.00
+=== 54 mx-rest-08 line number, qty, name, unit, total
+  Restaurante Ejemplo del Valle | 2026-11-20 | 37300 MXN
+  2|TACO PASTOR|44.00
+  1|SOPA DE FIDEO|55.00
+  3|3 CERVEZA SOL|144.00
+  2|AGUA DE LIMON|60.00
+  1|PASTEL 3 LECHES|70.00
+=== 55 mx-rest-09 padded line numbers, qty, name, amount
+  Parrilla Ejemplo | 2026-11-19 | 60000 MXN
+  |2 TACO DE RIB EYE|190.00
+  |1 QUESO FUNDIDO|125.00
+  |4 CERVEZA TECATE|200.00
+  |1 PAPA ASADA|85.00
+=== 56 mx-rest-10 product codes after the quantity
+  Cafe de la Plaza Ejemplo | 2026-11-18 | 31200 MXN
+  1|CAFE AMERICANO|38.00
+  2|CAPUCHINO|104.00
+  1|MOLLETES|78.00
+  1|HUEVOS AL GUSTO|92.00
+=== 57 mx-taq-03 quantity as 2x in front
+  Taqueria Ejemplo del Norte | 2026-11-22 | 34600 MXN
+  2|TACOS DE ASADA|70.00
+  3|TACOS DE TRIPA|96.00
+  1|PAPA ASADA CON CARNE|95.00
+  2|AGUA DE HORCHATA 500 ML|50.00
+  1|FRIJOLES CHARROS|35.00
+=== 58 mx-taq-04 numbered lines with xN after the name
+  Tacos y Tortas Ejemplo | 2026-11-21 | 27400 MXN
+  2|TACO PASTOR|44.00
+  1|AGUA HORCHATA|35.00
+  1|GRINGA|65.00
+  2|TORTA DE MILANESA|130.00
+=== 59 mx-rest-12 wings with xN after the name
+  Wings Ejemplo | 2026-11-20 | 120100 MXN
+  2|12 ALITAS BBQ|378.00
+  1|20 ALITAS MANGO HABANERO|289.00
+  1|3 LECHES|75.00
+  4|CERVEZA BARRIL 1 L|380.00
+  1|PAPAS GAJO|79.00
+=== 60 mx-cafe-02 sizes in front of names
+  Ejemplo Coffee | 2026-11-22 | 26400 MXN
+  1|12 OZ AMERICANO|48.00
+  2|16 OZ LATTE|136.00
+  1|600ML AGUA|25.00
+  1|ROL DE CANELA|55.00
+=== 61 mx-bakery-02 name row then pieces x unit
+  Pasteleria Ejemplo | 2026-11-21 | 20600 MXN
+  3|CONCHA VAINILLA|45.00
+  2|OREJA|36.00
+  1|PASTEL 3 LECHES REBANADA|65.00
+  2|CAFE DE OLLA 12 OZ|60.00
+=== 62 mx-fonda-03 label and value fields, year-first date
+  Comedor Familiar Ejemplo | 2026-11-20 | 36500 MXN
+  2|MENU DEL DIA|180.00
+  1|CALDO TLALPEÑO|85.00
+  1|JARRA AGUA DE PIÑA 1.5 L|60.00
+  2|CAFE DE OLLA|40.00
+=== 63 mx-rest-13 split name after RESTAURANTE
+  La Ejemplo de Oaxaca | 2026-11-19 | 67100 MXN
+  1|MOLE NEGRO CON POLLO|185.00
+  1|TLAYUDA CON TASAJO|165.00
+  2|MEZCAL ESPADIN|220.00
+  1|AGUA DE CHILACAYOTA|40.00
+=== 64 mx-bar-03 split name after BAR
+  El Ejemplo | 2026-11-22 | 39500 MXN
+  2|CERVEZA BOHEMIA|110.00
+  1|MARGARITA|120.00
+  1|ORDEN DE ALITAS 10 PZAS|165.00
+=== 65 mx-cafeteria-01 split name after CAFETERIA
+  Ejemplo Universitaria | 2026-11-20 | 9500 MXN
+  1|TORTA DE JAMON|45.00
+  1|JUGO 500 ML|30.00
+  1|CAFE|20.00
+=== 66 mx-hotel-rest-02 hotel restaurant with columns
+  Hotel Ejemplo Guadalajara | 2026-11-20 | 213500 MXN
+  1|SOPA DE LIMA|145.00
+  2|CORTE NEW YORK 12 OZ|990.00
+  1|BOTELLA VINO TINTO 750ML|890.00
+  2|CAFE ESPRESSO|110.00
+=== 67 mx-roomservice-02 name rows then qty x unit
+  Hotel Ejemplo Polanco | 2026-11-21 | 84042 MXN
+  1|DESAYUNO AMERICANO|320.00
+  2|JUGO DE NARANJA 12 OZ|170.00
+  1|CAFE AMERICANO JARRA 1 L|140.00
+=== 68 mx-folio-03 one night, dates without year
+  Posada Ejemplo | 2026-11-21 | 124100 MXN
+  |20/11 HOSPEDAJE 1 NOCHE|950.00
+  |20/11 IVA 16%|152.00
+  |20/11 ISH 2%|19.00
+  |20/11 DESAYUNO|120.00
+  |21/11 PAGO EFECTIVO|1,241.00
+=== 69 mx-folio-04 five nights, deposit first
+  Hotel Ejemplo Centro Historico | 2026-11-21 | 822940 MXN
+  |HABITACION SENCILLA|1,200.00
+  |HABITACION SENCILLA|1,200.00
+  |RESTAURANTE|356.00
+  |HABITACION SENCILLA|1,200.00
+  |HABITACION SENCILLA|1,200.00
+  |LAVANDERIA|180.00
+  |HABITACION SENCILLA|1,200.00
+  |ESTACIONAMIENTO 5 DIAS|500.00
+=== 70 mx-folio-05 running balance column
+  Hotel Ejemplo Merida | 2026-11-21 | 383000 MXN
+  |HABITACION|1,500.00
+  |HABITACION|1,500.00
+  |BAR|260.00
+=== 71 mx-kiosk-02 name rows then 1 x price
+  Ejemplo Pollo | 2026-11-22 | 41100 MXN
+  1|PAQUETE 2 PIEZAS|89.00
+  2|PAQUETE 3 PIEZAS|218.00
+  1|PURE DE PAPA CHICO|29.00
+  3|REFRESCO 600 ML|75.00
+=== 72 mx-delivery-02 restaurant delivery with bare labels
+  Sushi Ejemplo Express | 2026-11-20 | 48700 MXN
+  1|ROLLO EMPANIZADO|139.00
+  1|ROLLO SPICY ATUN|155.00
+  2|SOPA MISO|98.00
+  1|TE HELADO 1 L|55.00
+  |ENVIO|40.00
+=== 73 mx-cardreader-02 voucher with label fields, no item list
+  Restaurante Ejemplo Sur | 2026-11-21 | 93500 MXN
+=== 74 mx-prebill-02 bill with suggested tip
+  Restaurante Ejemplo Roma | 2026-11-21 | 358800 MXN
+  4|MENU DEGUSTACION 3 TIEMPOS|1,960.00
+  1|BOTELLA VINO BLANCO 750 ML|780.00
+  2|AGUA MINERAL 1 L|180.00
+  4|CAFE|200.00
+=== 75 mx-rest-14 courtesy and percentage discount
+  La Trattoria Ejemplo | 2026-11-22 | 94950 MXN
+  1|CARPACCIO DE RES|195.00
+  2|PASTA ALFREDO|370.00
+  1|MARGHERITA 30 CM|210.00
+  1|TIRAMISU|115.00
+  |CORTESIA|-115.00
+  2|COPA VINO TINTO|280.00
+  |DESCUENTO 10%|-105.50
+=== 76 mx-rest-ocr-02 mild OCR damage
+  null | 2026-11-21 | 58500 MXN
+  2|CERVEZA|110.00
+  1|ARRACHERA|245.00
+  1|CHISTORRA|135.00
+  1|GUACAMOLE|95.00
+=== 77 mx-fastfood-02 numbered packages
+  Tortas Ejemplo | 2026-11-19 | 49700 MXN
+  1|PAQUETE 1|99.00
+  2|PAQUETE 3|238.00
+  1|TORTA CUBANA|85.00
+  3|REFRESCO 600ML|75.00
+=== 78 mx-juice-02 no quantities
+  Jugueria Ejemplo | 2026-11-22 | 16800 MXN
+  |JUGO NARANJA 1 LT|55.00
+  |JUGO ZANAHORIA 1/2 LT|30.00
+  |LICUADO PLATANO 16 OZ|38.00
+  |ESCAMOCHA GDE|45.00
+=== 79 gt-rest-02 electronic invoice with fields
+  Restaurante Ejemplo Zona Viva | 2026-11-21 | 47630 GTQ
+  1|LOMITO 8 OZ|165.00
+  1|PESCADO A LA PLANCHA|140.00
+  2|COPA DE VINO|110.00
+  1|AGUA MINERAL 355 ML|18.00
+=== 80 gt-rest-03 Q with a space
+  El Rancho Ejemplo | 2026-11-19 | 52910 GTQ
+  2|CHURRASCO ARGENTINO|290.00
+  1|CHORIZO Y LONGANIZA|75.00
+  1|GUACAMOL|35.00
+  3|GASEOSA 12 OZ|36.00
+  1|JARRA LIMONADA 1 L|45.00
+=== 81 gt-cafe-02 quantity as 2 x
+  Cafe Ejemplo Antigua | 2026-11-22 | 13600 GTQ
+  2|CAPUCCINO|48.00
+  1|CHOCOLATE CALIENTE 12 OZ|26.00
+  1|PIE DE MANZANA|30.00
+  1|BAGEL CON QUESO CREMA|32.00
+=== 82 gt-fastfood-02 numbered combos
+  Hamburguesas Ejemplo Gt | 2026-11-21 | 19000 GTQ
+  1|COMBO 1|39.00
+  2|COMBO 5|90.00
+  1|COMBO 2 AGRANDADO|49.00
+  1|SUNDAE|12.00
+=== 83 gt-chicken-02 kiosk
+  Pollo Ejemplo Express | 2026-11-20 | 10800 GTQ
+  1|SUPER COMBO 3 PIEZAS|52.00
+  |ENSALADA|
+  |PEPSI 16 OZ|
+  1|ALITAS 6 UNIDADES|38.00
+  1|PAPAS GRANDES|18.00
+=== 84 gt-bar-02 margaritas
+  Bar Ejemplo Cayala | 2026-11-20 | 38390 GTQ
+  2|MARGARITA|90.00
+  1|MARTINI|55.00
+  3|CERVEZA CABRO 355ML|84.00
+  1|TABLA DE QUESOS|120.00
+=== 85 gt-hotel-rest-01 outlet row between hotel and name
+  Hotel Ejemplo Guatemala | 2026-11-21 | 28930 GTQ
+  2|DESAYUNO CHAPIN|150.00
+  1|PLATO DE FRUTA|45.00
+  2|CAFE|40.00
+  1|JUGO DE NARANJA 16 OZ|28.00
+=== 86 gt-folio-02 three nights, total before the payment
+  Hotel Ejemplo Panajachel | 2026-11-21 | 263100 GTQ
+  |HABITACION DOBLE|600.00
+  |HABITACION DOBLE|600.00
+  |CENA RESTAURANTE|185.00
+  |HABITACION DOBLE|600.00
+  |TOUR LANCHA|250.00
+=== 87 gt-pizza-02 delivery with an address label
+  Pizzeria Ejemplo Gt | 2026-11-22 | 22800 GTQ
+  2|PIZZA MEDIANA 1 INGREDIENTE|138.00
+  1|LASAGNA|55.00
+  1|GASEOSA 2.5 L|25.00
+=== 88 gt-comedor-02
+  Comedor y Cafeteria Ejemplo | 2026-11-20 | 9300 MXN
+  1|DESAYUNO CHAPIN|35.00
+  1|DESAYUNO TIPICO|30.00
+  2|CAFE CON LECHE|20.00
+  1|PAN CON FRIJOL|8.00
+=== 89 gt-juice-01 name qty unit total
+  Licuados Ejemplo | 2026-11-21 | 6500 GTQ
+  2|LICUADO DE FRESA 16 OZ|30.00
+  1|JUGO DE NARANJA|15.00
+  1|ENSALADA DE FRUTAS|20.00
+=== 90 gt-cardreader-01 card reader receipt with items
+  Cafe Ejemplo Xela | 2026-11-21 | 6600 GTQ
+  1|Mocha 16 oz|28.00
+  2|Champurrada|10.00
+  1|Te chai|22.00
+=== 91 sv-rest-02 invoice with columns
+  Restaurante Ejemplo Escalon | 2026-11-21 | 6133 MXN
+  2|SOPA DE TORTILLA|11.00
+  1|LOMO SALTEADO|13.75
+  1|FILETE DE PESCADO|14.50
+  2|COPA DE VINO|12.00
+  1|POSTRE DEL DIA|4.50
+=== 92 sv-pupuseria-02 name qty unit total with G marks
+  Pupuseria la Ejemplo | 2026-11-22 | 1170 MXN
+  5|PUPUSA DE ARROZ REVUELTA|4.50
+  3|PUPUSA DE QUESO|2.70
+  1|QUESADILLA|2.00
+  2|CAFE|1.50
+  1|GASEOSA 12 OZ|1.00
+=== 93 sv-cafe-02 G and E marks with a legend
+  Cafe Ejemplo Santa Ana | 2026-11-20 | 710 MXN
+  1|CAFE LATTE 12 OZ|2.75
+  1|TE HELADO 16 OZ|2.25
+  1|PAN DULCE|0.85
+  1|SEMITA|1.25
+=== 94 sv-fastfood-02 kiosk
+  Hamburguesas Ejemplo Sv | 2026-11-21 | 1398 MXN
+  1|COMBO 1 QUESO|5.99
+  1|COMBO 4 POLLO|6.49
+  1|SUNDAE CHOCOLATE|1.50
+=== 95 sv-bar-02 margaritas
+  Bar Ejemplo Sv | 2026-11-21 | 5005 MXN
+  2|MARGARITA|12.00
+  4|CERVEZA SUPREMA|12.00
+  1|BALDE 6 CERVEZAS|15.00
+  1|BOCA DE CHORIZO|6.50
+=== 96 sv-hotel-rest-01 outlet row between hotel and name
+  Hotel Ejemplo el Salvador | 2026-11-20 | 3988 MXN
+  1|SOPA DE MARISCOS|12.50
+  1|CHURRASCO TIPICO|16.75
+  2|CERVEZA|7.00
+=== 97 sv-folio-02 three nights, deposit in the middle
+  Hotel Ejemplo la Libertad | 2026-11-21 | 30170 MXN
+  |HABITACION|80.00
+  |HABITACION|80.00
+  |HABITACION|80.00
+  |BAR PISCINA|18.50
+=== 98 sv-chicken-01
+  Pollo Ejemplo Salvador | 2026-11-22 | 2150 MXN
+  2|MENU 2 PIEZAS|9.50
+  1|MENU 4 ALITAS|5.25
+  1|PAN CON POLLO|3.75
+  2|HORCHATA 16 OZ|3.00
+=== 99 sv-pizza-02 delivery
+  Pizza Ejemplo Delivery | 2026-11-21 | 3523 MXN
+  1|PIZZA GRANDE SUPREMA|14.99
+  1|PIZZA MEDIANA QUESO|8.99
+  1|ALITAS 10 UNIDADES|7.50
+  1|GASEOSA 1.5 L|2.25
+  |CARGO DELIVERY|1.50
+=== 100 sv-juice-01
+  Jugos Ejemplo | 2026-11-19 | 600 MXN
+  1|LICUADO DE BANANO|1.50
+  1|JUGO DE NARANJA 16 OZ|2.00
+  2|PAN CON HUEVO|2.50
+=== 101 us-delivery-01 app e-mail
+  Example Eats | 2026-11-21 | 3072 MXN
+  2|Carne Asada Tacos|9.00
+  1|Chips & Guacamole|6.50
+  1|Horchata 16 oz|3.75
+=== 102 us-bar-01 numbered taxes
+  Example Tap House | 2026-11-20 | 5497 MXN
+  2|Draft IPA 16oz|14.00
+  1|Margarita|11.00
+  1|Wings 10pc|13.50
+  1|Nachos|12.00
+=== 103 us-roomservice-01
+  Example Grand Hotel | 2026-11-21 | 5710 MXN
+  1|American Breakfast|24.00
+  1|Fresh Orange Juice|7.00
+  1|Pot of Coffee|9.00
+=== 104 uk-cafe-01 tax letters after prices
+  Example Coffee House | 2026-11-20 | 1790 GBP
+  1|Flat White|3.60
+  1|Pot of Tea|3.20
+  2|Bacon Roll|9.00
+  1|Shortbread|2.10
+=== 105 uk-folio-01 two nights
+  The Example Hotel | 2026-11-21 | 49270 GBP
+  |Accommodation|189.00
+  |Dinner Restaurant|64.50
+  |Accommodation|189.00
+  |Bar|18.20
+  |Breakfast|32.00
+=== 106 co-cafe-01 whole prices in two columns
+  Cafe Ejemplo Medellin | 2026-11-20 | 3024000 MXN
+  2|CAPUCHINO|15.000
+  1|PANDEBONO|4.000
+  1|JUGO DE LULO 12 OZ|9.000
+=== 107 min free item with quantity after the name
+  null | null | 48000 MXN
+  4|CERVEZA VICTORIA|220.00
+  2|TEQUILA DOBLE|260.00
+  2|SANGRITA|0.00
+=== 108 min total read as T0TAL
+  null | 2026-11-21 | 16500 MXN
+  1|FLAN|65.00
+=== 109 min subtotal and total read with zeros
+  null | 2026-11-21 | 15000 MXN
+  1|SOPA|85.00
+  1|FLAN|65.00
+=== 110 min 1 x before a name that starts with a measure
+  The Example Arms | 2026-11-21 | 1900 GBP
+  2|Pint Lager|11.80
+  1|175ml Sauvignon Blanc|7.20
+=== 111 min folio with payment and balance only
+  Hotel Ejemplo | 2026-11-19 | 9500 MXN
+  |HABITACION|95.00
+  |HABITACION|95.00
+=== 112 min folio tourism tax rows
+  Hotel Ejemplo | 2026-11-19 | 19950 MXN
+  |HABITACION|95.00
+  |HABITACION|95.00
+=== 113 mx-rest-15 line number then quantity, first line has one
+  Parrilla Ejemplo Norte | 2026-11-21 | 83500 MXN
+  1|1 CORTE RIB EYE 400 GR|520.00
+  2|2 CERVEZA CARTA BLANCA|100.00
+  1|ENSALADA DE LA CASA|95.00
+  2|PAPA GALEANA|120.00
+=== 114 mx-rest-16 line number, name, qty, unit, total
+  Restaurante Ejemplo Centro | 2026-11-20 | 41100 MXN
+  2|ENCHILADAS POTOSINAS|170.00
+  1|CALDO DE RES|110.00
+  3|AGUA DE TUNA|75.00
+  2|COCA COLA 600ML|56.00
+=== 115 mx-hotel-rest-03 outlet name first, then the hotel
+  La Terraza | 2026-11-22 | 87975 MXN
+  2|TACOS DE PESCADO|380.00
+  1|CEVICHE MIXTO|245.00
+  2|LIMONADA|140.00
+=== 116 mx-email-01 card reader e-mail with a seller label
+  Cafe Ejemplo Centro | 2026-11-21 | 20460 MXN
+  1|Latte grande|68.00
+  1|Concha de vainilla|28.00
+  2|Americano|90.00
+=== 117 mx-mariscos-02 mariscada and margaritas
+  Mariscos Ejemplo del Pacifico | 2026-11-20 | 102000 MXN
+  1|MARISCADA|450.00
+  2|MARGARITA|240.00
+  1|CEVICHE DE SIERRA|180.00
+  3|CERVEZA PACIFICO|150.00
+=== 118 mx-pizza-02 pizza names
+  Pizzeria Ejemplo Napoli | 2026-11-19 | 71300 MXN
+  1|MARGARITA|189.00
+  1|MARINARA 30 CM|169.00
+  1|ENSALADA CAPRESE|135.00
+  2|COPA VINO TINTO|220.00
+=== 119 mx-rest-18 unit price after an at sign
+  Ejemplo Sports Bar | 2026-11-20 | 50000 MXN
+  2|CERVEZA TECATE|110.00
+  10|ALITAS|165.00
+  3|TACOS DE ASADA|105.00
+  1|NACHOS|120.00
+=== 120 mx-kiosk-03 quantity and price above the name
+  Ejemplo Cafe Express | 2026-11-22 | 19000 MXN
+  2|CAFE AMERICANO|90.00
+  1|DONA GLASEADA|38.00
+  1|SANDWICH JAMON Y QUESO|62.00
+=== 121 mx-nocol-01 no quantity column, numbered dishes
+  Ejemplo Wings & Beer | 2026-11-21 | 53800 MXN
+  12|ALITAS BBQ|189.00
+  |BONELESS 250 GR|149.00
+  3|LECHES|75.00
+  |7UP 600ML|30.00
+  |CERVEZA BARRIL 1 L|95.00
+=== 122 mx-folio-06 day totals between the days
+  Hotel Ejemplo Queretaro | 2026-11-19 | 356100 MXN
+  |HABITACION DOBLE|1,400.00
+  |HABITACION DOBLE|1,400.00
+  |CAFETERIA|215.00
+=== 123 mx-folio-07 four nights, transfer first, summary after
+  Hotel Ejemplo Monterrey | 2026-11-21 | 890400 MXN
+  |HABITACION EJECUTIVA|1,650.00
+  |HABITACION EJECUTIVA|1,650.00
+  |ROOM SERVICE|412.00
+  |HABITACION EJECUTIVA|1,650.00
+  |HABITACION EJECUTIVA|1,650.00
+  |RESTAURANTE|638.00
+=== 124 mx-folio-08 charges, credits and balance columns
+  Hotel Ejemplo Veracruz | 2026-11-19 | 293800 MXN
+  |HABITACION|1,100.00
+  |HABITACION|1,100.00
+  |RESTAURANTE|320.00
+=== 125 mx-folio-09 summary before the total
+  Hotel Ejemplo Puebla | 2026-11-19 | 337400 MXN
+  |HABITACION|1,300.00
+  |HABITACION|1,300.00
+  |RESTAURANTE|280.00
+=== 126 mx-hotel-bar-02 pool bar
+  Hotel Ejemplo Vallarta | 2026-11-21 | 52325 MXN
+  2|PIÑA COLADA 2X1|190.00
+  1|CERVEZA CORONA 355 ML|75.00
+  1|NACHOS CON QUESO|145.00
+  1|AGUA NATURAL 600 ML|45.00
+=== 127 mx-rest-19 courtesy items at zero
+  Asador Ejemplo | 2026-11-22 | 275425 MXN
+  2|CORTE NEW YORK|980.00
+  1|CORTESIA GUACAMOLE|0.00
+  1|ENSALADA CESAR|165.00
+  1|BOTELLA VINO TINTO 750 ML|1,250.00
+  2|POSTRE DE LA CASA|0.00
+=== 128 mx-cafe-04 quantities printed with a zero in front
+  Cafe Ejemplo del Portal | 2026-11-20 | 34300 MXN
+  2|CAFE LECHERO|110.00
+  1|CANILLA CON NATA|45.00
+  1|HUEVOS TIRADOS|98.00
+  2|JUGO DE NARANJA 12 OZ|90.00
+=== 129 mx-taq-05 name, pieces, unit, total
+  Taqueria Ejemplo la Esquina | 2026-11-21 | 27500 MXN
+  |TACO PASTOR 5 PZA|90.00
+  |TACO SUADERO 4 PZA|80.00
+  |COSTRA DE QUESO 1 PZA|55.00
+  |REFRESCO 2 PZA|50.00
+=== 130 mx-delivery-03 printed app order
+  Hamburguesas Ejemplo | 2026-11-21 | 29500 MXN
+  1|Hamburguesa doble con queso|145.00
+  |Sin cebolla|
+  |Papas a la francesa|
+  2|Refresco de cola 355 ml|60.00
+  1|Aros de cebolla|65.00
+=== 131 mx-roomservice-03 rates in front of service and tax
+  Hotel Ejemplo los Cabos | 2026-11-22 | 132730 MXN
+  2|DESAYUNO CONTINENTAL|580.00
+  1|OMELETTE 3 QUESOS|210.00
+  1|JARRA CAFE 1 L|160.00
+=== 132 mx-cantina-02 rounds
+  Cantina Ejemplo | 2026-11-20 | 77500 MXN
+  4|CERVEZA INDIO|200.00
+  1|BOTANA DE LA CASA|0.00
+  4|CERVEZA INDIO|200.00
+  2|TEQUILA REPOSADO 2 OZ|280.00
+  1|CALDO DE CAMARON|95.00
+=== 133 mx-rest-20 mild OCR damage
+  El Fogon Ejemplo | 2026-11-22 | 24600 MXN
+  3|TAC0S AL PASTOR|66.00
+  1|QUE SADILLA|45.00
+  2|AGUA DE H0RCHATA|50.00
+  1|GUACAMOLE|85.00
+=== 134 gt-rest-04 columns with an empty discount column
+  Restaurante Ejemplo Cayala | 2026-11-22 | 39490 GTQ
+  2|PEPIAN DE POLLO|170.00
+  1|KAK IK|95.00
+  3|ROSA DE JAMAICA 16 OZ|54.00
+  1|PLATANOS EN MOLE|40.00
+=== 135 gt-email-01 electronic invoice e-mail with bare labels
+  Cafe Ejemplo | 2026-11-20 | 7800 GTQ
+  1|Capuccino|24.00
+  1|Sandwich de pavo|42.00
+  1|Galleta de avena|12.00
+=== 136 gt-bar-03 prices without Q
+  Bar y Grill Ejemplo | 2026-11-21 | 32560 GTQ
+  2|MARGARITAS|90.00
+  1|MARTINI|55.00
+  2|CERVEZA GALLO|56.00
+  1|ALITAS 12 UNIDADES|95.00
+=== 137 gt-folio-03 one night
+  Hotel Ejemplo Flores | 2026-11-20 | 72940 GTQ
+  |HOSPEDAJE 1 NOCHE|520.00
+  |CENA|95.00
+=== 138 gt-fastfood-03 saving row and zero discount
+  Tacos Ejemplo Express | 2026-11-22 | 13300 GTQ
+  2|COMBO 3 TACOS|78.00
+  1|COMBO QUESADILLA|35.00
+  1|NACHOS GRANDES|30.00
+=== 139 gt-comedor-03 no quantities
+  Comedor la Ejemplo | 2026-11-19 | 7300 GTQ
+  |ALMUERZO POLLO|30.00
+  |ALMUERZO RES|35.00
+  |FRESCO 16 OZ|5.00
+  |TORTILLAS 3 UNIDADES|3.00
+=== 140 sv-rest-03 quantity row above, G marks
+  Restaurante Ejemplo Sv | 2026-11-21 | 2775 MXN
+  2|SOPA DE TORTILLA|11.00
+  1|LOMO SALTEADO|13.75
+  2|GASEOSA 12 OZ|3.00
+=== 141 sv-pupuseria-03 quantity after name as xN
+  Pupuseria Ejemplo los Planes | 2026-11-22 | 1170 MXN
+  6|PUPUSAS REVUELTAS|5.40
+  2|PUPUSAS DE AYOTE|1.80
+  2|CHOCOLATE|2.00
+  1|PLATANOS FRITOS|2.50
+=== 142 sv-hotel-bar-01 pool bar
+  Hotel Ejemplo Costa del Sol | 2026-11-20 | 3465 MXN
+  2|PIÑA COLADA|13.00
+  1|CEVICHE DE PESCADO|9.50
+  3|CERVEZA 12 OZ|9.00
+=== 143 sv-folio-03 four nights, month names
+  Hotel Ejemplo Santa Ana | 2026-11-17 | 32242 MXN
+  |HABITACION|65.00
+  |HABITACION|65.00
+  |RESTAURANTE|14.20
+  |HABITACION|65.00
+  |HABITACION|65.00
+=== 144 sv-cafe-03
+  Cafe Ejemplo la Palma | 2026-11-20 | 600 MXN
+  2|CAFE DE PALO 12 OZ|3.00
+  1|MARQUESOTE|1.25
+  1|QUESADILLA DE ARROZ|1.75
+=== 145 sv-delivery-01 app e-mail with a merchant label
+  Tu pedido fue entregado | 2026-11-21 | 2873 MXN
+  1|Combo familiar 8 piezas|18.99
+  2|Ensalada de repollo|3.00
+  1|Gaseosa 2.5 L|2.75
+=== 146 us-rest-02 unit price after an at sign
+  Example Cantina | 2026-11-22 | 6836 MXN
+  2|Draft Beer|14.00
+  1|Carne Asada Plate|18.50
+  1|Chicken Enchiladas|15.00
+  1|Churros|6.50
+=== 147 us-folio-02 dates as month and day
+  Example Inn & Suites | 2026-11-19 | 26450 MXN
+  |Nov 19 Room Charge|129.00
+  |Nov 19 State Tax|8.39
+  |Nov 19 County Tax|7.74
+  |Nov 20 Room Charge|129.00
+  |Nov 20 State Tax|8.39
+  |Nov 20 County Tax|7.74
+  |Nov 20 Market|6.50
+  |Nov 21 Visa Payment|-296.76
+=== 148 us-fastfood-01 numbered combo
+  Example Burger #1042 | 2026-11-21 | 2269 MXN
+  1|#3 Combo Meal|9.49
+  |Med Fries|
+  |Med Cola|
+  1|Cheeseburger|3.29
+  1|6 Pc Nuggets|4.19
+  1|Shake 16oz|3.99
+=== 149 us-pizza-01 delivery ticket
+  Example Pizza Co | 2026-11-21 | 3538 MXN
+  1|Lg Pepperoni 14in|18.99
+  1|Garlic Knots 6pc|5.99
+  1|2 Liter Cola|3.49
+=== 150 us-email-01 card reader e-mail with a seller label
+  Example Bistro | 2026-11-20 | 3477 MXN
+  1|Soup of the Day|7.00
+  1|Turkey Club|13.50
+  2|Iced Tea|7.00
+=== 151 uk-pub-02 unit price after an at sign
+  The Example Inn | 2026-11-22 | 3915 GBP
+  2|Pint Bitter|10.80
+  1|Shepherd's Pie|13.50
+  1|Ploughman's Lunch|11.95
+  1|Half Cider|2.90
+=== 152 uk-hotel-rest-01 hotel restaurant
+  The Example Hotel | 2026-11-21 | 13208 GBP
+  2|Set Dinner 3 Course|79.00
+  1|Bottle Rioja 75cl|32.00
+  2|Espresso|6.40
+=== 153 uk-takeaway-01 delivery
+  Example Pizza Kitchen | 2026-11-20 | 2150 GBP
+  1|Margherita 12in|11.50
+  1|Garlic Bread|4.50
+  2|Cola 330ml|3.00
+  |Delivery charge|2.50
+=== 154 co-rest-02 unit and total columns
+  null | 2026-11-21 | 16284000 MXN
+  1|POSTA CARTAGENERA|48.000
+  2|LIMONADA DE COCO|28.000
+  1|CAZUELA DE MARISCOS|62.000
+=== 155 co-bar-01
+  Bar Ejemplo Zona T | 2026-11-20 | 17818000 MXN
+  2|MARGARITA|56.000
+  3|CERVEZA AGUILA 330ML|27.000
+  1|PICADA PARA 2|68.000
+=== 156 co-folio-01 year-first dates
+  Hotel Ejemplo Cartagena | 2026-11-19 | 109560000 MXN
+  |ALOJAMIENTO|420.000
+  |ALOJAMIENTO|420.000
+  |RESTAURANTE|96.000
+=== 157 min margarita row
+  null | null | 31500 MXN
+  2|MARGARITA|180.00
+  1|NACHOS|135.00
+=== 158 min martini and mariscada rows
+  null | null | 65500 MXN
+  1|MARTINI|150.00
+  1|MARISCADA|450.00
+  1|CERVEZA|55.00
+=== 159 min margarita with a size
+  null | null | 27500 MXN
+  1|MARGARITA 16 OZ|140.00
+  1|NACHOS|135.00
+=== 160 min outlet word then a name with a town
+  La Ejemplo de Oaxaca | 2026-11-19 | 18500 MXN
+  1|MOLE NEGRO|185.00
+=== 161 min change read as CAMBI0
+  null | 2026-11-21 | 6500 MXN
+  1|FLAN|65.00
+=== 162 min folio with a running balance
+  null | 2026-11-19 | 326000 MXN
+  |HABITACION|1,500.00
+  |HABITACION|1,500.00
+  |BAR|260.00
+=== 163 min folio payments row before a dated payment
+  null | 2026-11-18 | 16000 MXN
+  |HABITACION|80.00
+  |HABITACION|80.00
+=== 164 min line number equal to the quantity
+  null | null | 24300 MXN
+  2|TACO PASTOR|44.00
+  1|SOPA DE FIDEO|55.00
+  3|3 CERVEZA SOL|144.00
+=== 165 min padded line numbers then quantity
+  null | null | 51500 MXN
+  |2 TACO DE RIB EYE|190.00
+  |1 QUESO FUNDIDO|125.00
+  |4 CERVEZA TECATE|200.00
+=== 166 min folio rows dated without the year
+  null | null | 110200 MXN
+  |20/11 HOSPEDAJE|950.00
+  |20/11 IVA 16%|152.00
+  |21/11 PAGO EFECTIVO|1,102.00
+=== 167 min bucket with a pack size
+  null | null | 49500 MXN
+  1|CUBETA CORONA X6|330.00
+  3|CERVEZA|165.00
+=== 168 min label Vendedor then the name
+  Cafe Ejemplo Centro | 2026-11-21 | 6800 MXN
+  1|LATTE|68.00
+=== 169 min label Emisor then the name
+  Cafe Ejemplo | 2026-11-20 | 2400 MXN
+  1|CAPUCCINO|24.00
+=== 170 min label Sold by then the name
+  Example Bistro | 2026-11-20 | 1350 MXN
+  1|Turkey Club|13.50
+=== 171 min label Restaurante then the name
+  Tacos Ejemplo Condesa | 2026-11-21 | 4400 MXN
+  2|TACOS|44.00
+=== 172 min label Razon social then the name
+  Restaurantes Ejemplo | 2026-11-21 | 8500 MXN
+  1|SOPA|85.00
+=== 173 min label Comercio then the name
+  Pollo Ejemplo Escalon | 2026-11-21 | 899 MXN
+  1|COMBO|8.99
+=== 174 min heading sentence then label Comercio
+  Tu pedido fue entregado | 2026-11-21 | 1899 MXN
+  1|Combo familiar|18.99
+=== 175 min BAR then a name with a town
+  Ejemplo de Cancun | 2026-11-22 | 11000 MXN
+  2|CERVEZA|110.00
+=== 176 min RESTAURANTE then only an address
+  null | 2026-11-21 | 8500 MXN
+  1|SOPA|85.00
+=== 177 min TIQUETE row above a quantity row
+  null | 2026-11-21 | 2475 MXN
+  2|SOPA DE TORTILLA|11.00
+  1|LOMO SALTEADO|13.75
+=== 178 min folio summary before the total
+  null | 2026-11-19 | 301600 MXN
+  |HABITACION|1,300.00
+  |HABITACION|1,300.00
+=== 179 min folio balance column with tax rows
+  null | 2026-11-19 | 348000 MXN
+  |HABITACION|1,500.00
+  |HABITACION|1,500.00
+=== 180 min folio tourism tax with IVA rows
+  null | 2026-11-19 | 207400 GTQ
+  |HOSPEDAJE|850.00
+  |HOSPEDAJE|850.00
+=== 181 min at sign with pieces in the name
+  null | null | 27500 MXN
+  2|CERVEZA TECATE|110.00
+  10|ALITAS|165.00
+=== 182 min numbered dishes without a quantity column
+  null | null | 35900 MXN
+  12|ALITAS BBQ|189.00
+  3|LECHES|75.00
+  |CERVEZA BARRIL 1 L|95.00
+=== 183 min folio rows dated by month and day
+  null | null | 12900 MXN
+  |Nov 19 Room Charge|129.00
+  |Nov 19 State Tax|8.39
+  |Nov 20 Room Charge|129.00
+  |Nov 20 State Tax|8.39
+  |Nov 21 Visa Payment|-274.78
+=== 184 min dish words that begin like a month
+  null | null | 69400 MXN
+  1|JUNIOR|89.00
+  2|MARLIN|190.00
+  1|NOVILLO|250.00
+  1|SETAS|95.00
+  2|DECAF|70.00
+=== 185 min free item with a quantity in front
+  null | null | 11000 MXN
+  2|CERVEZA VICTORIA|110.00
+  1|SANGRITA|0.00
+=== 186 mx-cardreader-03 e-mail receipt with fields and items
+  Tacos Ejemplo Roma | 2026-11-21 | 13090 MXN
+  2|Tacos de pastor|44.00
+  1|Agua de jamaica 500 ml|30.00
+  1|Flan|45.00
+=== 187 gt-bakery-02 quantity row above, short codes
+  Panaderia Ejemplo Gt | 2026-11-22 | 3600 GTQ
+  6|PAN FRANCES|6.00
+  2|PASTEL PORCION|18.00
+  1|CAFE CON LECHE 12 OZ|12.00
+=== 188 mx-rest-21 line number, quantity, name, amount
+  Antojitos Ejemplo | 2026-11-21 | 26900 MXN
+  1|2 GORDITAS DE CHICHARRON|50.00
+  2|1 CALDO DE RES|95.00
+  3|4 TACOS DORADOS|80.00
+  4|2 AGUA DE MELON|44.00
+=== 189 min line number, quantity, name, one amount
+  null | null | 29100 MXN
+  1|2 TACO PASTOR|44.00
+  2|1 SOPA DE FIDEO|55.00
+  3|4 CERVEZA SOL|192.00
+=== 190 min quantity row above a name with a short code
+  null | null | 2475 MXN
+  2|SOPA DE TORTILLA|11.00
+  1|LOMO SALTEADO|13.75
+=== 191 min short code, name, xN
+  null | null | 7900 MXN
+  2|TACO PASTOR|44.00
+  1|AGUA HORCHATA|35.00
+=== 192 min voucher with PRODUCTO field only
+  Restaurante Ejemplo Sur | 2026-11-21 | 93500 MXN
+=== 193 min voucher with CONCEPTO field only
+  Restaurante Ejemplo Sur | 2026-11-21 | 93500 MXN
+=== 194 min folio summary before the total, last dated row a charge
+  null | 2026-11-19 | 329600 MXN
+  |HABITACION|1,300.00
+  |HABITACION|1,300.00
+  |RESTAURANTE|280.00
+=== 195 min TIQUETE with a number above a quantity row
+  null | null | 1100 MXN
+  2|SOPA DE TORTILLA|11.00
+=== 196 min zero discount between items
+  null | null | 60500 MXN
+  2|MOJARRA FRITA|360.00
+  1|ARROZ A LA TUMBADA|245.00
+=== 197 mx-folio-10 restaurant charges with check numbers, tax included
+  Hotel Ejemplo Taxco | 2026-11-21 | 364500 MXN
+  |HABITACION|1,450.00
+  |RESTAURANTE CHEQUE 4412|385.00
+  |HABITACION|1,450.00
+  |BAR CHEQUE 4520|240.00
+  |LAVANDERIA|120.00
+=== 198 gt-rest-05 quantities printed with decimals
+  Restaurante Ejemplo Xela | 2026-11-21 | 32000 GTQ
+  2|PEPIAN DE POLLO|170.00
+  1|CALDO DE RES|60.00
+  3|LIMONADA 1 L|60.00
+  |1.00 3 LECHES|30.00
+=== 199 sv-comedor-02 name rows then decimal quantity x unit
+  Comedor Ejemplo Sv | 2026-11-20 | 1375 MXN
+  2|ALMUERZO EJECUTIVO|7.00
+  1|SOPA DE PATA|4.50
+  3|FRESCO DE TAMARINDO 16 OZ|2.25
+=== 200 min address row above the first quantity row
+  null | 2026-11-22 | 2400 MXN
+  6|PAN FRANCES|6.00
+  2|PASTEL PORCION|18.00
+=== 201 min folio charge that names its check
+  null | 2026-11-19 | 328500 MXN
+  |HABITACION|1,450.00
+  |RESTAURANTE CHEQUE 4412|385.00
+  |HABITACION|1,450.00
+=== 202 min 1 x before numbered dishes
+  null | null | 31400 MXN
+  1|12 ALITAS BBQ|189.00
+  2|7UP 600ML|50.00
+  1|3 LECHES|75.00
+=== 203 min seller label and name on one row
+  null | 2026-11-20 | 2400 MXN
+  1|CAPUCCINO|24.00
+=== 204 min folio check charge after tax rows
+  null | 2026-11-19 | 374900 MXN
+  |HABITACION|1,450.00
+  |RESTAURANTE CHEQUE 4412|385.00
+  |HABITACION|1,450.00
+=== 205 min free item under its name
+  Cerveza Victoria | null | 22000 MXN
+  4|CERVEZA VICTORIA|220.00
+  2|SANGRITA|0.00
+=== 206 mx01 oxxo qty in front
+  OXXO | 2026-11-21 | 15200 MXN
+  1|COCA COLA 600ML|18.00
+  2|SABRITAS ORIGINAL 45G|38.00
+  1|MARLBORO ROJO 20|79.00
+  1|7UP 600ML|17.00
+=== 207 mx02 7eleven name then qty row
+  7-Eleven | 2026-11-20 | 7000 MXN
+  1|CAFE SELECT 16OZ|25.00
+  2|DONA GLASEADA|28.00
+  1|AGUA CIEL 1.5 L|17.00
+=== 208 mx03 walmart barcode after name weighed
+  Walmart | 2026-11-20 | 20871 MXN
+  |LECHE LALA ENT 1L|26.50
+  |PAN BIMBO BCO 680G|45.00
+  |COCA COLA 2L|32.00
+  |HUEVO BCO 18PZ|62.00
+  1.250 KG|PLATANO CHIAPAS|27.50
+  0.450 KG|JITOMATE SALAD|15.71
+=== 209 mx04 soriana qty barcode savings
+  Soriana Hiper | 2026-11-19 | 22060 MXN
+  1|PAN BIMBO BLANCO 680G|45.00
+  |AHORRO|-5.00
+  2|COCA COLA 2 L|64.00
+  1|LECHE LALA 1 L|26.50
+  |AHORRO LECHE LALA|-2.50
+  1|ARROZ VERDE VALLE 1 KG|32.90
+  3|ATUN DOLORES AGUA 140G|59.70
+=== 210 mx05 chedraui line numbers weighed
+  Chedraui | 2026-11-18 | 20771 MXN
+  1|LECHE ALPURA 1 L|26.50
+  1.250 KG|PLATANO TABASCO|27.50
+  3|PAN BIMBO INTEGRAL|48.00
+  0.450 KG|JITOMATE BOLA|15.71
+  5|COCA COLA 600ML|18.00
+  6|QUESO PANELA 400G|72.00
+=== 211 mx06 minisuper department keys
+  Minisuper Ejemplo | 2026-11-17 | 20550 MXN
+  1|ABARROTES|25.00
+  1|ABARROTES|32.50
+  4|LACTEOS|28.00
+  7|CERVEZA|120.00
+=== 212 mx07 farmacias guadalajara
+  Farmacias Guadalajara | 2026-11-16 | 18550 MXN
+  1|PARACETAMOL 500MG 20 TAB|38.00
+  1|IBUPROFENO 400MG 10 CAP|52.50
+  2|SUERO ELECTROLIT 625ML|50.00
+  1|CUBREBOCAS KN95 5 PZ|45.00
+=== 213 mx08 farmacia ahorro discount row under each item
+  Farmacias del Ahorro | 2026-11-15 | 25600 MXN
+  |LORATADINA 10MG 20 TAB|68.00
+  |OMEPRAZOL 20MG 14 CAP|95.00
+  |DESCUENTO|-19.00
+  |VITAMINA C 1G 10 TAB EFERV|112.00
+=== 214 mx09 farmacias similares x2 after name
+  Farmacias Similares | 2026-11-14 | 13300 MXN
+  2|DICLOFENACO 100MG 20 TAB|56.00
+  1|AMBROXOL JBE 120ML|35.00
+  1|NAPROXENO 250MG 30 TAB|42.00
+=== 215 mx10 ferreteria table with sizes
+  Ferreteria Ejemplo | 2026-11-13 | 101250 MXN
+  2|PINTURA VINILICA BLANCA 1 GAL|778.00
+  1|BROCHA 4 PULG|65.00
+  10|TORNILLO 1/4 X 2 PULG|35.00
+  1|CINTA AISLANTE 3M 19 MM|42.00
+  5|CABLE THW CAL 12 MT|92.50
+=== 216 mx11 home depot sku rows price below
+  The Home Depot | 2026-11-12 | 151800 MXN
+  |TALADRO PERCUTOR 1/2 <A>|1,299.00
+  2|BROCA CONCRETO 3/8 <A>|90.00
+  |CINTA METRICA 5M <A>|129.00
+=== 217 mx12 office depot name then pza x price
+  Office Depot | 2026-11-11 | 42600 MXN
+  3|CUADERNO PROF 100 H CUADRO|96.00
+  1|LAPIZ MIRADO NO. 2 C/12|54.00
+  2|PAPEL BOND CARTA 500 H|218.00
+  4|MARCATEXTOS AMARILLO|58.00
+=== 218 mx13 liverpool department store
+  Liverpool | 2026-11-10 | 231620 MXN
+  1|SECC 123 CAMISA POLO CABALLERO|899.00
+  |DESCUENTO 20%|-179.80
+  1|SECC 245 PANTALON MEZCLILLA|1,199.00
+  2|SECC 310 CALCETINES 3 PARES|398.00
+=== 219 mx14 suburbia code after name
+  Suburbia | 2026-11-09 | 130600 MXN
+  |BLUSA DAMA M/L|349.00
+  |REBAJA|-100.00
+  |TENIS DEPORTIVO 26|799.00
+  |PLAYERA NINO T-8|129.00
+  |PLAYERA NINO T-8|129.00
+=== 220 mx15 duty free cancun usd
+  Dufry | 2026-11-22 | 13200 USD
+  1|TEQUILA DON EJEMPLO REPOSADO 750ML|39.00
+  2|CHOCOLATE TOBLERONE 360G|25.00
+  1|PERFUME EJEMPLO EDT 100ML|68.00
+=== 221 mx16 airport shop
+  Tienda Ejemplo Aeropuerto | 2026-11-21 | 27600 MXN
+  1|AGUA BONAFONT 1 L|35.00
+  1|SANDWICH JAMON Y QUESO|89.00
+  2|CAFE AMERICANO 12 OZ|110.00
+  1|GOMITAS PANDITAS 125 G|42.00
+=== 222 mx17 fuel table one product
+  Gasolinera Ejemplo | 2026-11-20 | 71957 MXN
+  30.120|MAGNA|719.57
+=== 223 mx18 fuel label and value
+  Estacion de Servicio Ejemplo | 2026-11-19 | 65001 MXN
+  25.126 LTS|PREMIUM 91 OCT|650.01
+=== 224 mx19 fuel table with oil and additive
+  Pemex | 2026-11-18 | 107878 MXN
+  35.214 L|MAGNA|844.78
+  1|ACEITE MULTIGRADO 20W50 1L|145.00
+  1|ADITIVO GASOLINA 354ML|89.00
+=== 225 mx20 toll booth capufe
+  Caminos y Puentes Federales | 2026-11-19 | 9500 MXN
+=== 226 mx21 toll tag statement dated rows
+  Pase Ejemplo | 2026-11-01 | 40000 MXN
+  |TEPOTZOTLAN|95.00
+  |PALMILLAS|105.00
+  |PALMILLAS|105.00
+  |TEPOTZOTLAN|95.00
+=== 227 mx22 car park label and value
+  Estacionamiento Ejemplo | 2026-11-17 | 6000 MXN
+=== 228 mx23 airport car park table
+  Estacionamiento Aeropuerto | 2026-11-16 | 100800 MXN
+  2|DIA COMPLETO|560.00
+  16|HORA O FRACCION|448.00
+=== 229 mx24 airport taxi
+  Taxis Aeropuerto Ejemplo | 2026-11-16 | 34500 MXN
+  |TARIFA|345.00
+=== 230 mx25 bus ticket ado
+  ADO | 2026-11-15 | 30400 MXN
+  |TARIFA|298.00
+  |SEGURO|6.00
+=== 231 mx26 airline baggage receipt
+  Aeroméxico | 2026-11-15 | 98600 MXN
+  |EQUIPAJE DOCUMENTADO ADICIONAL|986.00
+=== 232 mx27 uber email
+  Uber | 2026-11-22 | 18745 MXN
+  |Tarifa del viaje|152.30
+=== 233 mx28 didi email
+  DiDi | 2026-11-21 | 8740 MXN
+  |Tarifa base|18.00
+  |Distancia (8.2 km)|41.00
+  |Tiempo (22 min)|26.40
+  |Tarifa dinámica|12.00
+  |Descuento|-10.00
+=== 234 mx29 rappi email
+  Rappi | 2026-11-20 | 39310 MXN
+  2|Orden de tacos al pastor|178.00
+  1|Agua de horchata 1 L|55.00
+  1|Guacamole con totopos|89.00
+=== 235 mx30 uber eats email
+  Uber Eats | 2026-11-19 | 41250 MXN
+  1|Rollo California|139.00
+  |Sin ajonjolí|
+  2|Rollo Spicy Tuna|298.00
+  1|Edamames|69.00
+=== 236 mx31 amazon order confirmation
+  amazon.com.mx | 2026-11-18 | 71700 MXN
+=== 237 mx32 mercado libre order
+  Mercado Libre | 2026-11-17 | 64800 MXN
+  1|unidad|549.00
+  |Envío|99.00
+=== 238 mx33 card slip bank on top
+  Tienda Ejemplo Centro | 2026-11-16 | 125000 MXN
+=== 239 mx34 card slip label on its own row
+  Ferreteria Ejemplo del Centro | 2026-11-15 | 48950 MXN
+=== 240 gt35 supermarket la torre
+  Supermercados la Torre | 2026-11-14 | 10288 GTQ
+  2|LECHE DOS PINOS 1 L|27.00
+  1|PAN BIMBO SANDWICH|22.95
+  1|FRIJOL DUCAL 400 G|9.75
+  3|AGUA SALVAVIDAS 600ML|12.00
+  2.150 LB|POLLO REY ENTERO|31.18
+=== 241 gt36 pharmacy fel
+  Farmacias Galeno | 2026-11-13 | 8875 GTQ
+  1|ACETAMINOFEN 500 MG X 100 TAB|45.00
+  2|SUERO ORAL 500 ML|25.00
+  1|ALCOHOL GEL 250 ML|18.75
+=== 242 gt37 fuel table idp then oil
+  Gasolinera Ejemplo Roosevelt | 2026-11-12 | 31342 GTQ
+  8.524|SUPER|268.42
+  |ACEITE 2T 1/4 GAL|45.00
+=== 243 gt38 fuel label and value
+  Puma Energy | 2026-11-11 | 29715 GTQ
+  10.250|DIESEL|297.15
+=== 244 gt39 convenience store
+  Super 24 | 2026-11-10 | 7050 GTQ
+  1|GALLO CERVEZA LATA 355ML|9.00
+  2|TORTRIX LIMON 180G|17.00
+  1|GATORADE 600ML|12.50
+  1|CIGARROS RUBIOS 20|32.00
+=== 245 gt40 hardware code first qty after name
+  Cemaco | 2026-11-09 | 31285 GTQ
+  3|BOMBILLA LED 9W|44.85
+  1|EXTENSION ELECTRICA 5 M|79.00
+  1|PINTURA LATEX BLANCA 1 GAL|189.00
+=== 246 sv41 super selectos tax letters with key
+  Super Selectos | 2026-11-14 | 1315 MXN
+  |LECHE SALUD ENTERA 1 L|1.45
+  |PAN MOLDE BIMBO BLANCO|2.35
+  |FRIJOL ROJO SEDA 1 LB|1.15
+  |ARROZ SAN PEDRO 4 LB|2.85
+  |HUEVOS EL GRANJERO 15 U|3.10
+  |COCA COLA 2.5 L|2.25
+=== 247 sv42 pharmacy x 100 pack
+  Farmacias San Nicolas | 2026-11-13 | 1375 MXN
+  1|ACETAMINOFEN MK 500MG X 100|4.50
+  2|SUERO ORAL SABOR FRESA|2.50
+  1|VITAMINA C MK 500MG X 100|6.75
+=== 248 sv43 fuel fovial cotrans then oil
+  Texaco Ejemplo Masferrer | 2026-11-12 | 4518 MXN
+  9.213 GAL|GASOLINA REGULAR|34.92
+  |ACEITE HAVOLINE 20W50 1/4|7.50
+=== 249 sv44 convenience store tax letter no key
+  Tienda Ejemplo Express | 2026-11-11 | 390 MXN
+  2|PILSENER LATA 355 ML|2.20
+  1|DIANA TORTILLITAS 1.2 OZ|0.35
+  1|AGUA CRISTAL 600 ML|0.60
+  1|PAN DULCE SEMITA|0.75
+=== 250 us45 cvs pharmacy
+  CVS | 2026-11-14 | 3043 MXN
+  1|TYLENOL EX STR 100CT|12.99
+  1|CVS WATER 1 GAL|1.79
+  2|TRAVEL TOOTHPASTE 2|3.98
+  1|SUNSCREEN SPF50 3OZ|9.49
+=== 251 us46 fuel pump receipt
+  Shell | 2026-11-13 | 3257 MXN
+  |FUEL TOTAL|32.57
+=== 252 us47 grocery with savings rows
+  Kroger | 2026-11-12 | 1153 MXN
+  |KRO 2% MILK GAL|3.49
+  |SC KROGER SAVINGS|-0.50
+  2.31 lb|BANANAS|1.36
+  |WONDER BREAD|2.99
+  |MC MFG COUPON|-1.00
+  |DORITOS NACHO 9.25OZ|4.79
+=== 253 uk48 tesco express
+  Tesco | 2026-11-10 | 400 GBP
+  |SANDWICH CHICKEN SALAD|3.40
+  |WATER STILL 500ML|0.95
+  |CRISPS SEA SALT|1.10
+  |MEAL DEAL SAVING|-1.45
+=== 254 co49 exito line numbers barcodes
+  Exito | 2026-11-09 | 2485000 MXN
+  |AGUA CRISTAL 600ML|2.500
+  |PAN TAJADO BIMBO|7.900
+  |JABON PROTEX X3|9.800
+  |ARROZ DIANA 1 KG|4.650
+=== 255 co50 fuel label and value
+  Terpel | 2026-11-08 | 8290300 MXN
+  5.214|CORRIENTE|82.903
+=== 256 mx51 la comer line numbers qty x price on multiples
+  La Comer | 2026-11-17 | 17400 MXN
+  1|LECHE LALA ENTERA 1 L|26.50
+  2|COCA COLA 600ML|36.00
+  3|PAN BIMBO BLANCO|45.00
+  3|YOGHURT DANONE FRESA|28.50
+  5|PAPEL HIGIENICO 4 ROLLOS|38.00
+=== 257 mx52 bodega aurrera barcode first one x3 row
+  Bodega Aurrera | 2026-11-16 | 15840 MXN
+  3|COCA COLA 600ML|54.00
+  |PAN BIMBO BLANCO 680G|45.00
+  |LECHE LALA 1 L|26.50
+  |ARROZ VERDE VALLE 1 KG|32.90
+=== 258 mx53 papeleria price then quantity then total
+  Papeleria Ejemplo | 2026-11-15 | 22150 MXN
+  |CUADERNO PROFESIONAL RAYA|70.00
+  |BOLIGRAFO BIC AZUL|40.00
+  1|PEGAMENTO LAPIZ 21 G|22.50
+  |FOLDER CARTA C/25|89.00
+=== 259 mx54 turibus day tickets
+  Turibus | 2026-11-14 | 50000 MXN
+  |TICKET 1 DIA|250.00
+  |TICKET 1 DIA|250.00
+=== 260 mx55 ferreteria legal suffix on its own row and slogan
+  Ferreteria Ejemplo | 2026-11-13 | 19800 MXN
+  2|CODO PVC 1/2|9.00
+  1|LLAVE NARIZ 1/2|85.00
+  3|MT MANGUERA 1/2|36.00
+  1|PEGAMENTO PVC 250 ML|68.00
+=== 261 gt56 libreria fel emisor label on its own row
+  Libreria y Papeleria Ejemplo | 2026-11-12 | 16950 GTQ
+  2|CUADERNO UNIVERSITARIO 100 H|37.00
+  1|CALCULADORA CIENTIFICA|125.00
+  3|LAPICERO BIC NEGRO|7.50
+=== 262 mx57 fuel label and value razon social on its own row
+  Servicio Ejemplo del Bajio | 2026-11-11 | 95000 MXN
+  40|MAGNA|950.00
+=== 263 us58 doordash email
+  DoorDash | 2026-11-20 | 4552 MXN
+  1|Pad Thai Chicken|14.95
+  1|Spring Rolls (4)|6.50
+  2|Thai Iced Tea|9.00
+=== 264 us59 amazon order confirmation
+  amazon.com | 2026-11-16 | 4761 MXN
+=== 265 gt60 fuel table idp in the totals
+  Shell Ejemplo Vista Hermosa | 2026-11-10 | 37748 GTQ
+  9.105 GAL|V-POWER|309.48
+  1|ACEITE HELIX 10W30 QT|68.00
+=== 266 gt61 fuel idp row named after the fuel
+  Texaco Ejemplo Periferico | 2026-11-09 | 19169 GTQ
+  6.500 GLS|REGULAR|191.69
+=== 267 sv62 supermarket line counters barcodes tax letters
+  Despensa de Don Juan | 2026-11-08 | 785 MXN
+  |LECHE AUSTRALIAN 1 LT|1.55
+  |FRIJOL SAN FRANCISCO 2 LB|2.30
+  |ACEITE ORISOL 750 ML|3.25
+  |TORTILLA MAIZ 20 U|0.75
+=== 268 sv63 hardware code name qty price total
+  Almacenes Vidri | 2026-11-07 | 1020 MXN
+  50|TORNILLO TABLAROCA 1 PULG|1.50
+  2|CINTA TEFLON 1/2|0.90
+  4|FOCO LED 9W LUZ BLANCA|7.80
+=== 269 sv64 department store siman
+  Almacenes Siman | 2026-11-06 | 7594 MXN
+  |CAMISA MANGA LARGA M|29.99
+  |DESCUENTO 30%|-9.00
+  |DEPTO 112 CALZADO|
+  |ZAPATO CASUAL 42|54.95
+=== 270 gt65 walmart barcode after name discount row
+  Walmart | 2026-11-05 | 11610 GTQ
+  |ACEITE IDEAL 800 ML|21.95
+  |DESCUENTO|-2.00
+  |AZUCAR CANA REAL 2500 G|24.50
+  |HUEVO MEDIANO 30 U|38.75
+  |CAFE INCASA 200 G|32.90
+=== 271 gt66 pharmacy discount column
+  Cruz Verde | 2026-11-04 | 7125 GTQ
+  10|LORATADINA 10 MG|24.00
+  14|OMEPRAZOL 20 MG|31.50
+  1|ALCOHOL 70% 500 ML|15.75
+=== 272 mx67 pharmacy two numbered lines with zeros
+  Farmacia San Pablo | 2026-11-03 | 43400 MXN
+  |ASPIRINA PROTECT 100MG 28 TAB|89.00
+  |BEDOYECTA TRI 5 AMP|345.00
+=== 273 mx68 circle k combos and numbered names
+  Circle K | 2026-11-22 | 18800 MXN
+  1|COMBO 2 HOT DOG + REFRESCO|49.00
+  2|7UP LATA 355ML|32.00
+  1|PASTEL 3 LECHES REB|42.00
+  1|HIELO BOLSA 5 KG|35.00
+  2|AGUA CIEL 1 L|30.00
+=== 274 mx69 heb multiplier after name
+  H-E-B | 2026-11-21 | 45450 MXN
+  2|12 ALITAS BBQ ROSTICERIA|258.00
+  1|POLLO ROSTIZADO ENTERO|119.00
+  2|TORTILLA HARINA 20 PZ|56.00
+  1|SALSA VALENTINA 370 ML|21.50
+=== 275 mx70 oxxo with ocr damage
+  OXXO | 2026-11-20 | 18550 MXN
+  1|CAFE ANDATTI 12OZ|22.00
+  1|PAN DULCE C0NCHA|14.50
+  1|AGUA BONAFONT 600ML|13.00
+  2|BARRA NATURE VALLEY|36.00
+=== 276 mx71 sams club item number first
+  Sam's Club | 2026-11-19 | 95050 MXN
+  |MM AGUA PURIF 40 PZ|98.50
+  |TOALLA COCINA 12 ROLLOS|245.00
+  |POLLO ROSTIZADO|218.00
+  |ACEITE OLIVA 2 L|389.00
+=== 277 mx72 sears quantity after name no unit price
+  Sears | 2026-11-18 | 194600 MXN
+  |AUDIFONOS BLUETOOTH EJEMPLO 1|899.00
+  |DEPTO 45 BLANCOS|
+  |JUEGO DE SABANAS MATRIMONIAL 1|649.00
+  |TOALLA DE BANO 2|398.00
+=== 278 mx73 fuel labels with lost colons
+  Gasolinera Ejemplo del Valle | 2026-11-17 | 71957 MXN
+  30.120|MAGNA|719.57
+=== 279 mx74 fuel name row then litres x price
+  Pemex | 2026-11-16 | 51740 MXN
+  20 L|PREMIUM|517.40
+=== 280 mx75 toll label and value with concept
+  Autopista Ejemplo del Sol | 2026-11-16 | 19800 MXN
+  |PEAJE|198.00
+=== 281 mx76 car park label and value with concept
+  Estacionamiento | 2026-11-15 | 7200 MXN
+  |ESTACIONAMIENTO|72.00
+=== 282 mx77 airport transfer with hotel row
+  Transfers Ejemplo | 2026-11-14 | 65000 MXN
+  |TRASLADO PRIVADO SENCILLO|650.00
+=== 283 mx78 bus e-ticket several dates
+  ETN Turistar | 2026-11-12 | 48500 MXN
+=== 284 mx79 volaris purchase receipt
+  Volaris | 2026-11-10 | 278087 MXN
+  |TARIFA AEREA|1,249.00
+  |TUA|580.35
+  |EQUIPAJE DOCUMENTADO 25 KG|499.00
+  |SELECCION DE ASIENTO 12A|149.00
+=== 285 gt80 uber email quetzales
+  Uber | 2026-11-15 | 5840 GTQ
+  |Tarifa del viaje|52.40
+=== 286 sv81 uber email dollars
+  Uber | 2026-11-14 | 785 USD
+  |Tarifa del viaje|6.90
+=== 287 mx82 walmart online order
+  Walmart | 2026-11-13 | 25600 MXN
+  |Cantidad: 2|58.00
+  |Detergente Ariel 3 kg|
+  |Cantidad: 1|149.00
+=== 288 gt83 card slip bank on top
+  null | 2026-11-12 | 16950 GTQ
+=== 289 sv84 card slip bank and processor on top
+  Farmacia Ejemplo Metrocentro | 2026-11-13 | 1375 USD
+=== 290 us85 card slip
+  Chase | 2026-11-15 | 4218 MXN
+=== 291 gt86 toll booth
+  Autopista Palin Escuintla | 2026-11-11 | 1525 GTQ
+  |PEAJE|15.25
+=== 292 gt87 bus ticket
+  Litegua | 2026-11-12 | 11000 GTQ
+  |PASAJE|110.00
+=== 293 sv88 international bus ticket dollars
+  Tica Bus | 2026-11-14 | 3700 USD
+  |TARIFA|35.00
+=== 294 gt89 duty free la aurora
+  Duty Free la Aurora | 2026-11-16 | 8300 USD
+  1|RON ZACAPA 23 750 ML|52.00
+  2|CHOCOLATE LINDT 300 G|19.00
+  1|CAFE ANTIGUA 340 G|12.00
+=== 295 sv90 airport shop tax letters
+  Tienda Ejemplo Aeropuerto | 2026-11-15 | 1250 MXN
+  1|AGUA CRISTAL 600 ML|1.50
+  1|SANDWICH DE POLLO|5.75
+  1|CAFE AMERICANO 12 OZ|2.25
+  2|QUESADILLA SALVADORENA|3.00
+=== 296 us91 airport newsstand
+  Hudson News | 2026-11-14 | 3598 MXN
+  |SMARTWATER 1L|4.99
+  |TRAIL MIX 6OZ|5.49
+  |USA TODAY|3.00
+  |NECK PILLOW|19.99
+=== 297 uk92 boots
+  Boots | 2026-11-09 | 649 GBP
+  |PARACETAMOL 500MG 16S|0.49
+  |TRAVEL TOOTHBRUSH|2.50
+  |SUN LOTION SPF30 200ML|6.00
+  3|FOR 2 TOILETRIES|-2.50
+=== 298 uk93 car park
+  Ncp | 2026-11-08 | 2200 GBP
+=== 299 co94 drogueria whole prices
+  Drogueria Ejemplo | 2026-11-07 | 2680000 MXN
+  1|ACETAMINOFEN 500MG X 20|4.500
+  2|SUERO ORAL 400ML|9.800
+  1|VITAMINA C X 10|12.500
+=== 300 co95 cabify email
+  Cabify | 2026-11-06 | 3150000 MXN
+  |Tarifa base|5.200
+=== 301 us96 walmart
+  Walmart | 2026-11-13 | 2005 MXN
+  |GV WHL MLK|3.48
+  2.31 lb|BANANAS|1.25
+  |GV WATER 1GAL|1.28
+  |TRAVEL ADPTR|12.97
+=== 302 us97 parking garage
+  Example Parking Garage | 2026-11-12 | 3080 MXN
+  |DAILY MAX|28.00
+=== 303 mx98 abarrotes small shop
+  Abarrotes Ejemplo | 2026-11-12 | 13500 MXN
+  2|COCA COLA 600 ML|36.00
+  1|SABRITAS ADOBADAS 45 G|18.00
+  1|GANSITO MARINELA 50 G|16.00
+  0.500|JAMON DE PAVO KG|65.00
+=== 304 mx99 benavides barcode row then pza row
+  Farmacias Benavides | 2026-11-11 | 12200 MXN
+  1|ASPIRINA 500MG 40 TAB|68.50
+  2|GEL ANTIBACTERIAL 250ML|59.00
+  |DESC. PROMO 2X1|-29.50
+  1|PANUELOS KLEENEX 90 H|24.00
+=== 305 gt100 despensa numbered lines with barcodes
+  Despensa Familiar | 2026-11-10 | 9810 GTQ
+  |ACEITE IDEAL 800 ML|21.95
+  |AZUCAR 2500 G|24.50
+  |HUEVO CARTON 30 U|38.75
+  |INCAPARINA 450 G|12.90
+=== 306 mx101 super quantity then barcode one two three
+  Super Ejemplo del Norte | 2026-11-20 | 12650 MXN
+  1|PAN BIMBO BLANCO 680G|45.00
+  2|LECHE LALA 1 L|53.00
+  3|YOGHURT DANONE FRESA 125G|28.50
+=== 307 mx102 super quantity first grams after names
+  Super Kompras | 2026-11-19 | 13390 MXN
+  1|MAYONESA 390 G|42.50
+  2|MARUCHAN 64 G|28.00
+  1|MARGARINA 90 G|16.50
+  1|ATUN EN AGUA 140 G|19.90
+  3|SOPA DE PASTA 200 G|27.00
+=== 308 mx103 farmacia legal suffix on its own row then branch
+  Farmacia Ejemplo | 2026-11-18 | 16500 MXN
+  1|NAPROXENO 250MG 30 TAB|42.00
+  1|NOVALGINA 10 TAB|85.00
+  2|ALCOHOL ETILICO 250ML|38.00
+=== 309 gt104 super suffix on its own row and slogan
+  La Barata | 2026-11-17 | 6825 GTQ
+  1|ARROZ GALLO DORADO 5 LB|28.50
+  2|FRIJOL NEGRO 1 LB|15.00
+  1|ACEITE CAPULLO 750 ML|24.75
+=== 310 sv105 fuel label and value with levies
+  Uno Ejemplo los Proceres | 2026-11-16 | 3396 MXN
+  8.105|GASOLINA SUPER|33.96
+=== 311 us106 target
+  Target | 2026-11-15 | 1597 MXN
+  |GG MILK 1GAL NF|3.59
+  |BANANAS NF|1.29
+  |HEALTH AND BEAUTY|
+  |TRAVEL SHAMPOO T|1.99
+  |SUNSCREEN SPF30 T|8.99
+  |REDCARD SAVINGS 5%|-0.79
+=== 312 us107 lyft email
+  Lyft | 2026-11-14 | 2850 MXN
+  |Lyft fare (9.21mi, 21m 14s)|18.45
+  |Service fee|3.25
+  |Airport fee|2.80
+=== 313 us108 toll receipt
+  Example Toll Road Authority | 2026-11-13 | 500 MXN
+  |PAID|5.00
+=== 314 us109 airline baggage receipt
+  United Airlines | 2026-11-14 | 9000 USD
+  |1ST CHECKED BAG|40.00
+  |2ND CHECKED BAG|50.00
+=== 315 us110 duty free
+  Dfs Duty Free | 2026-11-16 | 22800 USD
+  1|JOHNNIE WALKER BLACK 1L|42.00
+  2|GODIVA GOLD 8PC|32.00
+  1|RAY-BAN AVIATOR RB3025|154.00
+=== 316 uk111 sainsburys weighed
+  Sainsbury's | 2026-11-12 | 288 GBP
+  0.345 kg|BANANAS LOOSE|0.33
+  |JS SEMI SKIMMED MILK 2PT|1.35
+  |WARBURTONS TOASTIE 800G|1.45
+  |NECTAR PRICE SAVING|-0.25
+=== 317 uk112 airport train ticket receipt
+  Heathrow Express | 2026-11-11 | 2500 GBP
+  1|ADULT EXPRESS SINGLE|25.00
+=== 318 uk113 whsmith airport
+  WHSmith | 2026-11-10 | 2796 GBP
+  |TRAVEL ADAPTOR UK-EU|12.99
+  |EVIAN 750ML|2.49
+  |THE ECONOMIST|6.99
+  |MEAL DEAL|5.49
+=== 319 co114 carulla plu weighed whole prices
+  Carulla | 2026-11-09 | 3477000 MXN
+  |LECHE ALPINA ENTERA 1L|4.950
+  |PAN TAJADO INTEGRAL|8.200
+  0,850 KG|4011 BANANO|2.720
+  |CAFE SELLO ROJO 500G|18.900
+=== 320 co115 avianca baggage
+  Avianca | 2026-11-08 | 11305000 COP
+  |EQUIPAJE ADICIONAL 23 KG|95.000
+=== 321 gt116 pharmacy name row then qty x price
+  Farmacia Batres | 2026-11-15 | 19480 GTQ
+  1|ENSURE VAINILLA 400 G|135.00
+  2|ASPIRINA 100 MG X 30|57.00
+  |DESCUENTO TERCERA EDAD|-19.20
+  1|PANADOL ULTRA X 10|22.00
+=== 322 gt117 super numbered lines with zeros qty x price on multiples
+  Econosuper | 2026-11-13 | 10170 GTQ
+  1|LECHE DOS PINOS 1 L|13.50
+  2|COCA COLA 2.5 L|32.00
+  3|PAN SANDWICH BIMBO|22.95
+  3|YOGURT YES FRESA|13.50
+  5|PAPEL SCOTT 4 ROLLOS|19.75
+=== 323 gt118 hardware price then quantity then total
+  Ferreteria el Martillo | 2026-11-12 | 14300 GTQ
+  |FOCO LED 9W|60.00
+  2|CINTA AISLANTE NEGRA|17.00
+  |TUBO PVC 1/2 PULG 3 M|66.00
+=== 324 gt119 shuttle receipt
+  Transportes Turisticos Ejemplo | 2026-11-14 | 30000 GTQ
+  2|PASAJEROS|300.00
+=== 325 gt120 mall car park
+  Oakland Mall | 2026-11-14 | 4000 GTQ
+  |PARQUEO 4 HORAS|40.00
+=== 326 gt121 pedidosya email
+  PedidosYa | 2026-11-16 | 13365 GTQ
+  1|Acetaminofén 500 mg 20 tab|18.00
+  2|Suero oral coco 500 ml|30.00
+  1|Termómetro digital|65.00
+=== 327 sv122 walmart barcode after name tax letters weighed
+  Walmart | 2026-11-15 | 1594 MXN
+  |ARROZ PRECOCIDO 5 LB|3.85
+  |ACEITE MAZOLA 1.5 L|5.25
+  |DESCUENTO|-0.50
+  |DETERGENTE XEDEX 1 KG|2.95
+  3.250 LB|POLLO INDIO ENTERO|4.39
+=== 328 sv123 pharmacy name row then qty x price tax letter
+  Farmacias Economicas | 2026-11-14 | 755 MXN
+  2|IBUPROFENO MK 400MG X 10|3.50
+  1|LORATADINA GENFAR 10MG X 10|2.10
+  1|ALCOHOL GEL 120 ML|1.95
+=== 329 sv124 libreria quantity first
+  Libreria Ejemplo | 2026-11-13 | 600 MXN
+  2|CUADERNO ESPIRAL 100 H|3.00
+  1|CAJA LAPICES X 12|2.25
+  3|FOLDER TAMANO CARTA|0.75
+=== 330 sv125 mall car park
+  Multiplaza | 2026-11-13 | 150 MXN
+  |TARIFA PARQUEO|1.50
+=== 331 sv126 airport taxi
+  Acacya de R.l | 2026-11-12 | 3500 MXN
+  |SERVICIO DE TAXI|35.00
+=== 332 sv127 hugo delivery email
+  Super Selectos | 2026-11-12 | 1134 MXN
+  2|Leche Salud entera 1 L|2.90
+  1|Pan de caja Bimbo|2.35
+  1|Huevos cartón 15 u|3.10
+=== 333 sv128 la curacao appliances
+  La Curacao | 2026-11-11 | 8390 MXN
+  1|LICUADORA OSTER 10 VEL|59.00
+  1|PLANCHA BLACK DECKER|24.90
+=== 334 mx129 oxxo services and one product
+  OXXO | 2026-11-18 | 58500 MXN
+  |RECARGA TELCEL|100.00
+  |PAGO DE SERVICIO CFE|458.00
+  |COMISION POR SERVICIO|14.00
+  1|AGUA CIEL 600ML|13.00
+=== 335 mx130 costco item numbers
+  Costco Wholesale | 2026-11-17 | 85600 MXN
+  |E 512345 KS AGUA 40/500ML|99.00
+  |E 478123 PAPEL HIG KS 30R|389.00
+  |POLLO ROSTIZADO|109.00
+  |E 345678 VINO TINTO EJEMPLO 750|259.00
+=== 336 mx131 city market headings weighed
+  City Market | 2026-11-16 | 25176 MXN
+  0.456 kg|AGUACATE HASS|40.99
+  0.320 kg|LIMON SIN SEMILLA|12.77
+  |SALCHICHONERIA|
+  |JAMON SERRANO 100 G|129.00
+  |ABARROTES|
+  2|PASTA BARILLA 500 G|69.00
+=== 337 mx132 farmacia paris table and discount
+  Farmacia Paris | 2026-11-15 | 13590 MXN
+  2|TEMPRA 500MG 20 TAB|90.00
+  1|ELECTROLIT COCO 625ML|25.00
+  3|CUBREBOCAS KN95|36.00
+=== 338 mx133 tlapaleria code name qty unit
+  Tlapaleria Ejemplo | 2026-11-14 | 28200 MXN
+  |MARTILLO UNA 16 OZ 1 PZA|189.00
+  |CLAVO 2 1/2 PULG 1 KG|48.00
+  |LIJA AGUA 220 5 PZA|45.00
+=== 339 mx134 farmacia barcode first one x4 row
+  Farmacia Yza | 2026-11-13 | 21950 MXN
+  4|SUERO VIDA ORAL 500ML|72.00
+  |PARACETAMOL 500MG 10 TAB|18.50
+  |TERMOMETRO DIGITAL|129.00
+=== 340 mx135 palacio department headings
+  El Palacio de Hierro | 2026-11-12 | 403800 MXN
+  1|PERFUME EJEMPLO EDP 50ML|2,150.00
+  |DEPTO 0230 CABALLEROS|
+  1|CINTURON PIEL NEGRO|1,290.00
+  2|CALCETIN VESTIR 3 PK|598.00
+=== 341 mx136 duty free los cabos dollars
+  The Duty Free Shop | 2026-11-21 | 19600 USD
+  1|TEQUILA EJEMPLO ANEJO 1 L|58.00
+  2|VANILLA EXTRACT 250 ML|18.00
+  1|SUNGLASSES EJEMPLO|120.00
+=== 342 mx137 fuel table columns read as separate rows
+  Gasolinera Ejemplo Centro | 2026-11-12 | 100000 MXN
+=== 343 mx138 toll booth with ocr damage
+  CAPUFE | 2026-11-11 | 8700 MXN
+=== 344 mx139 car park two days
+  Estacionamiento Publico Ejemplo | 2026-11-12 | 34400 MXN
+  |PENSION 2 DIAS|300.00
+  |HORAS ADICIONALES 2|44.00
+=== 345 mx140 bus ticket table
+  ADO | 2026-11-14 | 24500 MXN
+  2|ADULTO CANCUN - PLAYA DEL CARMEN|196.00
+  1|MENOR CANCUN - PLAYA DEL CARMEN|49.00
+=== 346 mx141 airline e-ticket receipt several dates
+  Aeroméxico | 2026-11-08 | 45257 USD
+  |TARIFA|310.00
+=== 347 mx142 clip card slip
+  Tienda Ejemplo Artesanias | 2026-11-17 | 85000 MXN
+=== 348 mx143 la europea table
+  La Europea | 2026-11-14 | 131200 MXN
+  1|TEQUILA EJEMPLO 1800 750 ML|489.00
+  2|VINO TINTO EJEMPLO 750 ML|518.00
+  6|CERVEZA ARTESANAL 355 ML|270.00
+  1|HIELO 5 KG|35.00
+=== 349 mx144 minisuper quantities with zeros
+  Super Ejemplo Express | 2026-11-15 | 11750 MXN
+  2|COCA COLA 600ML|36.00
+  1|SABRITAS LIMON 45G|19.00
+  1|PAN DULCE|8.50
+  3|CERVEZA TECATE 355ML|54.00
+=== 350 mx145 officemax one x5 row
+  OfficeMax | 2026-11-14 | 27800 MXN
+  5|LAPICERO BIC AZUL|40.00
+  |LIBRETA PASTA DURA 96 H|89.00
+  |MEMORIA USB 64GB|149.00
+=== 351 mx146 oxxo promo row
+  OXXO | 2026-11-16 | 6800 MXN
+  2|COCA COLA 600ML|36.00
+  |PROMO 2X$30|-6.00
+  1|TAKIS FUEGO 68G|21.00
+  1|CHICLES TRIDENT 18S|17.00
+=== 352 mx147 liverpool online order
+  Liverpool | 2026-11-15 | 206730 MXN
+  1|Maleta de cabina Ejemplo 20 pulgadas|1,899.00
+  2|Candado TSA Ejemplo|398.00
+=== 353 us148 fuel and shop on one receipt
+  7-Eleven | 2026-11-15 | 2869 MXN
+  8.524 GAL|PUMP 03 REGULAR|24.71
+  |COFFEE LARGE 20OZ|2.19
+  |DONUT GLAZED|1.49
+=== 354 gt149 clothes shop discount row
+  Almacenes Ejemplo | 2026-11-11 | 46110 GTQ
+  1|PANTALON LONA CABALLERO 32|249.00
+  |DESCUENTO 10%|-24.90
+  2|CAMISETA BASICA ALGODON|138.00
+  1|CINCHO CUERO CAFE|99.00
+=== 355 sv150 super selectos savings rows tax letters
+  Super Selectos | 2026-11-10 | 960 MXN
+  |QUESO DURO BLANDO 1 LB|3.75
+  |AHORRO|-0.50
+  |CAFE LISTO 200 G|4.10
+  |AGUACATE HASS 2 U|1.50
+  |AHORRO|-0.25
+  |PAN FRANCES 10 U|1.00
+=== 356 min R1 discount zero row between items
+  null | null | 9500 MXN
+  |LORATADINA 10MG 20 TAB|68.00
+  |OMEPRAZOL 20MG 14 CAP|95.00
+=== 357 min R1b discount zero with colon and sign
+  null | null | 9500 MXN
+  |LORATADINA 10MG 20 TAB|68.00
+  |OMEPRAZOL 20MG 14 CAP|95.00
+=== 358 min R2 idp row then another product
+  null | null | 35348 MXN
+  8.524|SUPER|268.42
+  |ACEITE 2T 1/4 GAL|45.00
+=== 359 min R3 fovial row then another product
+  null | null | 4426 MXN
+  9.213 GAL|GASOLINA REGULAR|34.92
+  |ACEITE HAVOLINE 20W50 1/4|7.50
+=== 360 min R3b cotrans row then another product
+  null | null | 4334 MXN
+  9.213 GAL|GASOLINA REGULAR|34.92
+  |ACEITE HAVOLINE 20W50 1/4|7.50
+=== 361 min R4 line number kept before qty x price
+  null | null | 2850 MXN
+  3|YOGHURT DANONE FRESA|28.50
+=== 362 min R4b line number kept before weight
+  null | null | 2750 MXN
+  1.250 KG|PLATANO TABASCO|27.50
+=== 363 min R4c two numbered lines one with qty x price
+  null | null | 7350 MXN
+  3|PAN BIMBO BLANCO|45.00
+  3|YOGHURT DANONE FRESA|28.50
+=== 364 min R5 single x3 after barcode
+  null | null | 5400 MXN
+  3|COCA COLA 600ML|54.00
+=== 365 min R5b single x3 after quantity and barcode
+  null | null | 5400 MXN
+  3|COCA COLA 600ML x3|54.00
+=== 366 min R6 price then quantity then total
+  null | null | 7000 MXN
+  |CUADERNO PROFESIONAL RAYA|70.00
+=== 367 min R6b price then quantity then total one of each
+  null | null | 8900 MXN
+  |FOLDER CARTA C/25|89.00
+=== 368 min R7 ticket one day
+  null | null | null MXN
+  |TICKET 1 DIA|250.00
+=== 369 min R7b card three days
+  null | null | 12000 MXN
+  |TARJETA 3 DIAS|120.00
+=== 370 min R7c pay per day
+  null | null | 15000 MXN
+  |PAGO POR DIA|150.00
+=== 371 min R8 suffix row then slogan
+  Ferreteria Ejemplo | null | 19800 MXN
+=== 372 min R8b suffix row then line of business
+  Super Ejemplo | null | 20550 MXN
+=== 373 min R8c suffix row then branch name
+  Farmacia Ejemplo | null | 16500 MXN
+=== 374 min R9 emisor label row
+  Libreria y Papeleria Ejemplo | null | 16950 GTQ
+=== 375 min R9b razon social label row
+  Servicio Ejemplo del Bajio | null | 95000 MXN
+=== 376 min R9c vendido por label row
+  Tienda Ejemplo | null | 64800 MXN
+=== 377 min R9d empresa label row
+  Autobuses Ejemplo | null | 30400 MXN
+=== 378 min R10 quantities one two three before barcodes
+  null | null | 12650 MXN
+  1|PAN BIMBO BLANCO 680G|45.00
+  2|LECHE LALA 1 L|53.00
+  3|YOGHURT DANONE FRESA 125G|28.50
+=== 379 min R11 hotel row under the company name
+  Transfers Ejemplo | null | 65000 MXN
+=== 380 min N1 fuel heading as product
+  null | null | 100000 MXN
+=== 381 min N1b fuel heading alone with total
+  null | null | 100000 MXN
+=== 382 min W1 mayonesa grams
+  null | null | 4250 MXN
+  1|MAYONESA 390 G|42.50
+=== 383 min W1b novalgina tablets
+  null | null | 8500 MXN
+  1|NOVALGINA 10 TAB|85.00
+=== 384 min W1c maruchan grams
+  null | null | 2800 MXN
+  2|MARUCHAN 64 G|28.00
+=== 385 min W2 pack of 100 read as quantity
+  null | null | 450 MXN
+  1|ACETAMINOFEN MK 500MG X 100|4.50
+=== 386 min W2b box of 12 read as quantity
+  null | null | 225 MXN
+  1|CAJA LAPICES X 12|2.25
+=== 387 min W3a total then date with time
+  null | 2026-11-19 | 41250 MXN
+=== 388 min W3b subtotal promotion total then date with time
+  null | 2026-11-19 | 41250 MXN
+  |Promoción|-151.80
+=== 389 min W3c subtotal promotion total
+  null | null | 41250 MXN
+  |Promoción|-151.80
+=== 390 min W3d subtotal discount total
+  null | null | 206730 MXN
+  |Descuento|-229.70
+=== 391 min W4a total with zero for o
+  null | null | 8550 MXN
+  |PAN DULCE|85.50
+=== 392 min W4b change with zero for o
+  null | null | 8550 MXN
+  |PAN DULCE|85.50
+=== 393 min W5 hourly rate before amount
+  null | null | 6000 MXN
+=== 394 min W6 barcode read as quantity with pza
+  Camisa Polo Caballero | null | 89900 MXN
+  1|CAMISA POLO CABALLERO|899.00
+=== 395 min W6b barcode read as quantity
+  null | null | 3900 MXN
+  1|TEQUILA DON EJEMPLO REPOSADO 750ML|39.00
+=== 396 min W7 fuel labels without colons
+  null | null | 71957 MXN
+  30.120|MAGNA|719.57
+=== 397 min W8 quantity label row with price under name
+  Pañuelos Kleenex 90 hojas | null | 5800 MXN
+  |Cantidad: 2|58.00
+=== 398 min W8b one unit row with price under name
+  Audífonos Inalámbricos Ejemplo X2 | null | 54900 MXN
+  1|unidad|549.00
+=== 399 min W9 bank above shop
+  Chase | null | 4218 MXN
+=== 400 min W10 la europea
+  La Europea | null | 131200 MXN
+=== 401 min W11 fuel total as item
+  Regular Unleaded | null | 3257 MXN
+  |FUEL TOTAL|32.57
+=== 402 min W12 two numbered lines with zeros
+  null | null | 34500 MXN
+  |ASPIRINA PROTECT 100MG 28 TAB|89.00
+  |BEDOYECTA TRI 5 AMP|345.00
+=== 403 min W12b department keys
+  null | null | 12000 MXN
+  1|ABARROTES|25.00
+  4|LACTEOS|28.00
+  7|CERVEZA|120.00
+=== 404 min W12c plain line numbers
+  null | null | 7200 MXN
+  1|LECHE ALPURA 1 L|26.50
+  2|PAN BIMBO INTEGRAL|48.00
+  3|COCA COLA 600ML|18.00
+  4|QUESO PANELA 400G|72.00
+=== 405 min W13 department heading between items
+  null | null | 344000 MXN
+  1|PERFUME EJEMPLO EDP 50ML|2,150.00
+  |DEPTO 0230 CABALLEROS|
+  1|CINTURON PIEL NEGRO|1,290.00
+=== 406 min W14 tax letter and item number in front
+  null | null | 9900 MXN
+  |E 512345 KS AGUA 40/500ML|99.00
+=== 407 min W15 three for two offer row
+  null | null | 600 MXN
+  |SUN LOTION SPF30 200ML|6.00
+  3|FOR 2 TOILETRIES|-2.50
+=== 408 mx151 airport transfer with destination hotel row
+  Transportacion Terrestre Ejemplo | 2026-11-15 | 65000 MXN
+  |SERVICIO PRIVADO SENCILLO|650.00
+=== 409 mx152 bus ticket with discount zero row
+  Primera Plus | 2026-11-13 | 55700 MXN
+  |TARIFA ADULTO|520.00
+  |SEGURO DE VIAJERO|12.00
+  |SERVICIO A BORDO|25.00
+=== 410 gt153 hardware numbered invoice
+  Ferreteria la Esquina | 2026-11-16 | 53350 GTQ
+  2|CEMENTO GRIS 42.5 KG|156.00
+  10|VARILLA 3/8 LEGITIMA|325.00
+  5|ALAMBRE DE AMARRE LB|30.00
+  3|CLAVO 2 PULG LB|22.50
+=== 411 min W4c total and change both with zero for o
+  null | null | 18550 MXN
+  |PAN DULCE|85.50
+=== 412 min W4d damaged prices and change only
+  null | null | 8550 MXN
+  1|CAFE ANDATTI 12OZ|22.00
+  1|PAN DULCE C0NCHA|14.50
+  1|AGUA BONAFONT 600ML|13.00
+  2|BARRA NATURE VALLEY|36.00
+=== 413 min W4e damaged prices and total only
+  null | null | 8550 MXN
+  1|CAFE ANDATTI 12OZ|22.00
+  1|PAN DULCE C0NCHA|14.50
+  1|AGUA BONAFONT 600ML|13.00
+  2|BARRA NATURE VALLEY|36.00
+=== 414 min W4f total and change damaged prices clean
+  null | null | 18550 MXN
+  1|CAFE ANDATTI 12OZ|22.00
+  2|BARRA NATURE VALLEY|63.50
+=== 415 min R1c fare discount zero then extras
+  null | null | 52000 MXN
+  |TARIFA ADULTO|520.00
+  |SEGURO DE VIAJERO|12.00
+=== 416 min R8d suffix row then branch then slogan
+  Distribuidora Ejemplo | null | 31285 GTQ
+=== 417 min R8e name and suffix on one row then slogan
+  Todo Para la Construccion | null | 19800 MXN
+=== 418 min R9e sold by label row
+  Example Travel Store | null | 4398 MXN
+=== 419 min R10b quantities with zeros one two three
+  null | null | 3900 MXN
+  |CAFE AMERICANO|25.00
+  |PAN DULCE|28.00
+  |AGUA 600ML|39.00
+=== 420 min R10c quantities one two two three before barcodes
+  null | null | 16250 MXN
+  1|PAN BIMBO BLANCO 680G|45.00
+  2|LECHE LALA 1 L|53.00
+  2|COCA COLA 600ML|36.00
+  3|YOGHURT DANONE FRESA 125G|28.50
+=== 421 min R6c fuel price then litres then total
+  null | null | 46000 MXN
+  |MAGNA|460.00
+=== 422 min R6d price not whole then quantity then total
+  null | null | 4500 MXN
+  2|PEGAMENTO LAPIZ 21 G|45.00
+=== 423 min R7d ticket two days
+  null | null | null MXN
+  |TICKET 2 DIAS|420.00
+=== 424 min R5c two rows with a multiplier after barcodes
+  null | null | 8400 MXN
+  3|COCA COLA 600ML|54.00
+  2|GALLETAS MARIAS|30.00
+=== 425 min R4d number in front equal to the quantity
+  null | null | 3600 MXN
+  2|COCA COLA 600ML|36.00
+=== 426 min R4e numbered lines counting up all with qty x price
+  null | null | 8150 MXN
+  2|LECHE LALA 1 L|53.00
+  3|YOGHURT DANONE FRESA|28.50
+=== 427 min R1d discount zero row before the subtotal
+  null | null | 16300 MXN
+  |LORATADINA 10MG 20 TAB|68.00
+  |OMEPRAZOL 20MG 14 CAP|95.00
+=== 428 min K parking tax then a fee
+  null | null | 3180 MXN
+  |PARKING|28.00
+  |CONVENIENCE FEE|1.00
+=== 429 min R2b idp row after the last product
+  null | null | 31342 GTQ
+  8.524|SUPER|268.42
+  |ACEITE 2T 1/4 GAL|45.00
+=== 430 us154 airport parking tax then access fee
+  Example Airport Parking | 2026-11-16 | 6990 MXN
+  |PARKING 5 DAYS|60.00
+  |AIRPORT ACCESS FEE|6.00
+=== 431 min K2 parking tax then access fee
+  null | null | 6600 MXN
+  |PARKING 5 DAYS|60.00
+  |AIRPORT ACCESS FEE|6.00
+=== 432 min R8f suffix row then slogan no total
+  Ferreteria Ejemplo | null | null MXN
+=== 433 min R9f emisor label row no total
+  Libreria y Papeleria Ejemplo | null | null MXN
+=== 434 min R11b hotel row under the company name no total
+  Transfers Ejemplo | null | null MXN
